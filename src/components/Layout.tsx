@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { MainNavbar } from './main-navbar';
 import { AppSidebar } from './app-sidebar';
-import { Footer } from 'react-day-picker';
+import { Footer } from './footer';
 
 export function Layout() {
   return (
