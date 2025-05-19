@@ -14,7 +14,7 @@ export default function Home() {
     <div className="flex flex-col w-full">
       <HeroSection />
 
-      <Stats />z
+      <Stats />
 
       <section className="w-full py-16">
         <div className="container mx-auto px-4 sm:px-6 space-y-8">

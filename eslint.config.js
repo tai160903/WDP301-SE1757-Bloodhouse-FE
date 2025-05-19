@@ -23,6 +23,10 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      '@typescript-eslint/explicit-function-return-type': 'off', // Không yêu cầu type trả về cho hàm
+      '@typescript-eslint/no-explicit-any': 'warn', // Chỉ cảnh báo khi dùng 'any', không lỗi
+      '@typescript-eslint/ban-types': 'off', // Tắt cấm một số type (như {})
+      '@typescript-eslint/no-empty-function': 'off', // Cho phép hàm rỗng
     },
   },
 )

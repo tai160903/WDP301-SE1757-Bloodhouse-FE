@@ -89,13 +89,13 @@ export function Footer() {
             © {new Date().getFullYear()} BloodHouse. Tất cả quyền được bảo lưu.
           </p>
           <div className="flex gap-4 mt-4 md:mt-0">
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Điều khoản sử dụng
             </Link>
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Chính sách bảo mật
             </Link>
-            <Link href="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+            <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Liên hệ
             </Link>
           </div>
