@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -33,6 +31,12 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
+import { forwardRef } from 'react';
+
+const FormInput = forwardRef((props: any, ref) => (
+  <Input {...props} ref={ref} />
+));
+FormInput.displayName = 'FormInput';
 
 interface BloodRequestFormProps {
   isUrgent: boolean;
@@ -55,12 +59,9 @@ const formSchema = z.object({
     .or(z.literal('')),
   reason: z.string().optional(),
   medicalDetails: z.string().optional(),
-  consent: z
-    .boolean()
-    .default(false)
-    .refine((val) => val === true, {
-      message: 'Bạn phải đồng ý với các điều khoản và điều kiện',
-    }),
+  consent: z.boolean().refine((val) => val === true, {
+    message: 'Bạn phải đồng ý với các điều khoản và điều kiện',
+  }),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -111,7 +112,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
               <FormItem>
                 <FormLabel>Tên bệnh nhân</FormLabel>
                 <FormControl>
-                  <Input
+                  <FormInput
                     placeholder="Nhập tên bệnh nhân"
                     {...field}
                     aria-invalid={!!form.formState.errors.patientName}
@@ -129,7 +130,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
               <FormItem>
                 <FormLabel>Tuổi bệnh nhân</FormLabel>
                 <FormControl>
-                  <Input
+                  <FormInput
                     type="number"
                     placeholder="Nhập tuổi bệnh nhân"
                     {...field}
@@ -201,7 +202,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
               <FormItem>
                 <FormLabel>Số lượng đơn vị</FormLabel>
                 <FormControl>
-                  <Input
+                  <FormInput
                     type="number"
                     placeholder="Nhập số lượng đơn vị"
                     {...field}
@@ -221,7 +222,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
               <FormItem>
                 <FormLabel>Bệnh viện/Cơ sở y tế</FormLabel>
                 <FormControl>
-                  <Input
+                  <FormInput
                     placeholder="Nhập tên bệnh viện"
                     {...field}
                     aria-invalid={!!form.formState.errors.hospital}
@@ -280,7 +281,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
               <FormItem>
                 <FormLabel>Người liên hệ</FormLabel>
                 <FormControl>
-                  <Input
+                  <FormInput
                     placeholder="Nhập tên người liên hệ"
                     {...field}
                     aria-invalid={!!form.formState.errors.contactName}
@@ -299,7 +300,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
               <FormItem>
                 <FormLabel>Số điện thoại liên hệ</FormLabel>
                 <FormControl>
-                  <Input
+                  <FormInput
                     placeholder="Nhập số điện thoại liên hệ"
                     {...field}
                     aria-invalid={!!form.formState.errors.contactPhone}
@@ -317,7 +318,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
               <FormItem>
                 <FormLabel>Email liên hệ</FormLabel>
                 <FormControl>
-                  <Input
+                  <FormInput
                     type="email"
                     placeholder="Nhập email liên hệ"
                     {...field}
