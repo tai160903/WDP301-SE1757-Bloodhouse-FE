@@ -30,9 +30,7 @@ export default function Home() {
             </Button>
           </div>
 
-          {/* Card grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Card 1 */}
             <Card className="card-hover border-t-4 border-t-primary">
               <CardHeader className="space-y-1">
                 <div className="bg-accent w-12 h-12 rounded-full flex items-center justify-center mb-2">
@@ -46,7 +44,7 @@ export default function Home() {
               </CardContent>
               <CardFooter>
                 <Button variant="outline" asChild>
-                  <Link to="/register">Đăng ký ngay</Link>
+                  <Link to="/auth/register">Đăng ký ngay</Link>
                 </Button>
               </CardFooter>
             </Card>

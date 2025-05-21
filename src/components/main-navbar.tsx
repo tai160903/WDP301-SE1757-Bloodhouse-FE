@@ -47,7 +47,7 @@ const resourcesItems = [
   },
   {
     title: "Thông tin nhóm máu",
-    href: "/education",
+    href: "/bloodInfo",
     description: "Tìm hiểu về các nhóm máu và tính tương thích",
   },
   {

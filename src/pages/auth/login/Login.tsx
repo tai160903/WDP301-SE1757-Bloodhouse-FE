@@ -51,7 +51,7 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-r from-red-50 to-white flex items-center justify-center">
       <div className="relative w-full max-w-6xl">
-        <nav className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 text-white">
+        <nav className="absolute top-0 left-0 right-0 flex justify-between items-center p-4 text-gray-800 hover:text-red-600">
           <span>Chào mừng đến với BloodHouse</span>
           <div className="space-x-6">
             <a href="/" className="text-gray-800 hover:text-red-600 transition-colors duration-200">
