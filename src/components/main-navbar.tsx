@@ -82,6 +82,12 @@ const locationItems = [
 
 export function MainNavbar() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  React.useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  })
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container flex h-16 items-center justify-between">

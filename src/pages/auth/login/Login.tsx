@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import ImageLogin from '@/assets/Hình-Login.jpg';
 import { login } from '@/services/auth';
 
 interface LoginFormData {
@@ -12,12 +11,13 @@ interface FormErrors {
   password?: string;
 }
 
-const Login: React.FC = () => {
+const Login = () => {
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [loading, setLoading] = useState<boolean>(false);
 
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
@@ -38,24 +38,41 @@ const Login: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  const validationErrors = validateForm();
-  if (Object.keys(validationErrors).length === 0) {
-    try {
-      const response = await login(formData.email, formData.password);
-      console.log("Login success:", response.data);
-    } catch (error: any) {
-      console.error("Login failed:", error);
-      setErrors((prev) => ({
-        ...prev,
-        eror: error.response.data.message, 
-      }));
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length === 0) {
+      setLoading(true);
+      try {
+        const response : any = await login(formData.email, formData.password);
+        console.log(response);
+
+        if (response.status === 200) {
+          console.log("Login successful");
+          localStorage.setItem("token", response.data.tokens.accessToken);
+
+          window.location.href = "/";
+        } else {
+          console.log("Login failed");
+          setErrors((prev) => ({
+            ...prev,
+            password: "Mật khẩu hoặc email không đúng",
+          }));
+        }
+      } catch (error: any) {
+        console.error("Login failed:", error);
+        setErrors((prev) => ({
+          ...prev,
+          password: error.message || "Đăng nhập thất bại",
+        }));
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setErrors(validationErrors);
     }
-  } else {
-    setErrors(validationErrors);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-red-50 to-white flex items-center justify-center">
@@ -107,7 +124,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   id="password"
                   type="password"
                   name="password"
-                  value={formData.password} // Đã sửa từ formData.email thành formData.password
+                  value={formData.password} 
                   onChange={handleInputChange}
                   className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-100"
                   placeholder="Nhập mật khẩu của bạn"
@@ -128,8 +145,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               <button
                 type="submit"
                 className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                disabled={loading} // Disable button when loading
               >
-                Đăng Nhập
+                {loading ? 'Đang Đăng Nhập...' : 'Đăng Nhập'}
               </button>
             </form>
             <div className="mt-4">

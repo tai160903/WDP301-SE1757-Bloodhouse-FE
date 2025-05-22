@@ -1,47 +1,39 @@
 import { instance } from "../instance";
 
-interface LoginResponse {
-  tokens: {
-    accessToken: string;
-    refreshToken: string;
+// Định nghĩa kiểu dữ liệu trả về thành công
+interface LoginResponse extends IResponse.Response {
+  data: {
+    tokens: {
+      accessToken: string;
+      refreshToken: string;
+    };
+    user: {
+      _id: string;
+      email: string;
+      full_name: string;
+      avatar: string;
+      role: string;
+    };
   };
-  user: {
-    _id: string;
-    email: string;
-    full_name: string;
-    avatar: string;
-    role: string;
-  };
-}
-
-interface LoginErrorResponse {
-  error: true;
-  message: string;
 }
 
 const login = async (
   email: string,
   password: string
-): Promise<LoginResponse | LoginErrorResponse> => {
+): Promise<LoginResponse> => {
   try {
     const { data } = await instance.post<LoginResponse>(
-      "/auth/login",
-      
+      "/auth/sign-in",
       { email, password },
-      { withCredentials: true },
-      
+      { withCredentials: true }
     );
-    return data;
+    return data;  
   } catch (error: any) {
-    console.error("Login error:", error?.response?.data || error.message);
-    return {
-      error: true,
-      message: error?.response?.data?.message || "Login failed",
-    };
+    throw new Error(error?.response?.message || "Login failed");
   }
 };
 
-// Hàm register
+// Hàm đăng ký
 const register = async (
   data: Record<string, any>
 ): Promise<AxiosResponse<RegisterResponse> | RegisterErrorResponse> => {
