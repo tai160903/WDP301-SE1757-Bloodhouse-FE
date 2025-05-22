@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import ImageLogin from '@/assets/Hình-Login.jpg';
+import { login } from '@/services/auth';
 
 interface LoginFormData {
   email: string;
@@ -37,16 +38,24 @@ const Login: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length === 0) {
-      console.log('Form submitted:', formData);
-    } else {
-      setErrors(validationErrors);
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  const validationErrors = validateForm();
+  if (Object.keys(validationErrors).length === 0) {
+    try {
+      const response = await login(formData.email, formData.password);
+      console.log("Login success:", response.data);
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      setErrors((prev) => ({
+        ...prev,
+        eror: error.response.data.message, 
+      }));
     }
-  };
+  } else {
+    setErrors(validationErrors);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-red-50 to-white flex items-center justify-center">
