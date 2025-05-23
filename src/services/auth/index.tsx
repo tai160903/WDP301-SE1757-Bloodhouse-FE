@@ -20,16 +20,15 @@ interface LoginErrorResponse {
 }
 
 const login = async (
-  email: string,
+  emailOrPhone: string,
   password: string
 ): Promise<LoginResponse | LoginErrorResponse> => {
   try {
     const { data } = await instance.post<LoginResponse>(
-      "/auth/login",
-      
-      { email, password },
-      { withCredentials: true },
-      
+      "/auth/sign-in",
+
+      { emailOrPhone, password },
+      { withCredentials: true }
     );
     return data;
   } catch (error: any) {
@@ -46,7 +45,10 @@ const register = async (
   data: Record<string, any>
 ): Promise<AxiosResponse<RegisterResponse> | RegisterErrorResponse> => {
   try {
-    const response = await instance.post<RegisterResponse>("/api/auth/register", data);
+    const response = await instance.post<RegisterResponse>(
+      "/api/auth/sign-up",
+      data
+    );
     return response;
   } catch (error: any) {
     console.log("Register error", error);
