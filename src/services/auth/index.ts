@@ -1,6 +1,5 @@
 import { instance } from "../instance";
 
-// Định nghĩa kiểu dữ liệu trả về thành công
 interface LoginResponse extends IResponse.Response {
   data: {
     tokens: {
@@ -10,21 +9,30 @@ interface LoginResponse extends IResponse.Response {
     user: {
       _id: string;
       email: string;
-      full_name: string;
-      avatar: string;
+      role: string;
+    };
+  };
+}
+
+interface RegisterResponse extends IResponse.Response {
+  data: {
+    user: {
+      _id: string;
+      fullName: string;
+      email: string;
       role: string;
     };
   };
 }
 
 const login = async (
-  email: string,
+  emailOrPhone: string,
   password: string
 ): Promise<LoginResponse> => {
   try {
     const { data } = await instance.post<LoginResponse>(
       "/auth/sign-in",
-      { email, password },
+      { emailOrPhone, password },
       { withCredentials: true }
     );
     return data;  
@@ -33,20 +41,19 @@ const login = async (
   }
 };
 
-// Hàm đăng ký
 const register = async (
   data: Record<string, any>
-): Promise<AxiosResponse<RegisterResponse> | RegisterErrorResponse> => {
+): Promise<RegisterResponse> => {
   try {
-    const response = await instance.post<RegisterResponse>("/api/auth/register", data);
-    return response;
+    const { data: responseData } = await instance.post<RegisterResponse>(
+      "/auth/sign-up",
+      data
+    );
+    return responseData;
   } catch (error: any) {
-    console.log("Register error", error);
-    return {
-      error: true,
-      message: error.response?.data?.message || "Registration failed",
-    };
+    throw new Error(error.response?.data?.message || "Registration failed");
   }
 };
+
 
 export { login, register };
