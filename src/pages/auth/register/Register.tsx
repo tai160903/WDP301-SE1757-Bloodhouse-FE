@@ -146,7 +146,6 @@ const Register: React.FC = () => {
               </div>
             </div>
 
-            {/* Phone and Email */}
             <div className="flex gap-4">
               <div className="flex-1">
                 <label>Số điện thoại *</label>

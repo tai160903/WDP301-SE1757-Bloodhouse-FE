@@ -3,7 +3,8 @@ import RequestBloodPage from "@/pages/blood-request/requestBlood";
 import BloodDonationRegistrationPage from "@/pages/blood-donation-registration/BloodDonationRegistration";
 import NotFoundPage from "@/pages/notFoundPage/notFoundRoute";
 import SearchPage from "@/pages/blood-search/searchBloodPage";
-import BlogPage from "@/pages/resource/Blog";
+import Blog from "@/pages/resource/Blog";
+import BlogDetails from "@/pages/resource/BlogDetail";
 import BloodInfo from "@/pages/resource/BloodInfo";
 import FAQPage from "@/pages/resource/Faq";
 
@@ -27,7 +28,11 @@ const userRoutes = [
   },
   {
     path: "/blog",
-   element: <BlogPage />,
+   element: <Blog />,
+  },
+  {
+    path: "/blog/:id",
+    element: <BlogDetails />,
   },
   {
     path: "/bloodInfo",

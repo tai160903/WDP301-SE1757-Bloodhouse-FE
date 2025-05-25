@@ -23,7 +23,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { cn } from "../lib/utils";
-
+import { instance } from "@/services/instance";
+const handleLogout = async () => {
+    try {
+      await instance.post('/auth/sign-out');
+      localStorage.removeItem('token');
+      window.location.href =('/auth/login');
+    } catch (error) {
+      console.error('Logout thất bại:', error);
+    }
+  };
 const mainNavItems = [
   {
     title: "Hiến máu",
@@ -290,8 +299,10 @@ export function MainNavbar() {
                     asChild
                     className="text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 focus:bg-red-50 focus:text-red-600"
                   >
-                    <Link to="/auth/logout">Đăng xuất</Link>
-                  </DropdownMenuItem>
+              <button onClick={handleLogout}>
+                    Đăng xuất
+                  </button>            
+          </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
