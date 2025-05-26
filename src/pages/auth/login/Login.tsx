@@ -143,7 +143,7 @@ const Login = () => {
                   <input type="checkbox" className="mr-2 focus:ring-red-500" />
                   Giữ tôi đăng nhập
                 </label>
-                <a href="#" className="text-sm text-red-600 hover:underline">
+                <a href="/auth/forgot-password" className="text-sm text-red-600 hover:underline">
                   Quên mật khẩu?
                 </a>
               </div>
