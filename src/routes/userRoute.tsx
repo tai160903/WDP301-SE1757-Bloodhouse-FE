@@ -7,7 +7,8 @@ import Blog from "@/pages/resource/Blog";
 import BlogDetails from "@/pages/resource/BlogDetail";
 import BloodInfo from "@/pages/resource/BloodInfo";
 import FAQPage from "@/pages/resource/Faq";
-
+import ProfilePage from "@/pages/Profile/ProfilePage";
+import BloodDonationHistory from "@/pages/Profile/BloodDonationHistory/BloodDonationHistory";
 
 const userRoutes = [
   {
@@ -23,12 +24,12 @@ const userRoutes = [
     element: <BloodDonationRegistrationPage />,
   },
   {
-   path: "*",
-   element: <NotFoundPage />,
+    path: "*",
+    element: <NotFoundPage />,
   },
   {
     path: "/blog",
-   element: <Blog />,
+    element: <Blog />,
   },
   {
     path: "/blog/:id",
@@ -36,9 +37,9 @@ const userRoutes = [
   },
   {
     path: "/bloodInfo",
-    element: <BloodInfo/>,
+    element: <BloodInfo />,
   },
-   {
+  {
     path: "/search",
     element: <SearchPage />,
   },
@@ -46,7 +47,14 @@ const userRoutes = [
     path: "/faq",
     element: <FAQPage />,
   },
-
+  {
+    path: "/profile",
+    element: <ProfilePage />,
+  },
+  {
+    path: "/donation-history",
+    element: <BloodDonationHistory />
+  }
 ];
 
 export default userRoutes;
