@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -26,92 +26,102 @@ import {
   Phone,
   Clock,
   Users,
-  Thermometer,
 } from "lucide-react";
+import { getFacilities } from "@/services/location/facility";
+import { getBloodInventory } from "@/services/bloodinventory";
+import { getTotalStaff } from "@/services/facilityStaff";
+
+interface Facility {
+  _id: string;
+  name: string;
+  address: string;
+  contactPhone: string;
+  isActive: boolean;
+  schedules: {
+    day: string;
+    openTime: string;
+    closeTime: string;
+  }[];
+}
+
+interface BloodInventory {
+  _id: string;
+  facilityId: {
+    _id: string;
+    name: string;
+    address: string;
+    code: string;
+  };
+  componentId: {
+    _id: string;
+    name: string;
+  };
+  groupId: {
+    _id: string;
+    name: string;
+  };
+  totalQuantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 function FacilityManagement() {
-  // Enhanced mock data for blood donation facilities
-  const [facilities, setFacilities] = useState([
-    {
-      id: 1,
-      name: "Central Blood Bank",
-      address: "123 Main St, New York, NY 10001",
-      capacity: 5000,
-      currentStock: 4200,
-      status: "Active",
-      type: "Blood Bank",
-      phone: "(555) 123-4567",
-      operatingHours: "24/7",
-      lastInspection: "2024-01-15",
-      staffCount: 25,
-      temperature: "-2°C",
-    },
-    {
-      id: 2,
-      name: "East District Donation Center",
-      address: "456 Park Ave, Boston, MA 02101",
-      capacity: 3000,
-      currentStock: 2100,
-      status: "Active",
-      type: "Collection Center",
-      phone: "(555) 234-5678",
-      operatingHours: "8AM - 8PM",
-      lastInspection: "2024-02-20",
-      staffCount: 15,
-      temperature: "22°C",
-    },
-    {
-      id: 3,
-      name: "West Wing Collection Center",
-      address: "789 Lake Dr, Chicago, IL 60601",
-      capacity: 2500,
-      currentStock: 800,
-      status: "Maintenance",
-      type: "Collection Center",
-      phone: "(555) 345-6789",
-      operatingHours: "Closed",
-      lastInspection: "2024-03-10",
-      staffCount: 12,
-      temperature: "N/A",
-    },
-    {
-      id: 4,
-      name: "South Storage Facility",
-      address: "321 Ocean Blvd, Miami, FL 33101",
-      capacity: 4000,
-      currentStock: 3800,
-      status: "Active",
-      type: "Storage Facility",
-      phone: "(555) 456-7890",
-      operatingHours: "24/7",
-      lastInspection: "2024-01-28",
-      staffCount: 18,
-      temperature: "-4°C",
-    },
-    {
-      id: 5,
-      name: "Mobile Collection Unit Alpha",
-      address: "Various Locations",
-      capacity: 200,
-      currentStock: 150,
-      status: "Active",
-      type: "Mobile Unit",
-      phone: "(555) 567-8901",
-      operatingHours: "9AM - 5PM",
-      lastInspection: "2024-03-05",
-      staffCount: 6,
-      temperature: "4°C",
-    },
-  ]);
+  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [bloodInventory, setBloodInventory] = useState<BloodInventory[]>([]);
+  const [totalStaff, setTotalStaff] = useState<number>(0);
+  const [staffCounts, setStaffCounts] = useState<Record<string, number>>({});
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredFacilities = facilities.filter(
-    (facility) =>
-      facility.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      facility.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      facility.type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchFacilities();
+    fetchBloodInventory();
+  }, []);
+
+  useEffect(() => {
+    const fetchStaffCounts = async () => {
+      const facilityIds = facilities.map((f) => f._id);
+      try {
+        const staffData = await Promise.all(
+          facilityIds.map(async (facilityId) => {
+            const res = await getTotalStaff(facilityId);
+            return { facilityId, total: res.data.total };
+          })
+        );
+        const counts: Record<string, number> = {};
+        staffData.forEach(({ facilityId, total }) => {
+          counts[facilityId] = total;
+        });
+        setStaffCounts(counts);
+        setTotalStaff(
+          Object.values(counts).reduce((sum, count) => sum + count, 0)
+        );
+      } catch (error) {
+        console.error("Error fetching total staff:", error);
+      }
+    };
+    if (facilities.length > 0) {
+      fetchStaffCounts();
+    }
+  }, [facilities]);
+
+  const fetchFacilities = async () => {
+    try {
+      const response = await getFacilities();
+      setFacilities(response?.data?.result || []);
+    } catch (error) {
+      console.error("Error fetching facilities:", error);
+    }
+  };
+
+  const fetchBloodInventory = async () => {
+    try {
+      const response = await getBloodInventory();
+      setBloodInventory(response?.data || []);
+    } catch (error) {
+      console.error("Error fetching blood inventory:", error);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -125,41 +135,6 @@ function FacilityManagement() {
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "Blood Bank":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "Collection Center":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Storage Facility":
-        return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Mobile Unit":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
-  };
-
-  const getCapacityPercentage = (current: number, capacity: number) => {
-    return Math.round((current / capacity) * 100);
-  };
-
-  const totalCapacity = facilities.reduce(
-    (sum, facility) => sum + facility.capacity,
-    0
-  );
-  const totalStock = facilities.reduce(
-    (sum, facility) => sum + facility.currentStock,
-    0
-  );
-  const activeFacilities = facilities.filter(
-    (f) => f.status === "Active"
-  ).length;
-  const totalStaff = facilities.reduce(
-    (sum, facility) => sum + facility.staffCount,
-    0
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6">
@@ -211,7 +186,7 @@ function FacilityManagement() {
                     Active Facilities
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {activeFacilities}
+                    {facilities.filter((facility) => facility.isActive).length}
                   </p>
                 </div>
                 <Activity className="h-8 w-8 text-green-500" />
@@ -227,7 +202,9 @@ function FacilityManagement() {
                     Total Capacity
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {totalCapacity.toLocaleString()}
+                    {bloodInventory
+                      .reduce((total, item) => total + item.totalQuantity, 0)
+                      .toLocaleString()}
                   </p>
                   <p className="text-xs text-gray-500">units</p>
                 </div>
@@ -244,7 +221,7 @@ function FacilityManagement() {
                     Total Staff
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {totalStaff}
+                    {totalStaff.toLocaleString()}
                   </p>
                 </div>
                 <Users className="h-8 w-8 text-purple-500" />
@@ -264,18 +241,17 @@ function FacilityManagement() {
           <CardContent>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Current Stock: {totalStock.toLocaleString()} units</span>
                 <span>
-                  Total Capacity: {totalCapacity.toLocaleString()} units
+                  Current Stock:{" "}
+                  {bloodInventory
+                    .reduce((total, item) => total + item.totalQuantity, 0)
+                    .toLocaleString()}{" "}
+                  units
                 </span>
               </div>
-              <Progress
-                value={getCapacityPercentage(totalStock, totalCapacity)}
-                className="h-3"
-              />
+              <Progress value={75} className="h-3" />
               <p className="text-sm text-gray-600">
-                {getCapacityPercentage(totalStock, totalCapacity)}% capacity
-                utilized across all facilities
+                75% capacity utilized across all facilities
               </p>
             </div>
           </CardContent>
@@ -328,123 +304,109 @@ function FacilityManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredFacilities.map((facility) => (
-                    <TableRow
-                      key={facility.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {facility.name}
+                  {facilities &&
+                    facilities.length > 0 &&
+                    facilities.map((facility) => (
+                      <TableRow
+                        key={facility._id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {facility.name}
+                            </div>
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <MapPin className="h-3 w-3" />
+                              <span>{facility.address}</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Phone className="h-3 w-3" />
+                              <span>{facility.contactPhone}</span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-2">
+                            <div className="text-sm">
+                              <span className="font-medium"></span>
+                              <span className="text-gray-500"></span>
+                            </div>
+                            <Progress value={75} className="h-2" />
+                            <div className="text-xs text-gray-500">
+                              75% utilized
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Clock className="h-3 w-3" />
+                              <span>
+                                {facility.schedules &&
+                                facility.schedules.length > 0
+                                  ? `${facility.schedules[0].openTime} - ${facility.schedules[0].closeTime}`
+                                  : "No schedule"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <Users className="h-3 w-3" />
+                              <span>
+                                {staffCounts[facility._id] ?? 0}{" "}
+                                {(staffCounts[facility._id] ?? 0) === 1
+                                  ? "staff member"
+                                  : "staff members"}
+                              </span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <Badge
                             variant="outline"
-                            className={`mt-1 text-xs ${getTypeColor(
-                              facility.type
+                            className={`font-medium ${getStatusColor(
+                              facility.isActive ? "Active" : "Inactive"
                             )}`}
                           >
-                            {facility.type}
+                            {facility.isActive ? "Active" : "Inactive"}
                           </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <MapPin className="h-3 w-3" />
-                            <span>{facility.address}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="hover:bg-blue-50 hover:border-blue-300"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="hover:bg-red-50 hover:border-red-300 text-red-600"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Phone className="h-3 w-3" />
-                            <span>{facility.phone}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-2">
-                          <div className="text-sm">
-                            <span className="font-medium">
-                              {facility.currentStock.toLocaleString()}
-                            </span>
-                            <span className="text-gray-500">
-                              {" "}
-                              / {facility.capacity.toLocaleString()} units
-                            </span>
-                          </div>
-                          <Progress
-                            value={getCapacityPercentage(
-                              facility.currentStock,
-                              facility.capacity
-                            )}
-                            className="h-2"
-                          />
-                          <div className="text-xs text-gray-500">
-                            {getCapacityPercentage(
-                              facility.currentStock,
-                              facility.capacity
-                            )}
-                            % utilized
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Clock className="h-3 w-3" />
-                            <span>{facility.operatingHours}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Users className="h-3 w-3" />
-                            <span>{facility.staffCount} staff</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Thermometer className="h-3 w-3" />
-                            <span>{facility.temperature}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`font-medium ${getStatusColor(
-                            facility.status
-                          )}`}
-                        >
-                          {facility.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="hover:bg-blue-50 hover:border-blue-300"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="hover:bg-red-50 hover:border-red-300 text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </div>
 
-            {filteredFacilities.length === 0 && (
+            {facilities.length === 0 && (
               <div className="text-center py-12">
                 <Building2 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No facilities found
                 </h3>
                 <p className="text-gray-500">
-                  No facilities match your search criteria. Try adjusting your
+                  No facilities match your search criteria. Try adjusting
+                  yourfacilities match your search criteria. Try adjusting your
                   search terms.
                 </p>
               </div>
