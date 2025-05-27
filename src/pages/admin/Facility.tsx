@@ -30,6 +30,7 @@ import {
 import { getFacilities } from "@/services/location/facility";
 import { getBloodInventory } from "@/services/bloodinventory";
 import { getTotalStaff } from "@/services/facilityStaff";
+import CreateFacilityModal from "@/components/facilities/CreateFacilityModal";
 
 interface Facility {
   _id: string;
@@ -72,6 +73,7 @@ function FacilityManagement() {
   const [staffCounts, setStaffCounts] = useState<Record<string, number>>({});
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
     fetchFacilities();
@@ -154,7 +156,10 @@ function FacilityManagement() {
               </p>
             </div>
           </div>
-          <Button className="bg-slate-600 hover:bg-slate-700 text-white shadow-lg">
+          <Button
+            className="bg-slate-600 hover:bg-slate-700 text-white shadow-lg"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add New Facility
           </Button>
@@ -413,6 +418,12 @@ function FacilityManagement() {
             )}
           </CardContent>
         </Card>
+
+        <CreateFacilityModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={fetchFacilities} // This will refresh the facility list
+        />
       </div>
     </div>
   );
