@@ -568,7 +568,7 @@ function BloodGroupManagement() {
                                 <DialogDescription className="text-sm text-gray-500">
                                   Cập nhật thông tin của một nhóm máu hiện có.
                                 </DialogDescription>
-                                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100">
+                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70">
                                   <X className="h-4 w-4" />
                                   <span className="sr-only">Đóng</span>
                                 </DialogClose>
