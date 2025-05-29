@@ -1,16 +1,37 @@
-import React, { useState } from "react";
-// import { MdEdit } from "react-icons/md";
+import { getUserProfile, userProfiles } from "@/services/users";
+import React, { useEffect, useState } from "react";
+import { MdEdit } from "react-icons/md";
 // import avatarImage from "../../assets/img/hero-photo.png";
 
 const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [profile, setProfile] = useState<userProfiles>();
+  const [loading, setLoading] = useState(true);
 
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getUserProfile();
+        console.log(res.data);
+        setProfile(res);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
+
   return (
-    <div className="min-h-screen p-4 bg-gray-100">
+    <div className="min-h-screen p-4 bg-white-100">
       <div className="bg-white rounded-lg p-6 max-w-4xl mx-auto shadow">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Thông tin cá nhân</h2>
@@ -18,23 +39,21 @@ const ProfilePage: React.FC = () => {
             onClick={handleEditClick}
             className="flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition"
           >
-            {/* <MdEdit /> */}
+            <MdEdit />
             Chỉnh sửa
           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Avatar và username */}
           <div className="flex flex-col items-center">
-            {/* <img
-              src={avatarImage}
+            <img
+              src={profile?.data.avatar}
               alt="Avatar"
               className="w-32 h-32 rounded-full object-cover mb-4 border"
-            /> */}
+            />
             <p className="text-gray-600">tuanminh123</p>
           </div>
 
-          {/* Thông tin chi tiết */}
           <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-gray-500">Họ và tên</p>
@@ -42,7 +61,7 @@ const ProfilePage: React.FC = () => {
             </div>
             <div>
               <p className="text-gray-500">Email</p>
-              <p className="font-medium">tuanminh@example.com</p>
+              <p className="font-medium">{profile?.data.email}</p>
             </div>
             <div>
               <p className="text-gray-500">Giới tính</p>
