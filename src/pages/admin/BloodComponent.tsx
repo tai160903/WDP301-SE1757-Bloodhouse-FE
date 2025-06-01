@@ -325,9 +325,9 @@ function BloodComponentManagement() {
         )}
 
         {/* Nội dung Chính */}
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 py-0">
           <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
-            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
               <Flask className="h-5 w-5" />
               Danh sách Thành phần
             </CardTitle>

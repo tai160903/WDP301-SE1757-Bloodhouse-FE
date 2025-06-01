@@ -47,7 +47,6 @@ export const getAll = async (): Promise<BlogResponse> => {
 export const getById = async (id: string): Promise<BlogResponse> => {
   try {
     const { data } = await instance.get<BlogResponse>(`/content/${id}`);
-    console.log(data)
     return data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
@@ -71,4 +70,14 @@ export const update = async (id: string, data: Blog): Promise<BlogResponse> => {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
 };
+
+export const getBlogs = async (params: any): Promise<any> => {
+  try {
+    const { data } = await instance.get<any>(`/content`, { params });
+    return data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
+
 

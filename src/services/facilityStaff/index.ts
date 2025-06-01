@@ -58,3 +58,16 @@ export const getAllStaffsNotAssignedToFacility = async (
     );
   }
 };
+
+export const getAllStaffs = async (params: any): Promise<any> => {
+  try {
+    const { data } = await instance.get<any>(`/facility-staff`, {
+      params,
+    });
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error when calling API."
+    );
+  }
+};
