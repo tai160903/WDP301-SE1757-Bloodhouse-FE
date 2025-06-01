@@ -1,11 +1,33 @@
-interface TotalStaff {
-  total: number;
-}
-
-interface TotalStaffResponse extends IResponse.Response {
-  data: TotalStaff;
+interface Response extends IResponse.Response {
+  data: any;
 }
 import { instance } from "../instance";
+
+interface UserData {
+  _id: string;
+  fullName: string;
+  email: string;
+  avatar: string;
+}
+
+interface StaffData {
+  _id: string;
+  position: string;
+  isDeleted: boolean;
+  isDelete: boolean;
+  userId: UserData;
+}
+
+interface TotalStaffResponse {
+  data: {
+    total: number;
+  };
+}
+
+interface StaffListResponse {
+  data: StaffData[];
+}
+
 export const getTotalStaff = async (
   facilityId: string
 ): Promise<TotalStaffResponse> => {
@@ -15,6 +37,24 @@ export const getTotalStaff = async (
     );
     return data;
   } catch (error: any) {
-    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+    throw new Error(
+      error?.response?.data?.message || "Error when calling API."
+    );
+  }
+};
+
+export const getAllStaffsNotAssignedToFacility = async (
+  position: string
+): Promise<StaffListResponse> => {
+  try {
+    const { data } = await instance.get<StaffListResponse>(
+      `/facility-staff/not-assigned?position=${position}`
+    );
+    console.log("getAllStaffsNotAssignedToFacility", data);
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error when calling API."
+    );
   }
 };
