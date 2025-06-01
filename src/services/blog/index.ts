@@ -54,3 +54,21 @@ export const getById = async (id: string): Promise<BlogResponse> => {
   }
 };
 
+export const create = async (data: Blog): Promise<BlogResponse> => {
+  try {
+    const response = await instance.post<BlogResponse>("/content", data);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
+
+export const update = async (id: string, data: Blog): Promise<BlogResponse> => {
+  try {
+    const response = await instance.put<BlogResponse>(`/content/${id}`, data);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
+

@@ -248,7 +248,6 @@ function BlogManagement() {
           </Card>
         </div>
 
-        {/* Main Content */}
         <Card className="shadow-xl border-0">
           <CardHeader className="bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-t-lg">
             <CardTitle className="text-xl font-semibold flex items-center gap-2">
@@ -257,7 +256,6 @@ function BlogManagement() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            {/* Search */}
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
