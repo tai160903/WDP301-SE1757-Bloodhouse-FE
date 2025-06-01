@@ -29,12 +29,12 @@ function AdminSidebar() {
   return (
     <div className="h-full w-72 bg-gradient-to-b from-slate-800 to-slate-700 shadow-lg">
       <div className="p-6">
-        <div className="flex items-center space-x-3">
+        <Link to="/" className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
             <FontAwesomeIcon icon={faDroplet} className="text-white text-xl" />
           </div>
-          <h1 className="text-white text-xl font-bold">BloodBank Admin</h1>
-        </div>
+          <h1 className="text-white text-xl font-bold">BloodHouse Admin</h1>
+        </Link>
       </div>
 
       <div className="px-4 py-2">

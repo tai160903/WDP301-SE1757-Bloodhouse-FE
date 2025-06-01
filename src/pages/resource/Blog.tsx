@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAll} from "../../services/blog";
+import { getAll, getBlogs } from "../../services/blog";
 import { Link } from "react-router-dom";
 interface Blog {
   _id: string;
@@ -19,12 +19,17 @@ interface Blog {
 const Blog: React.FC = () => {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const response = await getAll();
-        setBlogs(response.data);
+        const response = await getBlogs({ page: currentPage, limit: 10 });
+        setBlogs(response.data.data);
+        setTotalPages(response.data.totalPages);
+        setTotalItems(response.data.totalItems);
       } catch (err) {
         console.error("Lỗi khi load blogs", err);
       } finally {
@@ -38,7 +43,7 @@ const Blog: React.FC = () => {
   if (loading) return <p className="text-center mt-10">Loading...</p>;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4 container mx-auto">
       {blogs.map((blog) => (
         <div
           key={blog._id}
@@ -58,7 +63,9 @@ const Blog: React.FC = () => {
                 {blog.categoryId?.name || "Không có danh mục"} •{" "}
                 {new Date(blog.createdAt).toLocaleDateString()}
               </p>
-              <p className="text-gray-700 text-sm line-clamp-3">{blog.summary}</p>
+              <p className="text-gray-700 text-sm line-clamp-3">
+                {blog.summary}
+              </p>
               <div className="flex items-center mt-4">
                 <img
                   src={blog.authorId?.avatar || "/default-avatar.png"}

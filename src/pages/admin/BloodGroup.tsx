@@ -414,9 +414,9 @@ function BloodGroupManagement() {
             </Card>
           </div>
 
-          <Card className="shadow-xl border-0">
+          <Card className="shadow-xl border-0 py-0">
             <CardHeader className="bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-t-lg">
-              <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
                 <Droplets className="h-5 w-5" />
                 Kho Nhóm Máu
               </CardTitle>

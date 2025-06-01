@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -13,7 +13,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import {
   Search,
   Edit,
@@ -23,125 +31,102 @@ import {
   MapPin,
   Mail,
   Phone,
-  UserCheck,
-  Building2,
   Stethoscope,
-  Calendar,
+  ClipboardPlus,
+  UserRoundCog,
 } from "lucide-react";
+import { getAllStaffs } from "@/services/facilityStaff";
+
+interface User {
+  _id: string;
+  email: string;
+  fullName?: string;
+  phone?: string;
+  avatar: string;
+}
+
+interface Facility {
+  _id: string;
+  name: string;
+  address: string;
+  id: string;
+}
+
+interface Staff {
+  _id: string;
+  userId: User | null;
+  facilityId?: Facility;
+  position: string;
+  isDeleted: boolean;
+}
+
+interface StaffResponse {
+  data: {
+    data: Staff[];
+    metadata: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  };
+}
 
 function StaffManagement() {
-  // Mock data for blood donation staff
-  const [staffs, setStaffs] = useState([
-    {
-      id: 1,
-      name: "Dr. James Wilson",
-      position: "Medical Director",
-      facility: "Central Blood Bank",
-      email: "james.wilson@bloodhouse.org",
-      phone: "(555) 123-4567",
-      joinDate: "2018-03-12",
-      status: "Active",
-      department: "Medical",
-      experience: "15 years",
-    },
-    {
-      id: 2,
-      name: "Dr. Maria Rodriguez",
-      position: "Senior Phlebotomist",
-      facility: "East District Donation Center",
-      email: "maria.r@bloodhouse.org",
-      phone: "(555) 234-5678",
-      joinDate: "2019-05-20",
-      status: "Active",
-      department: "Collection",
-      experience: "8 years",
-    },
-    {
-      id: 3,
-      name: "Thomas Jenkins",
-      position: "Lab Technician",
-      facility: "Central Blood Bank",
-      email: "thomas.j@bloodhouse.org",
-      phone: "(555) 345-6789",
-      joinDate: "2020-08-15",
-      status: "On Leave",
-      department: "Laboratory",
-      experience: "5 years",
-    },
-    {
-      id: 4,
-      name: "Sarah Patel",
-      position: "Nurse",
-      facility: "West Wing Collection Center",
-      email: "sarah.p@bloodhouse.org",
-      phone: "(555) 456-7890",
-      joinDate: "2021-02-10",
-      status: "Active",
-      department: "Medical",
-      experience: "7 years",
-    },
-    {
-      id: 5,
-      name: "Robert Chen",
-      position: "Administrative Assistant",
-      facility: "South Storage Facility",
-      email: "robert.c@bloodhouse.org",
-      phone: "(555) 567-8901",
-      joinDate: "2021-10-05",
-      status: "Inactive",
-      department: "Administration",
-      experience: "3 years",
-    },
-  ]);
-
+  const [staffs, setStaffs] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [limit] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredStaffs = staffs.filter(
-    (staff) =>
-      staff.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      staff.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      staff.facility.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      staff.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    const fetchStaffs = async () => {
+      setLoading(true);
+      try {
+        const res: StaffResponse = await getAllStaffs({
+          page: currentPage,
+          limit,
+          position: "",
+        });
+        setStaffs(res.data.data);
+        setTotalItems(res.data.metadata.total);
+        setTotalPages(res.data.metadata.totalPages);
+      } catch (err: any) {
+        setError(err.message || "Không thể tải danh sách nhân viên.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStaffs();
+  }, [currentPage, limit]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800 border-green-200";
-      case "On Leave":
-        return "bg-yellow-100 text-yellow-800 border-yellow-200";
-      case "Inactive":
-        return "bg-red-100 text-red-800 border-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
-    }
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
   };
 
-  const getDepartmentColor = (department: string) => {
-    switch (department) {
-      case "Medical":
+  const getPositionColor = (position: string) => {
+    switch (position) {
+      case "DOCTOR":
         return "bg-blue-100 text-blue-800 border-blue-200";
-      case "Collection":
-        return "bg-red-100 text-red-800 border-red-200";
-      case "Laboratory":
+      case "NURSE":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "MANAGER":
         return "bg-purple-100 text-purple-800 border-purple-200";
-      case "Administration":
-        return "bg-gray-100 text-gray-800 border-gray-200";
       default:
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
-
-  const uniqueFacilities = [...new Set(staffs.map((staff) => staff.facility))]
-    .length;
+  const uniqueFacilities = new Set(
+    staffs.map((staff) => staff.facilityId?.name)
+  ).size;
+  const activeStaffs = staffs.filter((staff) => !staff.isDeleted).length;
+  const medicalStaffs = staffs.filter(
+    (staff) => staff.position === "DOCTOR" || staff.position === "NURSE"
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
@@ -154,16 +139,16 @@ function StaffManagement() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Staff Management
+                Quản lý nhân viên
               </h1>
               <p className="text-gray-600 mt-1">
-                Manage blood donation center personnel
+                Quản lý nhân sự trung tâm hiến máu
               </p>
             </div>
           </div>
           <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
-            Add New Staff
+            Thêm nhân viên mới
           </Button>
         </div>
 
@@ -174,7 +159,7 @@ function StaffManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Staff
+                    Tổng số nhân viên
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {staffs.length}
@@ -190,13 +175,13 @@ function StaffManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Active Staff
+                    Tổng số người quản lý
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {staffs.filter((s) => s.status === "Active").length}
+                    {activeStaffs}
                   </p>
                 </div>
-                <UserCheck className="h-8 w-8 text-green-500" />
+                <UserRoundCog className="h-8 w-8 text-green-500" />
               </div>
             </CardContent>
           </Card>
@@ -206,13 +191,13 @@ function StaffManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Facilities Covered
+                    Tổng số bác sĩ
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {uniqueFacilities}
+                    {medicalStaffs}
                   </p>
                 </div>
-                <Building2 className="h-8 w-8 text-purple-500" />
+                <Stethoscope className="h-8 w-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
@@ -222,24 +207,24 @@ function StaffManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Medical Staff
+                    Tổng số y tá
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {staffs.filter((s) => s.department === "Medical").length}
+                    {medicalStaffs}
                   </p>
                 </div>
-                <Stethoscope className="h-8 w-8 text-orange-500" />
+                <ClipboardPlus className="h-8 w-8 text-orange-500" />
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Main Content */}
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 py-0">
           <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
               <Users className="h-5 w-5" />
-              Staff Directory
+              Danh sách nhân viên
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -248,7 +233,7 @@ function StaffManagement() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search staff by name, position, facility, or department..."
+                placeholder="Tìm kiếm nhân viên theo tên, vị trí, cơ sở..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 h-12 text-base border-2 focus:border-blue-300"
@@ -261,108 +246,98 @@ function StaffManagement() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="font-semibold text-gray-700">
-                      Staff Member
+                      Thông tin nhân viên
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Position & Department
+                      Vị trí
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Facility
+                      Cơ sở y tế
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Contact Information
+                      Liên hệ
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Employment
+                      Trạng thái
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Status
-                    </TableHead>
-                    <TableHead className="font-semibold text-gray-700">
-                      Actions
+                      Hành động
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredStaffs.map((staff) => (
+                  {staffs.map((staff) => (
                     <TableRow
-                      key={staff.id}
+                      key={staff._id}
                       className="hover:bg-gray-50 transition-colors"
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-10 w-10">
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold">
-                              {getInitials(staff.name)}
-                            </AvatarFallback>
-                          </Avatar>
+                          <img
+                            src={staff.userId?.avatar || "/default-avatar.png"}
+                            alt={
+                              staff.userId?.fullName ||
+                              staff.userId?.email ||
+                              "Staff member"
+                            }
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
                           <div>
                             <div className="font-medium text-gray-900">
-                              {staff.name}
+                              {staff.userId?.fullName ||
+                                staff.userId?.email ||
+                                "N/A"}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {staff.id.toString().padStart(4, "0")}
+                              ID: {staff._id.substring(0, 8)}
                             </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {staff.position}
-                          </div>
-                          <Badge
-                            variant="outline"
-                            className={`mt-1 text-xs ${getDepartmentColor(
-                              staff.department
-                            )}`}
-                          >
-                            {staff.department}
-                          </Badge>
-                        </div>
+                        <Badge
+                          className={`font-medium ${getPositionColor(
+                            staff.position
+                          )}`}
+                        >
+                          {staff.position}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-red-500" />
                           <span className="text-sm text-gray-900">
-                            {staff.facility}
+                            {staff.facilityId?.name || "Chưa phân công"}
                           </span>
                         </div>
+                        {staff.facilityId?.address && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            {staff.facilityId.address}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Mail className="h-3 w-3" />
-                            <span>{staff.email}</span>
+                            <span>{staff.userId?.email || "N/A"}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Phone className="h-3 w-3" />
-                            <span>{staff.phone}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="flex items-center gap-2 text-sm text-gray-900">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              Joined:{" "}
-                              {new Date(staff.joinDate).toLocaleDateString()}
-                            </span>
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            Experience: {staff.experience}
+                            <span>{staff.userId?.phone || "N/A"}</span>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={`font-medium ${getStatusColor(
-                            staff.status
-                          )}`}
+                          className={
+                            staff.isDeleted
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                          }
                         >
-                          {staff.status}
+                          {staff.isDeleted ? "Không hoạt động" : "Hoạt động"}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -389,15 +364,78 @@ function StaffManagement() {
               </Table>
             </div>
 
-            {filteredStaffs.length === 0 && (
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t">
+                <div className="text-sm text-gray-600">
+                  Hiển thị {(currentPage - 1) * limit + 1} đến{" "}
+                  {Math.min(currentPage * limit, totalItems)} trong số{" "}
+                  {totalItems} nhân viên
+                </div>
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                          currentPage === 1
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }`}
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(
+                        (page) =>
+                          page === 1 ||
+                          page === totalPages ||
+                          (page >= currentPage - 1 && page <= currentPage + 1)
+                      )
+                      .map((page, index, array) => (
+                        <React.Fragment key={page}>
+                          {index > 0 && array[index - 1] !== page - 1 && (
+                            <PaginationItem>
+                              <PaginationEllipsis className="cursor-default" />
+                            </PaginationItem>
+                          )}
+                          <PaginationItem>
+                            <PaginationLink
+                              onClick={() => handlePageChange(page)}
+                              isActive={currentPage === page}
+                              className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                                currentPage === page ? "hover:bg-blue-600" : ""
+                              }`}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        </React.Fragment>
+                      ))}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                          currentPage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : ""
+                        }`}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+
+            {staffs.length === 0 && !loading && (
               <div className="text-center py-12">
                 <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No staff members found
+                  Không tìm thấy nhân viên
                 </h3>
                 <p className="text-gray-500">
-                  No staff members match your search criteria. Try adjusting
-                  your search terms.
+                  Không có nhân viên nào phù hợp với tiêu chí tìm kiếm của bạn.
                 </p>
               </div>
             )}

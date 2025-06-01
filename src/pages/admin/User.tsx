@@ -1,9 +1,6 @@
-"use client";
-
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -13,71 +10,58 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Search, Edit, Trash2, Plus, Heart, Droplets } from "lucide-react";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Search, Plus, Heart, Droplets, Edit, Trash2 } from "lucide-react";
+import { getUsers } from "@/services/users";
+import { Badge } from "@/components/ui/badge";
 
 function BloodDonorManagement() {
   // Mock data for blood donors
-  const [donors, setDonors] = useState([
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      bloodType: "O+",
-      phone: "+1 (555) 123-4567",
-      lastDonation: "2024-01-15",
-      status: "Eligible",
-      totalDonations: 12,
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      bloodType: "A-",
-      phone: "+1 (555) 234-5678",
-      lastDonation: "2024-02-20",
-      status: "Eligible",
-      totalDonations: 8,
-    },
-    {
-      id: 3,
-      name: "Robert Johnson",
-      email: "robert@example.com",
-      bloodType: "B+",
-      phone: "+1 (555) 345-6789",
-      lastDonation: "2024-03-10",
-      status: "Deferred",
-      totalDonations: 15,
-    },
-    {
-      id: 4,
-      name: "Emily Davis",
-      email: "emily@example.com",
-      bloodType: "AB+",
-      phone: "+1 (555) 456-7890",
-      lastDonation: "2024-01-28",
-      status: "Eligible",
-      totalDonations: 5,
-    },
-    {
-      id: 5,
-      name: "Michael Wilson",
-      email: "michael@example.com",
-      bloodType: "O-",
-      phone: "+1 (555) 567-8901",
-      lastDonation: "2024-03-05",
-      status: "Eligible",
-      totalDonations: 20,
-    },
-  ]);
+  const [users, setUsers] = useState<any>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [limit] = useState(10);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      try {
+        const res = await getUsers({ page: currentPage, limit });
+        setUsers(res.data.data);
+        setTotalPages(res.data.metadata.totalPages);
+        setTotalItems(res.data.metadata.total);
+      } catch (err: any) {
+        setError(err.message || "Không thể tải danh sách người dùng.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, [currentPage, limit]);
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const filteredDonors = donors.filter(
-    (donor) =>
-      donor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      donor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      donor.bloodType.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredDonors = donors.filter(
+  //   (donor) =>
+  //     donor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     donor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     donor.bloodType.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   const getBloodTypeColor = (bloodType: string) => {
     const colors = {
@@ -97,7 +81,7 @@ function BloodDonorManagement() {
   };
 
   const getStatusColor = (status: string) => {
-    return status === "Eligible"
+    return status === "active"
       ? "bg-green-100 text-green-800 border-green-200"
       : "bg-yellow-100 text-yellow-800 border-yellow-200";
   };
@@ -113,10 +97,10 @@ function BloodDonorManagement() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Blood Donor Management
+                Quản lý thành viên
               </h1>
               <p className="text-gray-600 mt-1">
-                Manage and track blood donors efficiently
+                Quản lý và theo dõi thành viên hiến máu hiệu quả
               </p>
             </div>
           </div>
@@ -133,10 +117,10 @@ function BloodDonorManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Donors
+                    Total Users
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {donors.length}
+                    {users.length}
                   </p>
                 </div>
                 <Droplets className="h-8 w-8 text-red-500" />
@@ -152,7 +136,7 @@ function BloodDonorManagement() {
                     Eligible Donors
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {donors.filter((d) => d.status === "Eligible").length}
+                    {users.filter((d: any) => d.isAvailable).length}
                   </p>
                 </div>
                 <Heart className="h-8 w-8 text-green-500" />
@@ -168,10 +152,10 @@ function BloodDonorManagement() {
                     Total Donations
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {donors.reduce(
+                    {/* {donors.reduce(
                       (sum, donor) => sum + donor.totalDonations,
                       0
-                    )}
+                    )} */}
                   </p>
                 </div>
                 <Droplets className="h-8 w-8 text-blue-500" />
@@ -187,7 +171,7 @@ function BloodDonorManagement() {
                     Universal Donors (O-)
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {donors.filter((d) => d.bloodType === "O-").length}
+                    {users.filter((d: any) => d?.bloodId?.name === "O-").length}
                   </p>
                 </div>
                 <Heart className="h-8 w-8 text-purple-500" />
@@ -197,11 +181,11 @@ function BloodDonorManagement() {
         </div>
 
         {/* Main Content */}
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 py-0">
           <CardHeader className="bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-t-lg">
-            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
               <Droplets className="h-5 w-5" />
-              Donor Directory
+              Danh sách thành viên
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -223,85 +207,91 @@ function BloodDonorManagement() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="font-semibold text-gray-700">
-                      Donor Information
+                      Thông tin người hiến
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Contact
+                      Liên hệ
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Blood Type
+                      Nhóm máu
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Last Donation
+                      Ngày sinh
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Status
+                      Trạng thái
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Total Donations
+                      Giới tính
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Actions
+                      Hành động
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredDonors.map((donor) => (
+                  {users.map((user: any) => (
                     <TableRow
-                      key={donor.id}
+                      key={user._id}
                       className="hover:bg-gray-50 transition-colors"
                     >
                       <TableCell>
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {donor.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            ID: {donor.id.toString().padStart(4, "0")}
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={user.avatar}
+                            alt={user.fullName || user.email}
+                            className="h-10 w-10 rounded-full object-cover"
+                          />
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {user.fullName || user.email}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              ID: {user._id.toString().substring(0, 8)}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
                           <div className="text-sm text-gray-900">
-                            {donor.email}
+                            {user.email}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {donor.phone}
+                            {user.phone || "No phone"}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant="outline"
                           className={`font-semibold ${getBloodTypeColor(
-                            donor.bloodType
+                            user?.bloodId?.name || "Chưa cập nhật"
                           )}`}
                         >
-                          {donor.bloodType}
+                          <div className="text-sm">
+                            {user?.bloodId?.name || "Chưa cập nhật"}
+                          </div>
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm text-gray-900">
-                          {new Date(donor.lastDonation).toLocaleDateString()}
+                          {user?.yob
+                            ? new Date(user.yob).toLocaleDateString()
+                            : "Not specified"}
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant="outline"
                           className={`font-medium ${getStatusColor(
-                            donor.status
+                            user.status
                           )}`}
                         >
-                          {donor.status}
+                          {user.status ? "Hoạt động" : "Không hoạt động"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Droplets className="h-4 w-4 text-red-500" />
-                          <span className="font-medium">
-                            {donor.totalDonations}
-                          </span>
+                        <div className="text-sm text-gray-900">
+                          {user.sex || "Not specified"}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -328,18 +318,69 @@ function BloodDonorManagement() {
               </Table>
             </div>
 
-            {filteredDonors.length === 0 && (
-              <div className="text-center py-12">
-                <Droplets className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No donors found
-                </h3>
-                <p className="text-gray-500">
-                  No donors match your search criteria. Try adjusting your
-                  search terms.
-                </p>
+            {/* Add pagination controls after the table */}
+            <div className="flex items-center justify-between px-6 py-4 border-t">
+              <div className="text-sm text-gray-600">
+                Showing {(currentPage - 1) * limit + 1} to{" "}
+                {Math.min(currentPage * limit, totalItems)} of {totalItems}{" "}
+                entries
               </div>
-            )}
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                        currentPage === 1
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }`}
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter(
+                      (page) =>
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                    )
+                    .map((page, index, array) => (
+                      <React.Fragment key={page}>
+                        {index > 0 && array[index - 1] !== page - 1 && (
+                          <PaginationItem>
+                            <PaginationEllipsis className="cursor-default" />
+                          </PaginationItem>
+                        )}
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() => handlePageChange(page)}
+                            isActive={currentPage === page}
+                            className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                              currentPage === page
+                                ? "bg-blue-600 text-white"
+                                : ""
+                            }`}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </React.Fragment>
+                    ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                        currentPage === totalPages
+                          ? "pointer-events-none opacity-50"
+                          : ""
+                      }`}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           </CardContent>
         </Card>
       </div>
