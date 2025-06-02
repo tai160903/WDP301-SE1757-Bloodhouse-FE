@@ -397,7 +397,7 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
           <div className="flex justify-end gap-4">
             <Button
               variant="outline"
-              onClick={() => navigate("/admin/blog")}
+              onClick={() => navigate("/admin/blogs")}
               disabled={actionLoading}
               aria-label="Hủy và quay lại danh sách bài viết"
             >
