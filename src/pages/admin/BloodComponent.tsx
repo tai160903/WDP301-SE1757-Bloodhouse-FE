@@ -148,7 +148,6 @@ function BloodComponentManagement() {
           </div>
         </div>
 
-        {/* Trạng thái Tải/Lỗi */}
         {loading && (
           <Alert className="mb-6 border-purple-200 bg-purple-50">
             <AlertDescription className="text-purple-800">
