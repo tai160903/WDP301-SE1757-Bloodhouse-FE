@@ -136,6 +136,16 @@ export const update = async (id: string, formData: FormData): Promise<BlogRespon
   }
 };
 
+export const getBlogs = async (params: any): Promise<any> => {
+  try {
+    const { data } = await instance.get<any>(`/content`, { params });
+    return data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
+
+
 export const deleteBlog = async (id: string): Promise<BlogResponse> => {
   try {
     const response = await instance.delete<BlogResponse>(`/content/${id}`);

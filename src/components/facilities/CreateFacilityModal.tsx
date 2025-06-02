@@ -6,7 +6,9 @@ import { Label } from "@/components/ui/label";
 import { X, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Select from "react-select";
-import axios from "axios";
+import axios, { create } from "axios";
+import { getAllStaffsNotAssignedToFacility } from "@/services/facilityStaff";
+import { createFacility } from "@/services/facility";
 
 interface StaffOption {
   value: string;
@@ -44,10 +46,10 @@ const CreateFacilityModal = ({
       longitude: "",
       contactPhone: "",
       contactEmail: "",
-      image: null,
       managerId: null,
       doctorIds: [],
       nurseIds: [],
+      image: null,
     },
   });
 
@@ -61,29 +63,29 @@ const CreateFacilityModal = ({
     try {
       const [managerResponse, doctorResponse, nurseResponse] =
         await Promise.all([
-          axios.get("/api/facility-staffs/available?position=MANAGER"),
-          axios.get("/api/facility-staffs/available?position=DOCTOR"),
-          axios.get("/api/facility-staffs/available?position=NURSE"),
+          getAllStaffsNotAssignedToFacility("MANAGER"),
+          getAllStaffsNotAssignedToFacility("DOCTOR"),
+          getAllStaffsNotAssignedToFacility("NURSE"),
         ]);
 
       setManagerOptions(
-        managerResponse.data.map((staff: any) => ({
+        managerResponse?.data?.map((staff: any) => ({
           value: staff._id,
-          label: `${staff.firstName} ${staff.lastName}`,
+          label: `${staff?.userId?.fullName}`,
         }))
       );
 
       setDoctorOptions(
         doctorResponse.data.map((staff: any) => ({
           value: staff._id,
-          label: `${staff.firstName} ${staff.lastName}`,
+          label: `${staff?.userId?.fullName}`,
         }))
       );
 
       setNurseOptions(
         nurseResponse.data.map((staff: any) => ({
           value: staff._id,
-          label: `${staff.firstName} ${staff.lastName}`,
+          label: `${staff?.userId?.fullName}`,
         }))
       );
     } catch (error) {
@@ -111,7 +113,6 @@ const CreateFacilityModal = ({
     try {
       const formData = new FormData();
 
-      // Add text fields
       formData.append("name", data.name);
       formData.append("address", data.address);
       formData.append("latitude", data.latitude);
@@ -120,12 +121,10 @@ const CreateFacilityModal = ({
       formData.append("contactEmail", data.contactEmail);
       formData.append("managerId", data.managerId.value);
 
-      // Add image if present
       if (data.image[0]) {
         formData.append("image", data.image[0]);
       }
 
-      // Add arrays as JSON strings
       if (data.doctorIds && data.doctorIds.length > 0) {
         formData.append(
           "doctorIds",
@@ -142,12 +141,7 @@ const CreateFacilityModal = ({
         );
       }
 
-      // Send request
-      await axios.post("/api/facilities", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await createFacility(formData);
 
       toast.success("Facility created successfully!");
       reset();
@@ -389,7 +383,7 @@ const CreateFacilityModal = ({
                     name="doctorIds"
                     control={control}
                     render={({ field }) => (
-                      <Select
+                      <Select<StaffOption, true>
                         {...field}
                         options={doctorOptions}
                         isMulti
@@ -409,7 +403,7 @@ const CreateFacilityModal = ({
                     name="nurseIds"
                     control={control}
                     render={({ field }) => (
-                      <Select
+                      <Select<StaffOption, true>
                         {...field}
                         options={nurseOptions}
                         isMulti
