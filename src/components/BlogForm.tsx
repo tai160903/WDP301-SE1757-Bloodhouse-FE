@@ -106,13 +106,12 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
     fetchData();
   }, []);
 
-  // Fetch blog data for editing
   useEffect(() => {
     if (isEditing && id) {
       const fetchBlog = async () => {
         try {
           const response = await getById(id);
-          console.log("Blog response:", response); // Debug log
+          console.log("Blog response:", response); 
           const blog: Blog = response.data;
           setFormData({
             title: blog.title || "",
