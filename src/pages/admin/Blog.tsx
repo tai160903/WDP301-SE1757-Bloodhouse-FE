@@ -33,28 +33,32 @@ function BlogManagement() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: string; message: string } | null>(null);
+  const [feedback, setFeedback] = useState<{
+    type: string;
+    message: string;
+  } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const response = await getAll();
-        console.log(response);
-        const blogsArray = Array.isArray(response.data) ? response.data : [response.data];
-        setBlogs(blogsArray);
-        console.log(blogsArray);
+        setBlogs(response.data.data);
       } catch (error: any) {
-        setFeedback({ type: "error", message: "Không thể tải danh sách bài viết." });
+        setFeedback({
+          type: "error",
+          message: "Không thể tải danh sách bài viết.",
+        });
       }
     };
 
     fetchBlogs();
   }, []);
 
-  const filteredBlogs = blogs.filter((blog) =>
-    blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    blog.authorId?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredBlogs = blogs.filter(
+    (blog) =>
+      blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      blog.authorId?.fullName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status: string = "") => {
@@ -92,7 +96,9 @@ function BlogManagement() {
       .join("")
       .toUpperCase();
 
-  const publishedPosts = blogs.filter((blog) => blog.status === "published").length;
+  const publishedPosts = blogs.filter(
+    (blog) => blog.status === "published"
+  ).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 p-6">
@@ -103,8 +109,12 @@ function BlogManagement() {
               <BookOpen className="h-8 w-8 text-orange-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Quản lý bài viết</h1>
-              <p className="text-gray-600 mt-1">Tạo và quản lý nội dung giáo dục</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Quản lý bài viết
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Tạo và quản lý nội dung giáo dục
+              </p>
             </div>
           </div>
           <Button
@@ -121,8 +131,12 @@ function BlogManagement() {
           <Card className="border-l-4 border-l-orange-500">
             <CardContent className="p-6 flex justify-between items-center">
               <div>
-                <p className="text-sm font-medium text-gray-600">Tổng số bài viết</p>
-                <p className="text-2xl font-bold text-gray-900">{blogs.length}</p>
+                <p className="text-sm font-medium text-gray-600">
+                  Tổng số bài viết
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {blogs.length}
+                </p>
               </div>
               <FileText className="h-8 w-8 text-orange-500" />
             </CardContent>
@@ -132,7 +146,9 @@ function BlogManagement() {
             <CardContent className="p-6 flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-gray-600">Đã xuất bản</p>
-                <p className="text-2xl font-bold text-gray-900">{publishedPosts}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {publishedPosts}
+                </p>
               </div>
               <Eye className="h-8 w-8 text-green-500" />
             </CardContent>
@@ -159,7 +175,13 @@ function BlogManagement() {
             </div>
 
             {feedback && (
-              <div className={`mb-4 text-sm ${feedback.type === "success" ? "text-green-600" : "text-red-600"}`}>
+              <div
+                className={`mb-4 text-sm ${
+                  feedback.type === "success"
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
+              >
                 {feedback.message}
               </div>
             )}
@@ -206,7 +228,12 @@ function BlogManagement() {
                                 {blog.authorId?.fullName}
                               </span>
                             </div>
-                            <Badge variant="outline" className={`text-xs ${getCategoryColor(blog.categoryId?.name)}`}>
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${getCategoryColor(
+                                blog.categoryId?.name
+                              )}`}
+                            >
                               {blog.categoryId?.name || "Không xác định"}
                             </Badge>
                           </div>
@@ -215,16 +242,31 @@ function BlogManagement() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Calendar className="h-3 w-3" />
-                              <span>{new Date(blog.createdAt).toLocaleDateString("vi-VN")}</span>
+                              <span>
+                                {new Date(blog.createdAt).toLocaleDateString(
+                                  "vi-VN"
+                                )}
+                              </span>
                             </div>
-                            <div className="text-sm text-gray-500">{blog.type || "Không xác định"}</div>
+                            <div className="text-sm text-gray-500">
+                              {blog.type || "Không xác định"}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={`font-medium ${getStatusColor(blog.status)}`}>
-                            {blog.status === "published" ? "Đã xuất bản" :
-                             blog.status === "draft" ? "Bản nháp" :
-                             blog.status === "archived" ? "Lưu trữ" : "Không xác định"}
+                          <Badge
+                            variant="outline"
+                            className={`font-medium ${getStatusColor(
+                              blog.status
+                            )}`}
+                          >
+                            {blog.status === "published"
+                              ? "Đã xuất bản"
+                              : blog.status === "draft"
+                              ? "Bản nháp"
+                              : blog.status === "archived"
+                              ? "Lưu trữ"
+                              : "Không xác định"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -232,7 +274,9 @@ function BlogManagement() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/admin/blogs/edit/${blog._id}`)}
+                              onClick={() =>
+                                navigate(`/admin/blogs/edit/${blog._id}`)
+                              }
                               aria-label="Chỉnh sửa bài viết"
                             >
                               <Edit className="h-4 w-4" />
@@ -255,8 +299,12 @@ function BlogManagement() {
             ) : (
               <div className="text-center py-12">
                 <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy bài viết</h3>
-                <p className="text-gray-500">Hãy thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn.</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Không tìm thấy bài viết
+                </h3>
+                <p className="text-gray-500">
+                  Hãy thử điều chỉnh tìm kiếm hoặc bộ lọc của bạn.
+                </p>
               </div>
             )}
           </CardContent>
