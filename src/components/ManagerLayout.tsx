@@ -3,9 +3,9 @@ import { ManagerSidebar } from "./manager-sidebar";
 
 function ManagerLayout() {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex w-screen h-screen overflow-hidden">
       <ManagerSidebar />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="flex-1 overflow-auto bg-gray-100 p-6">
         <Outlet />
       </main>
     </div>

@@ -12,13 +12,13 @@ import {
 import { Link, useLocation } from "react-router-dom";
 
 const navigation = [
-  { name: "Dashboard", path: "/", icon: LayoutDashboard },
-  { name: "Blood Inventory", path: "/inventory", icon: Droplets },
-  { name: "Donation Requests", path: "/requests", icon: Calendar },
-  { name: "Received Requests", path: "/received", icon: Inbox },
-  { name: "Gift Management", path: "/gifts", icon: Gift },
-  { name: "Staff Management", path: "/staff", icon: Users },
-  { name: "Blog Management", path: "/blogs", icon: FileText },
+  { name: "Dashboard", path: "/manager", icon: LayoutDashboard },
+  { name: "Blood Inventory", path: "/manager/inventory", icon: Droplets },
+  { name: "Donation Requests", path: "/manager/requests", icon: Calendar },
+  { name: "Received Requests", path: "/manager/received", icon: Inbox },
+  { name: "Gift Management", path: "/manager/gifts", icon: Gift },
+  { name: "Staff Management", path: "/manager/staff", icon: Users },
+  { name: "Blog Management", path: "/manager/blogs", icon: FileText },
 ];
 
 export function ManagerSidebar() {

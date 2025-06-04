@@ -8,31 +8,31 @@ import Staff from "@/pages/manager/Staff";
 
 const managerRoutes = [
   {
-    path: "/",
+    path: "",
     element: <Dashboard />,
   },
   {
-    path: "/inventory",
+    path: "inventory",
     element: <BloodInventory />,
   },
   {
-    path: "/requests",
+    path: "requests",
     element: <Requests />,
   },
   {
-    path: "/received",
+    path: "received",
     element: <ReceivedRequests />,
   },
   {
-    path: "/gifts",
+    path: "gifts",
     element: <Gifts />,
   },
   {
-    path: "/staff",
+    path: "staff",
     element: <Staff />,
   },
   {
-    path: "/blogs",
+    path: "blogs",
     element: <Blogs />,
   },
 ];
