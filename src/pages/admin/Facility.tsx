@@ -263,9 +263,9 @@ function FacilityManagement() {
         </Card>
 
         {/* Main Content */}
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border-0 py-0">
           <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
-            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
               <Building2 className="h-5 w-5" />
               Facility Directory
             </CardTitle>

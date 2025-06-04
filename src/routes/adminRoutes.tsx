@@ -5,7 +5,9 @@ import Dashboard from "@/pages/admin/Dashboard";
 import Facility from "@/pages/admin/Facility";
 import Staff from "@/pages/admin/Staff";
 import User from "@/pages/admin/User";
+import BlogDetail from "@/pages/resource/BlogDetail";
 import React from "react";
+import BlogForm from "@/components/BlogForm";
 
 const AdminRoutes = [
   {
@@ -46,7 +48,31 @@ const AdminRoutes = [
       <React.Suspense fallback={<div>Loading...</div>}>
         <Blog />
       </React.Suspense>
-    ),
+    )
+  },
+  {
+    path: "blogs/details/:id",
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <BlogDetail />
+      </React.Suspense>
+    )
+  },
+  {
+    path: "blogs/create",
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <BlogForm />
+      </React.Suspense>
+    )
+  },
+  {
+    path: "blogs/edit/:id",
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <BlogForm isEditing />
+      </React.Suspense>
+    )
   },
   {
     path: "blood-groups",
