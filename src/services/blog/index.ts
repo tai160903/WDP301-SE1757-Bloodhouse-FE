@@ -75,7 +75,18 @@ export interface BlogFormData {
 }
 
 export interface BlogResponse extends IResponse {
-  data: Blog | Blog[];
+  data: Blog[];
+}
+
+export interface BlogResponsePagination extends IResponse {
+  data: {
+    data: Blog[];
+  };
+  metadata: {
+    total: number;
+    page: number;
+    limit: number;
+  };
 }
 
 export const getCategories = async (): Promise<Category[]> => {
@@ -96,9 +107,9 @@ export const getAuthors = async (): Promise<userProfiles> => {
   }
 };
 
-export const getAll = async (): Promise<BlogResponse> => {
+export const getAll = async (): Promise<BlogResponsePagination> => {
   try {
-    const { data } = await instance.get<BlogResponse>("/content");
+    const { data } = await instance.get<BlogResponsePagination>("/content");
     return data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi lấy danh sách blog.");
