@@ -5,6 +5,8 @@ import userRoutes from "@/routes/userRoute";
 import authRoutes from "@/routes/authRoute";
 import AdminLayout from "@/components/AdminLayout";
 import adminRoutes from "./adminRoutes";
+import ManagerLayout from "@/components/ManagerLayout";
+import managerRoutes from "./managerRoutes";
 
 export const router = createBrowserRouter([
   {
@@ -21,5 +23,10 @@ export const router = createBrowserRouter([
     path: "/admin",
     element: <AdminLayout />,
     children: [...adminRoutes],
+  },
+  {
+    path: "/manager",
+    element: <ManagerLayout />,
+    children: [...managerRoutes],
   },
 ]);
