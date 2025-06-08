@@ -24,15 +24,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { cn } from "../lib/utils";
 import { instance } from "@/services/instance";
+import { getUserProfile, userProfiles } from "@/services/users";
 const handleLogout = async () => {
-    try {
-      await instance.post('/auth/sign-out');
-      localStorage.removeItem('token');
-      window.location.href =('/auth/login');
-    } catch (error) {
-      console.error('Logout thất bại:', error);
-    }
-  };
+  try {
+    await instance.post("/auth/sign-out");
+    localStorage.removeItem("token");
+    window.location.href = "/auth/login";
+  } catch (error) {
+    console.error("Logout thất bại:", error);
+  }
+};
+
 const mainNavItems = [
   {
     title: "Hiến máu",
@@ -91,12 +93,32 @@ const locationItems = [
 
 export function MainNavbar() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+  const [profile, setProfile] = React.useState<userProfiles>();
+
   React.useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
     }
-  })
+  });
+
+  React.useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await getUserProfile();
+        console.log(res.data);
+        setProfile(res);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
       <div className="container flex h-16 items-center justify-between">
@@ -227,8 +249,8 @@ export function MainNavbar() {
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          Nhắc nhở: Bạn có lịch hẹn hiến máu vào ngày mai lúc 9:00
-                          tại Trung tâm Hiến máu Quốc gia.
+                          Nhắc nhở: Bạn có lịch hẹn hiến máu vào ngày mai lúc
+                          9:00 tại Trung tâm Hiến máu Quốc gia.
                         </p>
                       </DropdownMenuItem>
                     ))}
@@ -251,9 +273,12 @@ export function MainNavbar() {
                     data-testid="user-button"
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/images/avatar.jpg" alt="Người dùng" />
+                      <AvatarImage
+                        src={loading ? "" : profile?.data.avatar}
+                        alt="Người dùng"
+                      />
                       <AvatarFallback className="bg-red-50 text-red-600 font-semibold">
-                        NT
+                        User
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -262,10 +287,10 @@ export function MainNavbar() {
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-semibold tracking-tight">
-                        Nguyễn Văn Tuấn
+                        {loading ? "Loading..." : profile?.data.fullName}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        nguyenvantuan@example.com
+                        {loading ? "Loading..." : profile?.data.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
@@ -297,12 +322,10 @@ export function MainNavbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     asChild
-                    className="text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 focus:bg-red-50 focus:text-red-600"
+                    className="w-full text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 focus:bg-red-50 focus:text-red-600"
                   >
-              <button onClick={handleLogout}>
-                    Đăng xuất
-                  </button>            
-          </DropdownMenuItem>
+                    <button onClick={handleLogout}>Đăng xuất</button>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
@@ -329,26 +352,28 @@ export function MainNavbar() {
   );
 }
 
-const ListItem = React.forwardRef(({ className, title, description, to, ...props }, ref) => {
-  return (
-    <li>
-      <NavigationMenuLink
-        asChild
-        className={cn(
-          "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-          className
-        )}
-      >
-        <Link to={to} ref={ref} {...props}>
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {description}
-          </p>
-        </Link>
-      </NavigationMenuLink>
-    </li>
-  );
-});
+const ListItem = React.forwardRef(
+  ({ className, title, description, to, ...props }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink
+          asChild
+          className={cn(
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            className
+          )}
+        >
+          <Link to={to} ref={ref} {...props}>
+            <div className="text-sm font-medium leading-none">{title}</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+              {description}
+            </p>
+          </Link>
+        </NavigationMenuLink>
+      </li>
+    );
+  }
+);
 ListItem.displayName = "ListItem";
 
 export default MainNavbar;

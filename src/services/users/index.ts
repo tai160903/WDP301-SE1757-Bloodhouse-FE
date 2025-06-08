@@ -14,7 +14,7 @@ export interface userProfiles extends IResponse.Response  {
             coordinates: number[]
         }
         sex?: string;
-        yob?: Date;
+        yob?: string;
         bloodId?: {
             type: string;
         }

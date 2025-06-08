@@ -1,7 +1,8 @@
 import { getUserProfile, userProfiles } from "@/services/users";
 import React, { useEffect, useState } from "react";
 import { MdEdit } from "react-icons/md";
-// import avatarImage from "../../assets/img/hero-photo.png";
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
 
 const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -10,6 +11,13 @@ const ProfilePage: React.FC = () => {
 
   const handleEditClick = () => {
     setIsEditing(true);
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    const formattedDate = format(date, "d 'tháng' M, yyyy", { locale: vi });
+    return formattedDate;
   };
 
   useEffect(() => {
@@ -51,25 +59,25 @@ const ProfilePage: React.FC = () => {
               alt="Avatar"
               className="w-32 h-32 rounded-full object-cover mb-4 border"
             />
-            <p className="text-gray-600">tuanminh123</p>
+            <p className="text-gray-600">{profile?.data.fullName || "N/A"}</p>
           </div>
 
           <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-gray-500">Họ và tên</p>
-              <p className="font-medium">Minh Tuấn</p>
-            </div>
-            <div>
               <p className="text-gray-500">Email</p>
-              <p className="font-medium">{profile?.data.email}</p>
+              <p className="font-medium">{profile?.data.email || "N/A"}</p>
             </div>
             <div>
               <p className="text-gray-500">Giới tính</p>
-              <p className="font-medium">Nam</p>
+              <p className="font-medium">{profile?.data.sex || "N/A"}</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Số điện thoại</p>
+              <p className="font-medium">{profile?.data.phone || "N/A"}</p>
             </div>
             <div>
               <p className="text-gray-500">Ngày sinh</p>
-              <p className="font-medium">30 tháng 10, 2002</p>
+              <p className="font-medium">{formatDate(profile?.data.yob)}</p>
             </div>
             <div>
               <p className="text-gray-500">Điểm tích lũy</p>
