@@ -70,21 +70,21 @@ const CreateFacilityModal = ({
 
       setManagerOptions(
         managerResponse?.data?.map((staff: any) => ({
-          value: staff._id,
+          value: staff.userId._id,
           label: `${staff?.userId?.fullName}`,
         }))
       );
 
       setDoctorOptions(
         doctorResponse.data.map((staff: any) => ({
-          value: staff._id,
+          value: staff.userId._id,
           label: `${staff?.userId?.fullName}`,
         }))
       );
 
       setNurseOptions(
         nurseResponse.data.map((staff: any) => ({
-          value: staff._id,
+          value: staff.userId._id,
           label: `${staff?.userId?.fullName}`,
         }))
       );
@@ -113,32 +113,25 @@ const CreateFacilityModal = ({
     try {
       const formData = new FormData();
 
-      formData.append("name", data.name);
-      formData.append("address", data.address);
-      formData.append("latitude", data.latitude);
-      formData.append("longitude", data.longitude);
-      formData.append("contactPhone", data.contactPhone);
-      formData.append("contactEmail", data.contactEmail);
       formData.append("managerId", data.managerId.value);
+      formData.append("name", data.name);
+      formData.append("latitude", data.latitude);
+      formData.append("contactPhone", data.contactPhone);
+      formData.append("longitude", data.longitude);
+      formData.append("address", data.address);
 
+      formData.append(
+        "doctorIds",
+        data.doctorIds.map((doctor: StaffOption) => doctor.value)
+      );
+
+      formData.append(
+        "nurseIds",
+        data.nurseIds.map((nurse: StaffOption) => nurse.value)
+      );
+      formData.append("contactEmail", data.contactEmail);
       if (data.image[0]) {
         formData.append("image", data.image[0]);
-      }
-
-      if (data.doctorIds && data.doctorIds.length > 0) {
-        formData.append(
-          "doctorIds",
-          JSON.stringify(
-            data.doctorIds.map((doctor: StaffOption) => doctor.value)
-          )
-        );
-      }
-
-      if (data.nurseIds && data.nurseIds.length > 0) {
-        formData.append(
-          "nurseIds",
-          JSON.stringify(data.nurseIds.map((nurse: StaffOption) => nurse.value))
-        );
       }
 
       await createFacility(formData);
