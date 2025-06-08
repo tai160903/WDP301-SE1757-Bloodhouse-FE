@@ -1,19 +1,21 @@
-// interface Facility {
+import { instance } from "../../instance";
 
-// }
-// interface FacilityResponse extends IResponse.Response  {
-//     data: any
-// }
-// export const getFacilities = () => {
-//   res.send('getFacilities');
-// };
-
-interface Facility {
+export interface Facility {
   _id: string;
   name: string;
+  code?: string;
   address: string;
   contactPhone: string;
+  contactEmail?: string;
   isActive: boolean;
+  location?: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  managerId?: string;
+  doctorIds?: string[];
+  nurseIds?: string[];
+  imageUrl?: string;
   schedules: {
     day: string;
     openTime: string;
@@ -21,15 +23,92 @@ interface Facility {
   }[];
 }
 
-interface FacilityResponse extends IResponse.Response {
-  data: Facility[];
+interface FacilityListResponse {
+  data: {
+    result: Facility[];
+    total: number;
+  };
 }
-import { instance } from "../../instance";
-export const getFacilities = async (): Promise<FacilityResponse> => {
+
+interface SingleFacilityResponse {
+  data: Facility;
+}
+
+export const getFacilities = async (): Promise<FacilityListResponse> => {
   try {
-    const { data } = await instance.get<FacilityResponse>("/facility");
+    const { data } = await instance.get<FacilityListResponse>("/facility");
     return data;
   } catch (error: any) {
-    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+    throw new Error(
+      error?.response?.data?.message || "Error fetching facilities"
+    );
+  }
+};
+
+export const getFacilityById = async (
+  id: string
+): Promise<SingleFacilityResponse> => {
+  try {
+    const { data } = await instance.get<SingleFacilityResponse>(
+      `/facility/${id}`
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error fetching facility details"
+    );
+  }
+};
+
+export const createFacility = async (
+  formData: FormData
+): Promise<SingleFacilityResponse> => {
+  try {
+    const { data } = await instance.post<SingleFacilityResponse>(
+      "/facility",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error creating facility"
+    );
+  }
+};
+
+export const updateFacility = async (
+  id: string,
+  formData: FormData
+): Promise<SingleFacilityResponse> => {
+  try {
+    const { data } = await instance.put<SingleFacilityResponse>(
+      `/facility/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error updating facility"
+    );
+  }
+};
+
+export const deleteFacility = async (id: string): Promise<void> => {
+  try {
+    await instance.put(`/facility/delete/${id}`);
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error deleting facility"
+    );
   }
 };

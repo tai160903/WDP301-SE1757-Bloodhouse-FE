@@ -50,7 +50,6 @@ export const getAllStaffsNotAssignedToFacility = async (
     const { data } = await instance.get<StaffListResponse>(
       `/facility-staff/not-assigned?position=${position}`
     );
-    console.log("getAllStaffsNotAssignedToFacility", data);
     return data;
   } catch (error: any) {
     throw new Error(

@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
 import {
   Search,
   Edit,
@@ -27,17 +26,32 @@ import {
   Clock,
   Users,
 } from "lucide-react";
-import { getFacilities } from "@/services/location/facility";
+import {
+  deleteFacility,
+  getFacilities,
+  getFacilityById,
+} from "@/services/location/facility";
 import { getBloodInventory } from "@/services/bloodinventory";
 import { getTotalStaff } from "@/services/facilityStaff";
 import CreateFacilityModal from "@/components/facilities/CreateFacilityModal";
+import { toast } from "sonner";
 
 interface Facility {
   _id: string;
   name: string;
-  address: string;
+  code?: string;
+  address?: string;
   contactPhone: string;
+  contactEmail?: string;
   isActive: boolean;
+  location: {
+    type: "Point";
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  managerId?: string;
+  doctorIds?: string[];
+  nurseIds?: string[];
+  imageUrl?: string;
   schedules: {
     day: string;
     openTime: string;
@@ -74,6 +88,9 @@ function FacilityManagement() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(
+    null
+  );
 
   useEffect(() => {
     fetchFacilities();
@@ -137,6 +154,54 @@ function FacilityManagement() {
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
+
+  const handleEditFacility = async (facilityId: string) => {
+    try {
+      const response = await getFacilityById(facilityId);
+      if (response?.data) {
+        const facilityData = {
+          ...response.data,
+          location: response.data.location ?? {
+            type: "Point",
+            coordinates: [0, 0],
+          },
+        };
+        setSelectedFacility(facilityData);
+        setIsCreateModalOpen(true);
+      } else {
+        console.error("Facility not found");
+      }
+    } catch (error) {
+      console.error("Error fetching facility details:", error);
+    }
+  };
+
+  // Fix the delete functionality and other issues
+  const handleDeleteFacility = async (facilityId: string) => {
+    try {
+      // Get confirmation from user
+      const confirmDelete = window.confirm(
+        "Are you sure you want to delete this facility? This action cannot be undone."
+      );
+      if (!confirmDelete) return;
+
+      // Delete the facility
+      await deleteFacility(facilityId);
+      toast.success("Facility deleted successfully");
+      fetchFacilities(); // Refresh the list
+    } catch (error) {
+      console.error("Error deleting facility:", error);
+      toast.error("Failed to delete facility. Please try again.");
+    }
+  };
+
+  const filteredFacilities = facilities.filter(
+    (facility) =>
+      facility.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (facility.address &&
+        facility.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      facility.contactPhone.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 p-6">
@@ -235,29 +300,6 @@ function FacilityManagement() {
           </Card>
         </div>
 
-        {/* Overall Capacity Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Warehouse className="h-5 w-5" />
-              Overall Capacity Utilization
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>
-                  Current Stock:{" "}
-                  {bloodInventory
-                    .reduce((total, item) => total + item.totalQuantity, 0)
-                    .toLocaleString()}{" "}
-                  units
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Main Content */}
         <Card className="shadow-xl border-0 py-0">
           <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
@@ -272,7 +314,7 @@ function FacilityManagement() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search facilities by name, location, or type..."
+                placeholder="Search facilities by name, location, or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 h-12 text-base border-2 focus:border-slate-300"
@@ -302,9 +344,8 @@ function FacilityManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {facilities &&
-                    facilities.length > 0 &&
-                    facilities.map((facility) => (
+                  {filteredFacilities.length > 0 &&
+                    filteredFacilities.map((facility) => (
                       <TableRow
                         key={facility._id}
                         className="hover:bg-gray-50 transition-colors"
@@ -367,6 +408,7 @@ function FacilityManagement() {
                               variant="outline"
                               size="sm"
                               className="hover:bg-blue-50 hover:border-blue-300"
+                              onClick={() => handleEditFacility(facility._id)}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -374,6 +416,7 @@ function FacilityManagement() {
                               variant="outline"
                               size="sm"
                               className="hover:bg-red-50 hover:border-red-300 text-red-600"
+                              onClick={() => handleDeleteFacility(facility._id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -385,15 +428,14 @@ function FacilityManagement() {
               </Table>
             </div>
 
-            {facilities.length === 0 && (
+            {filteredFacilities.length === 0 && (
               <div className="text-center py-12">
                 <Building2 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   No facilities found
                 </h3>
                 <p className="text-gray-500">
-                  No facilities match your search criteria. Try adjusting
-                  yourfacilities match your search criteria. Try adjusting your
+                  No facilities match your search criteria. Try adjusting your
                   search terms.
                 </p>
               </div>
@@ -403,8 +445,12 @@ function FacilityManagement() {
 
         <CreateFacilityModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSuccess={fetchFacilities} // This will refresh the facility list
+          onClose={() => {
+            setIsCreateModalOpen(false);
+            setSelectedFacility(null);
+          }}
+          onSuccess={fetchFacilities}
+          initialData={selectedFacility}
         />
       </div>
     </div>
