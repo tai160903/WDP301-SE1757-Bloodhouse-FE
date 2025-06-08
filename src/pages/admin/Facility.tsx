@@ -254,10 +254,6 @@ function FacilityManagement() {
                   units
                 </span>
               </div>
-              <Progress value={75} className="h-3" />
-              <p className="text-sm text-gray-600">
-                75% capacity utilized across all facilities
-              </p>
             </div>
           </CardContent>
         </Card>
@@ -293,9 +289,6 @@ function FacilityManagement() {
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
                       Location & Contact
-                    </TableHead>
-                    <TableHead className="font-semibold text-gray-700">
-                      Capacity & Stock
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
                       Operations
@@ -335,18 +328,7 @@ function FacilityManagement() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="space-y-2">
-                            <div className="text-sm">
-                              <span className="font-medium"></span>
-                              <span className="text-gray-500"></span>
-                            </div>
-                            <Progress value={75} className="h-2" />
-                            <div className="text-xs text-gray-500">
-                              75% utilized
-                            </div>
-                          </div>
-                        </TableCell>
+
                         <TableCell>
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
