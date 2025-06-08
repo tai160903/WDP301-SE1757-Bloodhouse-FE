@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,6 +37,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
+import {
+  getBloodInventory,
+  getBloodInventoryDetail,
+} from "@/services/bloodinventory";
 
 const bloodInventory = [
   {
@@ -114,6 +118,20 @@ export default function BloodInventory() {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  useEffect(() => {
+    const fetchInventory = async () => {
+      try {
+        const response = await getBloodInventory();
+        console.log(response);
+        return response;
+      } catch (error) {
+        console.error("Error fetching blood inventory:", error);
+      }
+    };
+
+    fetchInventory;
+  }, []);
 
   return (
     <div className="space-y-6">
