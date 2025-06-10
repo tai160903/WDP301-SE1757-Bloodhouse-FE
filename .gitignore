@@ -25,3 +25,6 @@ dist-ssr
 # MacOs
 .DS_Store
 ._*
+
+examples
+
