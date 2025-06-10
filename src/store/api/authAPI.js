@@ -1,4 +1,4 @@
-import { authAPI as axiosAuthAPI } from '../utils/axiosInstance';
+import { authAPI as axiosAuthAPI } from '../../utils/axiosInstance';
 
 const authAPI = {
   // Sign up
@@ -30,7 +30,7 @@ const authAPI = {
   },
 
   // Sign out
-  signOut: async (accessToken) => {
+  signOut: async () => {
     const response = await axiosAuthAPI.post('/sign-out', {});
     
     // Clear tokens from localStorage
@@ -57,7 +57,7 @@ const authAPI = {
     return response;
   },
 
-  // Get current user (if you have this endpoint)
+  // Get current user
   getCurrentUser: async () => {
     const response = await axiosAuthAPI.get('/me');
     return response;

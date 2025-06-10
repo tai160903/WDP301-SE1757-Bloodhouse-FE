@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import authAPI from '../../api/authAPI';
+import authAPI from '../api/authAPI';
 
 // Initial state
 const initialState = {
@@ -16,7 +16,8 @@ export const signUp = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       const response = await authAPI.signUp(userData);
-      return response.data;
+      // Backend response structure: { message, data: { user, tokens } }
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Registration failed'
@@ -30,7 +31,8 @@ export const signIn = createAsyncThunk(
   async (credentials, { rejectWithValue }) => {
     try {
       const response = await authAPI.signIn(credentials);
-      return response.data;
+      // Backend response structure: { message, data: { user, tokens } }
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Login failed'
@@ -49,6 +51,7 @@ export const signOut = createAsyncThunk(
       if (accessToken) {
         await authAPI.signOut(accessToken);
       }
+      // Backend returns { message: "Logout successfull" } but we don't need it
       return {};
     } catch (error) {
       // Even if logout API fails, we still want to clear local state
@@ -73,7 +76,8 @@ export const refreshToken = createAsyncThunk(
         userId,
         refreshToken,
       });
-      return response.data;
+      // Backend response structure: { message, data: { user, tokens } }
+      return response.data.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || 'Token refresh failed'
@@ -193,14 +197,22 @@ export const selectIsAuthenticated = (state) => state.auth.isAuthenticated;
 export const selectAuthLoading = (state) => state.auth.loading;
 export const selectAuthError = (state) => state.auth.error;
 
-// Helper selectors
+// Helper selectors based on backend user structure
 export const selectUserRole = (state) => state.auth.user?.role;
 export const selectUserFacilityId = (state) => state.auth.user?.facilityId;
+export const selectUserPosition = (state) => state.auth.user?.position;
+export const selectUserFacilityName = (state) => state.auth.user?.facilityName;
+
+// Role-based selectors matching backend USER_ROLE enum
 export const selectIsStaff = (state) => {
   const role = state.auth.user?.role;
   return ['MANAGER', 'DOCTOR', 'NURSE', 'TRANSPORTER'].includes(role);
 };
 export const selectIsAdmin = (state) => state.auth.user?.role === 'ADMIN';
 export const selectIsManager = (state) => state.auth.user?.role === 'MANAGER';
+export const selectIsDoctor = (state) => state.auth.user?.role === 'DOCTOR';
+export const selectIsNurse = (state) => state.auth.user?.role === 'NURSE';
+export const selectIsTransporter = (state) => state.auth.user?.role === 'TRANSPORTER';
+export const selectIsMember = (state) => state.auth.user?.role === 'MEMBER';
 
 export default authSlice.reducer; 
