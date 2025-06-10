@@ -8,6 +8,7 @@ import {
   Users,
   Inbox,
   Heart,
+  MapPin,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -19,6 +20,7 @@ const navigation = [
   { name: "Gift Management", path: "/manager/gifts", icon: Gift },
   { name: "Staff Management", path: "/manager/staff", icon: Users },
   { name: "Blog Management", path: "/manager/blogs", icon: FileText },
+  { name: "Events Management", path: "/manager/events", icon: MapPin },
 ];
 
 export function ManagerSidebar() {

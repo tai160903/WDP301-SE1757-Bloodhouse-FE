@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { login } from '@/services/auth';
+import { STAFF_ROLES } from '@/constants/userRole';
 
 interface LoginFormData {
   emailOrPhone: string;
@@ -32,8 +33,6 @@ const Login = () => {
 
     if (!formData.password) {
       newErrors.password = 'Mật khẩu là bắt buộc';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
 
     return newErrors;
@@ -56,6 +55,9 @@ const Login = () => {
         if (response.status === 200) {
           console.log("Login successful");
           localStorage.setItem("token", response.data.tokens.accessToken);
+          if (STAFF_ROLES.includes(response.data.user.position)) {
+           
+          }
           window.location.href = "/";
         } else {
           setErrors((prev) => ({
