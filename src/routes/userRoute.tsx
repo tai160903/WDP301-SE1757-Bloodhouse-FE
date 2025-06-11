@@ -28,6 +28,10 @@ const userRoutes = [
     element: <NotFoundPage />,
   },
   {
+    path: "/unauthorized",
+    element: <NotFoundPage />,
+  },
+  {
     path: "/blog",
     element: <Blog />,
   },
