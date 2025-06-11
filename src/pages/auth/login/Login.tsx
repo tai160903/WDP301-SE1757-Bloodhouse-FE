@@ -1,5 +1,12 @@
-import React, { useState } from 'react';
-import { login } from '@/services/auth';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { Droplet, Eye, EyeOff, Heart, Users, Shield, ArrowLeft } from 'lucide-react';
+import useAuth from '@/hooks/useAuth';
 
 interface LoginFormData {
   emailOrPhone: string;
@@ -51,7 +58,7 @@ const Login = () => {
     }
 
     if (!formData.password) {
-      newErrors.password = 'Mật khẩu là bắt buộc';
+      newErrors.password = 'Vui lòng nhập mật khẩu';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
