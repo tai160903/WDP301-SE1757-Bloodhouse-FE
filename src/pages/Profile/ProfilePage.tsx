@@ -1,4 +1,3 @@
-import { getUserProfile, userProfiles } from "@/services/users";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,238 +26,357 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   User,
   Mail,
-  Calendar,
-  Phone,
-  MapPin,
-  Award,
   Heart,
   Edit,
   Loader2,
-  History,
-  HandHeart,
-  LogOut,
-  ChevronRight,
-  Menu,
+  CheckCircle,
+  AlertCircle,
+  Shield,
+  Star,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
+import { userAPI } from "@/utils/axiosInstance";
+import { 
+  getRoleText, 
+  getStatusText, 
+  getSexText, 
+  getProfileLevelText, 
+  getAvailabilityText,
+  formatPhoneNumber,
+  formatYearOfBirth
+} from "@/utils/changeText";
+import { cn } from "@/lib/utils";
+import useAuth from "@/hooks/useAuth";
 
 const formSchema = z.object({
   fullName: z.string().min(2, {
     message: "Họ và tên phải có ít nhất 2 ký tự",
   }),
-  email: z.string().email({
-    message: "Email không hợp lệ",
-  }),
   phone: z.string().min(10, {
     message: "Số điện thoại không hợp lệ",
   }),
-  gender: z.string(),
-  birthDate: z.string(),
-  address: z.string(),
+  sex: z.enum(["MALE", "FEMALE"], {
+    required_error: "Vui lòng chọn giới tính",
+  }),
+  address: z.string().min(5, {
+    message: "Địa chỉ phải có ít nhất 5 ký tự",
+  }),
+  yob: z.string().min(4, {
+    message: "Năm sinh không hợp lệ",
+  }),
 });
+
+interface UserProfile {
+  _id: string;
+  fullName?: string;
+  email: string;
+  phone?: string;
+  address?: string;
+  sex?: "MALE" | "FEMALE";
+  yob?: string;
+  avatar?: string;
+  bloodId?: {
+    _id: string;
+    name: string;
+  };
+  isVerified?: boolean;
+  status?: string;
+  profileLevel?: number;
+  role?: string;
+  idCard?: string;
+  isAvailable?: boolean;
+}
+
+interface APIResponse<T> {
+  message: string;
+  data: T;
+}
 
 const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState<userProfiles>();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("profile");
+  const [updating, setUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       fullName: "",
-      email: "",
       phone: "",
-      gender: "",
-      birthDate: "",
+      sex: "MALE",
       address: "",
+      yob: "",
     },
   });
 
+  // Redirect if not authenticated
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await getUserProfile();
-        setProfile(res);
-        // Update form default values with profile data
-        form.reset({
-          fullName: res.data.fullName || "",
-          email: res.data.email || "",
-          phone: res.data.phone || "",
-          gender: res.data.gender || "",
-          birthDate: res.data.birthDate || "",
-          address: res.data.address || "",
-        });
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!authLoading && !isAuthenticated) {
+      navigate("/auth/login");
+    }
+  }, [isAuthenticated, authLoading, navigate]);
 
-    fetchProfile();
-  }, [form]);
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Handle form submission
-    console.log(values);
-    setIsEditing(false);
+  // Fetch user profile
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await userAPI.get("/me");
+      const profileData = (response.data as APIResponse<UserProfile>).data;
+      setProfile(profileData);
+      
+      // Update form with profile data
+      form.reset({
+        fullName: profileData.fullName || "",
+        phone: profileData.phone || "",
+        sex: profileData.sex || "MALE",
+        address: profileData.address || "",
+        yob: profileData.yob || "",
+      });
+    } catch (error: any) {
+      console.error("Error fetching profile:", error);
+      setError(error.response?.data?.message || "Có lỗi xảy ra khi tải thông tin");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (loading) {
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchProfile();
+    }
+  }, [isAuthenticated]);
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setUpdating(true);
+      setError(null);
+      setSuccess(null);
+
+      const response = await userAPI.patch("/profile", values);
+      const updatedProfile = (response.data as APIResponse<UserProfile>).data;
+      
+      setProfile(prev => ({ ...prev, ...updatedProfile }));
+      setSuccess("Cập nhật thông tin thành công!");
+      setIsEditing(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error: any) {
+      console.error("Error updating profile:", error);
+      setError(error.response?.data?.message || "Có lỗi xảy ra khi cập nhật thông tin");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // Clear messages
+  const clearMessages = () => {
+    setError(null);
+    setSuccess(null);
+  };
+
+  if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải thông tin...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Không thể tải thông tin</h2>
+          <p className="text-gray-600 mb-4">Vui lòng thử lại sau</p>
+          <Button onClick={fetchProfile} variant="outline">Thử lại</Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 rounded-full">
-              <User className="h-8 w-8 text-orange-600" />
+            <div className="bg-accent p-3 rounded-full">
+              <User className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Thông tin cá nhân
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Quản lý thông tin cá nhân của bạn
-              </p>
+              <h1 className="text-3xl font-bold tracking-tight text-primary">Thông tin cá nhân</h1>
+              <p className="text-muted-foreground">Quản lý và cập nhật thông tin của bạn</p>
             </div>
           </div>
           <Button
-            onClick={() => setIsEditing(true)}
-            className="bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
+            onClick={() => {
+              setIsEditing(true);
+              clearMessages();
+            }}
           >
             <Edit className="mr-2 h-4 w-4" />
             Chỉnh sửa thông tin
           </Button>
         </div>
 
+        {/* Success/Error Messages */}
+        {success && (
+          <Alert className="mb-6">
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
+
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
-          <ProfileSidebar activeTab="profile" />
+          <div className="lg:col-span-1">
+            <ProfileSidebar activeTab="profile" />
+          </div>
 
-          {/* Profile Info Section */}
+          {/* Profile Content */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Profile Card */}
-            <Card className="shadow-xl border-0 py-0 gap-0">
-              <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-lg">
-                <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
-                  <User className="h-5 w-5" />
-                  Hồ sơ
-                </CardTitle>
+            {/* Profile Overview Card */}
+            <Card className="shadow-lg">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-xl">Hồ sơ cá nhân</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="flex flex-col items-center">
-                  <img
-                    src={profile?.data.avatar}
-                    alt="Avatar"
-                    className="w-32 h-32 rounded-full object-cover mb-4 border-4 border-orange-100"
-                  />
-                  <h3 className="text-xl font-semibold text-gray-900">
-                    {profile?.data.fullName || "Chưa cập nhật"}
-                  </h3>
-                  <p className="text-gray-500 mb-4">{profile?.data.email}</p>
-                  <Badge
-                    variant="outline"
-                    className="bg-orange-100 text-orange-800"
-                  >
-                    Thành viên
-                  </Badge>
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="relative">
+                    <img
+                      src={profile.avatar || "/images/default-avatar.png"}
+                      alt="Avatar"
+                      className="w-24 h-24 rounded-full object-cover border-4 border-accent"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/images/default-avatar.png";
+                      }}
+                    />
+                    {profile.isVerified && (
+                      <div className="absolute -bottom-1 -right-1 bg-green-500 text-white rounded-full p-1">
+                        <CheckCircle className="h-3 w-3" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex-1 text-center sm:text-left">
+                    <h2 className="text-2xl font-bold mb-2">
+                      {profile.fullName || "Người dùng"}
+                    </h2>
+                    <p className="text-muted-foreground mb-3">{profile.email}</p>
+                    
+                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                      <Badge variant="outline">
+                        <Star className="h-3 w-3 mr-1" />
+                        {getRoleText(profile.role)}
+                      </Badge>
+                      <Badge variant="outline">
+                        <Shield className="h-3 w-3 mr-1" />
+                        {getStatusText(profile.status)}
+                      </Badge>
+                      <Badge variant="outline">
+                        {getProfileLevelText(profile.profileLevel)}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Info Cards */}
-            <Card className="shadow-xl border-0 py-0 gap-0">
-              <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-lg">
-                <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
-                  <Mail className="h-5 w-5" />
+            {/* Contact Information */}
+            <Card className="shadow-lg">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Mail className="h-5 w-5 text-primary" />
                   Thông tin liên hệ
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <p className="text-gray-500 flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      Email
-                    </p>
-                    <p className="font-medium">{profile?.data.email}</p>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Email</label>
+                      <p className="font-medium text-foreground">{profile.email}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Số điện thoại</label>
+                      <p className="font-medium text-foreground">{formatPhoneNumber(profile.phone)}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Giới tính</label>
+                      <p className="font-medium text-foreground">{getSexText(profile.sex)}</p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-gray-500 flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      Số điện thoại
-                    </p>
-                    <p className="font-medium">
-                      {profile?.data.phone || "Chưa cập nhật"}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-gray-500 flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      Địa chỉ
-                    </p>
-                    <p className="font-medium">
-                      {profile?.data.address || "Chưa cập nhật"}
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <p className="text-gray-500 flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Ngày sinh
-                    </p>
-                    <p className="font-medium">
-                      {profile?.data.birthDate || "Chưa cập nhật"}
-                    </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Năm sinh</label>
+                      <p className="font-medium text-foreground">{formatYearOfBirth(profile.yob)}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Địa chỉ</label>
+                      <p className="font-medium text-foreground">{profile.address || "Chưa cập nhật"}</p>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-muted-foreground">Nhóm máu</label>
+                      <p className="font-medium text-foreground">{profile.bloodId?.name || "Chưa cập nhật"}</p>
+                    </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-xl border-0 py-0 gap-0">
-              <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-lg">
-                <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
-                  <Award className="h-5 w-5" />
-                  Thành tích
+            {/* Blood Donation Status */}
+            <Card className="shadow-lg">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-primary" />
+                  Trạng thái hiến máu
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <p className="text-gray-500 flex items-center gap-2">
-                      <Heart className="h-4 w-4" />
-                      Số lần hiến máu
-                    </p>
-                    <p className="font-medium">
-                      {profile?.data.donationCount || 0} lần
-                    </p>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 bg-accent rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="bg-primary p-3 rounded-full">
+                      <Heart className="h-6 w-6 text-primary-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{getAvailabilityText(profile.isAvailable)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {profile.isAvailable 
+                          ? "Bạn có thể tham gia hiến máu" 
+                          : "Hiện tại chưa thể hiến máu"
+                        }
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <p className="text-gray-500 flex items-center gap-2">
-                      <Award className="h-4 w-4" />
-                      Điểm tích lũy
-                    </p>
-                    <p className="font-medium">
-                      {profile?.data.points || 0} điểm
-                    </p>
-                  </div>
+                  <Badge variant={profile.isAvailable ? "default" : "secondary"}>
+                    {profile.isAvailable ? "Sẵn sàng" : "Chưa sẵn sàng"}
+                  </Badge>
                 </div>
               </CardContent>
             </Card>
@@ -266,14 +384,23 @@ const ProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Edit Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Chỉnh sửa thông tin</DialogTitle>
             <DialogDescription>
               Cập nhật thông tin cá nhân của bạn
             </DialogDescription>
           </DialogHeader>
+          
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -304,23 +431,19 @@ const ProfilePage: React.FC = () => {
               />
               <FormField
                 control={form.control}
-                name="gender"
+                name="sex"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Giới tính</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn giới tính" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="male">Nam</SelectItem>
-                        <SelectItem value="female">Nữ</SelectItem>
-                        <SelectItem value="other">Khác</SelectItem>
+                        <SelectItem value="MALE">Nam</SelectItem>
+                        <SelectItem value="FEMALE">Nữ</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -329,12 +452,12 @@ const ProfilePage: React.FC = () => {
               />
               <FormField
                 control={form.control}
-                name="birthDate"
+                name="yob"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Ngày sinh</FormLabel>
+                    <FormLabel>Năm sinh</FormLabel>
                     <FormControl>
-                      <Input type="date" {...field} />
+                      <Input placeholder="Nhập năm sinh (YYYY)" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -353,19 +476,30 @@ const ProfilePage: React.FC = () => {
                   </FormItem>
                 )}
               />
-              <DialogFooter>
+              <DialogFooter className="gap-2 sm:gap-0">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setIsEditing(false)}
+                  onClick={() => {
+                    setIsEditing(false);
+                    clearMessages();
+                  }}
+                  disabled={updating}
                 >
                   Hủy
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-orange-600 hover:bg-orange-700"
+                  disabled={updating}
                 >
-                  Lưu thay đổi
+                  {updating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Đang lưu...
+                    </>
+                  ) : (
+                    "Lưu thay đổi"
+                  )}
                 </Button>
               </DialogFooter>
             </form>

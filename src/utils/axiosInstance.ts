@@ -120,10 +120,10 @@ export const createAPIEndpoint = (basePath: string) => {
 
 // Pre-configured API endpoints for common use cases
 export const authAPI = createAPIEndpoint('/auth');
-export const userAPI = createAPIEndpoint('/users');
-export const facilityAPI = createAPIEndpoint('/facilities');
-export const donationAPI = createAPIEndpoint('/donations');
-export const giftAPI = createAPIEndpoint('/gifts');
+export const userAPI = createAPIEndpoint('/user');
+export const facilityAPI = createAPIEndpoint('/facilitie');
+export const donationAPI = createAPIEndpoint('/donation');
+export const giftAPI = createAPIEndpoint('/gift');
 export const staffAPI = createAPIEndpoint('/staff');
 export const adminAPI = createAPIEndpoint('/admin');
 

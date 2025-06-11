@@ -97,9 +97,8 @@ interface ListItemProps {
 }
 
 export function MainNavbar() {
-  const { user, isAuthenticated, signOut, loading } = useAuth();
+  const { user, isAuthenticated, signOut, loading, userRole, isAdmin, isManager } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
-  console.log("🚀 ~ MainNavbar ~ user:", user)
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -299,6 +298,44 @@ export function MainNavbar() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    
+                    {/* Admin Dashboard Link */}
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem
+                          asChild
+                          className="text-sm font-semibold hover:bg-blue-50 hover:text-blue-600 focus:bg-blue-50 focus:text-blue-600"
+                        >
+                          <Link to="/admin">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                              Dashboard Admin
+                            </div>
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
+                    {/* Manager Dashboard Link */}
+                    {isManager && (
+                      <>
+                        <DropdownMenuItem
+                          asChild
+                          className="text-sm font-semibold hover:bg-green-50 hover:text-green-600 focus:bg-green-50 focus:text-green-600"
+                        >
+                          <Link to="/manager">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              Dashboard Manager
+                            </div>
+                          </Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    
+                    {/* Separator if admin or manager */}
+                    {(isAdmin || isManager) && <DropdownMenuSeparator />}
+                    
                     <DropdownMenuItem
                       asChild
                       className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"

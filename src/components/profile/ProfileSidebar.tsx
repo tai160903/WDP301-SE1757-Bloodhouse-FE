@@ -1,15 +1,25 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   User,
   History,
   HandHeart,
   LogOut,
   ChevronRight,
-  Menu,
+  Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import useAuth from "@/hooks/useAuth";
 
 interface ProfileSidebarProps {
   activeTab: string;
@@ -17,10 +27,26 @@ interface ProfileSidebarProps {
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
   const navigate = useNavigate();
+  const { signOut, loading } = useAuth();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleLogoutConfirm = async () => {
+    try {
+      await signOut();
+      setShowLogoutModal(false);
+      navigate("/auth/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setShowLogoutModal(false);
+    }
+  };
+
+  const handleLogoutCancel = () => {
+    setShowLogoutModal(false);
   };
 
   const menuItems = [
@@ -42,43 +68,106 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
       icon: HandHeart,
       onClick: () => navigate("/donation-requests"),
     },
-    {
-      id: "logout",
-      label: "Đăng xuất",
-      icon: LogOut,
-      onClick: handleLogout,
-      className: "text-red-600 hover:text-red-700 hover:bg-red-50",
-    },
   ];
 
   return (
-    <Card className="shadow-xl border-0 py-0 h-fit gap-0">
-      <CardHeader className="bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-lg">
-        <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
-          <Menu className="h-5 w-5" />
-          Menu
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-4">
-        <div className="space-y-1">
+    <>
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-primary">
+            Menu
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
           {menuItems.map((item) => (
             <button
               key={item.id}
               onClick={item.onClick}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors",
-                activeTab === item.id && "bg-orange-50 text-orange-600",
-                item.className
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
+                activeTab === item.id 
+                  ? "bg-accent text-primary font-medium" 
+                  : "text-gray-700"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              <span className="flex-1 text-left">{item.label}</span>
-              <ChevronRight className="h-4 w-4 opacity-50" />
+              <div className={cn(
+                "p-2 rounded-full",
+                activeTab === item.id ? "bg-primary/10" : "bg-gray-100"
+              )}>
+                <item.icon className={cn(
+                  "h-4 w-4",
+                  activeTab === item.id ? "text-primary" : "text-gray-600"
+                )} />
+              </div>
+              <span className="flex-1">{item.label}</span>
+              {activeTab === item.id && (
+                <ChevronRight className="h-4 w-4 text-primary" />
+              )}
             </button>
           ))}
-        </div>
-      </CardContent>
-    </Card>
+          
+          {/* Logout Button */}
+          <div className="pt-2 mt-4 border-t">
+            <button
+              onClick={handleLogoutClick}
+              disabled={loading}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors text-red-600"
+            >
+              <div className="p-2 rounded-full bg-red-100">
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
+              </div>
+              <span className="flex-1">
+                {loading ? "Đang đăng xuất..." : "Đăng xuất"}
+              </span>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Logout Confirmation Modal */}
+      <Dialog open={showLogoutModal} onOpenChange={setShowLogoutModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LogOut className="h-5 w-5 text-red-600" />
+              Xác nhận đăng xuất
+            </DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn đăng xuất khỏi tài khoản không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleLogoutCancel}
+              disabled={loading}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={handleLogoutConfirm}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang đăng xuất...
+                </>
+              ) : (
+                "Đăng xuất"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

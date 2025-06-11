@@ -8,6 +8,7 @@ import User from "@/pages/admin/User";
 import BlogDetail from "@/pages/resource/BlogDetail";
 import React from "react";
 import BlogForm from "@/components/BlogForm";
+import GiftFacility from "@/pages/admin/GiftFacility";
 
 const AdminRoutes = [
   {
@@ -87,6 +88,14 @@ const AdminRoutes = [
     element: (
       <React.Suspense fallback={<div>Loading...</div>}>
         <BloodComponent />
+      </React.Suspense>
+    ),
+  },
+  {
+    path: "gift-facilities",
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <GiftFacility />
       </React.Suspense>
     ),
   },
