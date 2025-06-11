@@ -1,6 +1,7 @@
 import Blogs from "@/pages/manager/Blogs";
 import BloodInventory from "@/pages/manager/BloodInventory";
 import Dashboard from "@/pages/manager/Dashboard";
+import Events from "@/pages/manager/Events";
 import Gifts from "@/pages/manager/Gifts";
 import ReceivedRequests from "@/pages/manager/Received";
 import Requests from "@/pages/manager/Request";
@@ -34,6 +35,10 @@ const managerRoutes = [
   {
     path: "blogs",
     element: <Blogs />,
+  },
+  {
+    path: "events",
+    element: <Events />,
   },
 ];
 
