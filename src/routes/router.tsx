@@ -7,6 +7,7 @@ import AdminLayout from "@/components/AdminLayout";
 import adminRoutes from "./adminRoutes";
 import ManagerLayout from "@/components/ManagerLayout";
 import managerRoutes from "./managerRoutes";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export const router = createBrowserRouter([
   {
@@ -21,12 +22,20 @@ export const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: (
+      <ProtectedRoute requiredRoles={['ADMIN']} fallbackPath="/auth/login">
+        <AdminLayout />
+      </ProtectedRoute>
+    ),
     children: [...adminRoutes],
   },
   {
     path: "/manager",
-    element: <ManagerLayout />,
+    element: (
+      <ProtectedRoute requiredRoles={['MANAGER']} fallbackPath="/auth/login">
+        <ManagerLayout />
+      </ProtectedRoute>
+    ),
     children: [...managerRoutes],
   },
 ]);

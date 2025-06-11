@@ -5,15 +5,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useManagerContext } from "@/components/ManagerLayout";
 import { Droplets, Gift, Users, Calendar } from "lucide-react";
 
 export default function Dashboard() {
+  const { facilityId, facilityName, user } = useManagerContext();
+  
+  console.log("🚀 ~ Dashboard ~ facilityName:", facilityName);
+  console.log("🚀 ~ Dashboard ~ facilityId:", facilityId);
+  console.log("🚀 ~ Dashboard ~ user:", user);
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome to the Blood Donation Facility Management Panel
+          Welcome to {facilityName || "Blood Donation Facility"} Management Panel
         </p>
       </div>
 
