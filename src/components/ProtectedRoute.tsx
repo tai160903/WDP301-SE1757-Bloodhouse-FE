@@ -1,12 +1,19 @@
+import useAuth from '@/hooks/useAuth';
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import useAuth from '../hooks/useAuth';
 
-const ProtectedRoute = ({ 
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requiredRoles?: string[];
+  requiredPermissions?: string[];
+  fallbackPath?: string;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   requiredRoles = [], 
   requiredPermissions = [],
-  fallbackPath = '/auth/sign-in' 
+  fallbackPath = '/auth/login' 
 }) => {
   const { isAuthenticated, loading, hasRole, hasPermission } = useAuth();
   const location = useLocation();
@@ -42,7 +49,7 @@ const ProtectedRoute = ({
   }
 
   // All checks passed - render children
-  return children;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute; 

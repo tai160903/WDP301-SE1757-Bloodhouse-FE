@@ -33,10 +33,6 @@ import * as z from "zod";
 import {
   User,
   Mail,
-  Calendar,
-  Phone,
-  MapPin,
-  Award,
   Heart,
   Edit,
   Loader2,
@@ -47,7 +43,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
-import useAuth from "@/hooks/useAuth";
 import { userAPI } from "@/utils/axiosInstance";
 import { 
   getRoleText, 
@@ -56,10 +51,10 @@ import {
   getProfileLevelText, 
   getAvailabilityText,
   formatPhoneNumber,
-  formatYearOfBirth,
-  getStatusBadgeClass
+  formatYearOfBirth
 } from "@/utils/changeText";
 import { cn } from "@/lib/utils";
+import useAuth from "@/hooks/useAuth";
 
 const formSchema = z.object({
   fullName: z.string().min(2, {

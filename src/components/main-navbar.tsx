@@ -99,7 +99,6 @@ interface ListItemProps {
 export function MainNavbar() {
   const { user, isAuthenticated, signOut, loading } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
-  console.log("🚀 ~ MainNavbar ~ user:", user)
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
