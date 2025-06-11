@@ -9,6 +9,7 @@ import BloodInfo from "@/pages/resource/BloodInfo";
 import FAQPage from "@/pages/resource/Faq";
 import ProfilePage from "@/pages/Profile/ProfilePage";
 import BloodDonationHistory from "@/pages/Profile/BloodDonationHistory/BloodDonationHistory";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 const userRoutes = [
   {
@@ -53,11 +54,19 @@ const userRoutes = [
   },
   {
     path: "/profile",
-    element: <ProfilePage />,
+    element: (
+      <ProtectedRoute fallbackPath="/auth/login">
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/donation-history",
-    element: <BloodDonationHistory />
+    element: (
+      <ProtectedRoute fallbackPath="/auth/login">
+        <BloodDonationHistory />
+      </ProtectedRoute>
+    ),
   }
 ];
 

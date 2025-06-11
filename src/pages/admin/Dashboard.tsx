@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAdminContext } from "@/components/AdminLayout";
 import {
   Users,
   Building2,
@@ -64,7 +65,12 @@ const recentActivity = [
 ];
 
 function Dashboard() {
+  const { user, userRole, isAdmin } = useAdminContext();
   const [selectedPeriod, setSelectedPeriod] = useState("This Month");
+
+  console.log("🚀 ~ Admin Dashboard ~ user:", user);
+  console.log("🚀 ~ Admin Dashboard ~ userRole:", userRole);
+  console.log("🚀 ~ Admin Dashboard ~ isAdmin:", isAdmin);
 
   return (
     <div className="p-6 bg-gradient-to-br from-red-50 via-white to-pink-50 min-h-screen">
@@ -75,9 +81,9 @@ function Dashboard() {
             <Activity className="h-8 w-8 text-red-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <p className="text-gray-600 mt-1">
-              Blood Donation Management Overview
+              Welcome back, {user?.fullName || user?.email || "Administrator"}
             </p>
           </div>
         </div>
