@@ -6,25 +6,44 @@ import { Label } from "@/components/ui/label";
 import { X, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Select from "react-select";
-import axios, { create } from "axios";
 import { getAllStaffsNotAssignedToFacility } from "@/services/facilityStaff";
-import { createFacility } from "@/services/facility";
+import axios from "axios";
 
 interface StaffOption {
   value: string;
   label: string;
 }
 
+interface Facility {
+  name: string;
+  code?: string;
+  address?: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  contactPhone?: string;
+  contactEmail?: string;
+  isActive: boolean;
+  managerId?: string;
+  doctorIds?: string[] | null;
+  nurseIds?: string[] | null;
+  imageUrl?: string;
+  _id?: string;
+}
+
 interface CreateFacilityModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialData?: Facility | null;
 }
 
 const CreateFacilityModal = ({
   isOpen,
   onClose,
   onSuccess,
+  initialData,
 }: CreateFacilityModalProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,32 +51,132 @@ const CreateFacilityModal = ({
   const [doctorOptions, setDoctorOptions] = useState<StaffOption[]>([]);
   const [nurseOptions, setNurseOptions] = useState<StaffOption[]>([]);
 
+  console.log("Initial Data:", initialData);
+
+  interface FacilityFormValues {
+    name: string;
+    address: string;
+    latitude: string;
+    longitude: string;
+    contactPhone: string;
+    contactEmail: string;
+    managerId: StaffOption | null;
+    doctorIds: StaffOption[];
+    nurseIds: StaffOption[];
+    image: FileList | null;
+  }
+
+  const defaultValues: FacilityFormValues = {
+    name: "",
+    address: "",
+    latitude: "",
+    longitude: "",
+    contactPhone: "",
+    contactEmail: "",
+    managerId: null,
+    doctorIds: [],
+    nurseIds: [],
+    image: null,
+  };
+
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
     reset,
-  } = useForm({
-    defaultValues: {
-      name: "",
-      address: "",
-      latitude: "",
-      longitude: "",
-      contactPhone: "",
-      contactEmail: "",
-      managerId: null,
-      doctorIds: [],
-      nurseIds: [],
-      image: null,
-    },
+    setValue,
+  } = useForm<FacilityFormValues>({
+    defaultValues,
   });
+
+  useEffect(() => {
+    if (!isOpen) {
+      reset(defaultValues);
+      setImagePreview(null);
+    }
+  }, [isOpen, reset]);
 
   useEffect(() => {
     if (isOpen) {
       fetchStaffOptions();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setValue("name", initialData.name || "");
+      setValue("address", initialData.address || "");
+      if (initialData.location && initialData.location.coordinates) {
+        setValue(
+          "latitude",
+          initialData.location.coordinates[1]?.toString() || ""
+        );
+        setValue(
+          "longitude",
+          initialData.location.coordinates[0]?.toString() || ""
+        );
+      }
+
+      setValue("contactPhone", initialData.contactPhone || "");
+      setValue("contactEmail", initialData.contactEmail || "");
+
+      if (managerOptions.length > 0 && initialData.managerId) {
+        const managerOption = managerOptions.find(
+          (opt) => opt.value === initialData.managerId
+        );
+
+        if (managerOption) {
+          setValue("managerId", managerOption);
+        } else {
+          setValue("managerId", {
+            value: initialData.managerId,
+            label: "Current Manager",
+          });
+        }
+      }
+
+      if (
+        Array.isArray(initialData?.doctorIds) &&
+        initialData?.doctorIds?.length > 0
+      ) {
+        if (doctorOptions.length > 0) {
+          const doctorValues = initialData?.doctorIds.map((id) => ({
+            value: id,
+            label:
+              doctorOptions.find((opt) => opt.value === id)?.label || "Doctor",
+          }));
+          setValue("doctorIds", doctorValues);
+        }
+      }
+
+      if (
+        Array.isArray(initialData?.nurseIds) &&
+        initialData.nurseIds?.length > 0
+      ) {
+        if (nurseOptions.length > 0) {
+          const nurseValues = initialData.nurseIds.map((id) => ({
+            value: id,
+            label:
+              nurseOptions.find((opt) => opt.value === id)?.label || "Nurse",
+          }));
+          setValue("nurseIds", nurseValues);
+        }
+      }
+
+      // Image preview
+      if (initialData.imageUrl) {
+        setImagePreview(initialData.imageUrl);
+      }
+    }
+  }, [
+    initialData,
+    isOpen,
+    setValue,
+    managerOptions,
+    doctorOptions,
+    nurseOptions,
+  ]);
 
   const fetchStaffOptions = async () => {
     try {
@@ -72,21 +191,21 @@ const CreateFacilityModal = ({
         managerResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
           label: `${staff?.userId?.fullName}`,
-        }))
+        })) || []
       );
 
       setDoctorOptions(
-        doctorResponse.data.map((staff: any) => ({
+        doctorResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
           label: `${staff?.userId?.fullName}`,
-        }))
+        })) || []
       );
 
       setNurseOptions(
-        nurseResponse.data.map((staff: any) => ({
+        nurseResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
           label: `${staff?.userId?.fullName}`,
-        }))
+        })) || []
       );
     } catch (error) {
       console.error("Error fetching staff options:", error);
@@ -102,9 +221,14 @@ const CreateFacilityModal = ({
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-    } else {
-      setImagePreview(null);
     }
+  };
+
+  // Custom reset function to handle modal close
+  const handleCloseModal = () => {
+    reset(defaultValues);
+    setImagePreview(null);
+    onClose();
   };
 
   const onSubmit = async (data: any) => {
@@ -113,37 +237,68 @@ const CreateFacilityModal = ({
     try {
       const formData = new FormData();
 
-      formData.append("managerId", data.managerId.value);
+      // Add basic form fields
       formData.append("name", data.name);
-      formData.append("latitude", data.latitude);
-      formData.append("contactPhone", data.contactPhone);
-      formData.append("longitude", data.longitude);
       formData.append("address", data.address);
-
-      formData.append(
-        "doctorIds",
-        data.doctorIds.map((doctor: StaffOption) => doctor.value)
-      );
-
-      formData.append(
-        "nurseIds",
-        data.nurseIds.map((nurse: StaffOption) => nurse.value)
-      );
+      formData.append("latitude", data.latitude);
+      formData.append("longitude", data.longitude);
+      formData.append("contactPhone", data.contactPhone);
       formData.append("contactEmail", data.contactEmail);
-      if (data.image[0]) {
+
+      // Add manager ID
+      if (data.managerId?.value) {
+        formData.append("managerId", data.managerId.value);
+      }
+
+      // Handle doctor IDs with proper JSON stringification
+      if (data.doctorIds?.length > 0) {
+        const doctorIdArray = data.doctorIds.map(
+          (doctor: StaffOption) => doctor.value
+        );
+        formData.append("doctorIds", JSON.stringify(doctorIdArray));
+      } else {
+        formData.append("doctorIds", JSON.stringify([]));
+      }
+
+      // Handle nurse IDs with proper JSON stringification
+      if (data.nurseIds?.length > 0) {
+        const nurseIdArray = data.nurseIds.map(
+          (nurse: StaffOption) => nurse.value
+        );
+        formData.append("nurseIds", JSON.stringify(nurseIdArray));
+      } else {
+        formData.append("nurseIds", JSON.stringify([]));
+      }
+
+      // Add image if available
+      if (data.image && data.image[0]) {
         formData.append("image", data.image[0]);
       }
 
-      await createFacility(formData);
+      // Submit - different endpoints for create vs update
+      if (initialData?._id) {
+        await axios.put(`/api/facilities/${initialData._id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("Facility updated successfully!");
+      } else {
+        await axios.post("/api/facilities", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success("Facility created successfully!");
+      }
 
-      toast.success("Facility created successfully!");
-      reset();
-      setImagePreview(null);
+      // Success handling
       onSuccess();
-      onClose();
+      handleCloseModal();
     } catch (error) {
-      console.error("Error creating facility:", error);
-      toast.error("Failed to create facility");
+      console.error(
+        initialData ? "Error updating facility:" : "Error creating facility:",
+        error
+      );
+      toast.error(
+        initialData ? "Failed to update facility" : "Failed to create facility"
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -151,17 +306,19 @@ const CreateFacilityModal = ({
 
   if (!isOpen) return null;
 
+  const modalTitle = initialData ? "Edit Facility" : "Create New Facility";
+  const submitButtonText = initialData ? "Update Facility" : "Create Facility";
+  const loadingText = initialData ? "Updating..." : "Creating...";
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">
-            Create New Facility
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800">{modalTitle}</h2>
           <Button
             variant="ghost"
             size="icon"
-            onClick={onClose}
+            onClick={handleCloseModal}
             className="rounded-full hover:bg-gray-100"
           >
             <X className="h-5 w-5" />
@@ -414,7 +571,7 @@ const CreateFacilityModal = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={onClose}
+                onClick={handleCloseModal}
                 disabled={isSubmitting}
               >
                 Cancel
@@ -427,10 +584,10 @@ const CreateFacilityModal = ({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    {loadingText}
                   </>
                 ) : (
-                  "Create Facility"
+                  submitButtonText
                 )}
               </Button>
             </div>

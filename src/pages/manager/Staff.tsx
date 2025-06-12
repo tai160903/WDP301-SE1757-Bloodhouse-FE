@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,15 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -27,6 +16,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Phone, Mail, Loader2, Eye, Calendar, MapPin, X } from "lucide-react";
+import { useManagerContext } from "@/components/ManagerLayout";
+import { getStaffById, getTotalStaff } from "@/services/facilityStaff";
 import {
   Dialog,
   DialogContent,
@@ -34,299 +27,348 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Edit, Trash2, Phone, Mail } from "lucide-react";
 
-const staffMembers = [
-  {
-    id: 1,
-    name: "Dr. Sarah Johnson",
-    role: "Doctor",
-    department: "Hematology",
-    email: "sarah.johnson@facility.com",
-    phone: "+1-555-0101",
-    status: "Active",
-    joinDate: "2020-03-15",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 2,
-    name: "Dr. Michael Chen",
-    role: "Doctor",
-    department: "Emergency Medicine",
-    email: "michael.chen@facility.com",
-    phone: "+1-555-0102",
-    status: "Active",
-    joinDate: "2019-08-22",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 3,
-    name: "Nurse Emily Davis",
-    role: "Nurse",
-    department: "Blood Collection",
-    email: "emily.davis@facility.com",
-    phone: "+1-555-0103",
-    status: "Active",
-    joinDate: "2021-01-10",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    id: 4,
-    name: "Nurse Robert Wilson",
-    role: "Nurse",
-    department: "Blood Processing",
-    email: "robert.wilson@facility.com",
-    phone: "+1-555-0104",
-    status: "On Leave",
-    joinDate: "2020-11-05",
-    avatar: "/placeholder.svg?height=40&width=40",
-  },
-];
+// Định nghĩa kiểu dữ liệu cho nhân viên
+interface StaffMember {
+  _id: string;
+  userId: {
+    _id: string;
+    fullName: string;
+    email: string;
+    avatar: string;
+    phone?: string;
+    address?: string;
+    yob?: string;
+  };
+  position: string;
+  department?: string;
+  isDeleted: boolean;
+  assignedAt?: string;
+}
 
 export default function Staff() {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { facilityId } = useManagerContext();
+  const [isLoading, setIsLoading] = useState(true);
+  const [staffs, setStaffs] = useState<StaffMember[]>([]);
+  const [totalStaff, setTotalStaff] = useState(0);
+  const [totalDoctors, setTotalDoctors] = useState(0);
+  const [totalNurses, setTotalNurses] = useState(0);
+  const [totalTransporters, setTotalTransporters] = useState(0);
+  const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "Doctor":
+  useEffect(() => {
+    const fetchStaffMembers = async () => {
+      setIsLoading(true);
+      try {
+        const response: any = await getTotalStaff(facilityId || "");
+        setStaffs(response.data.result || []);
+        setTotalStaff(response.data.total || 0);
+
+        // Đếm số lượng nhân viên theo vị trí
+        setTotalDoctors(
+          response.data.result.filter(
+            (staff: any) => staff.position === "DOCTOR"
+          ).length
+        );
+        setTotalNurses(
+          response.data.result.filter(
+            (staff: any) => staff.position === "NURSE"
+          ).length
+        );
+        setTotalTransporters(
+          response.data.result.filter(
+            (staff: any) => staff.position === "TRANSPORTER"
+          ).length
+        );
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách nhân viên:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (facilityId) {
+      fetchStaffMembers();
+    }
+  }, [facilityId]);
+
+  // Hàm để lấy màu sắc tương ứng với vị trí
+  const getRoleColor = (position: string) => {
+    switch (position) {
+      case "DOCTOR":
         return "bg-blue-100 text-blue-800";
-      case "Nurse":
+      case "NURSE":
         return "bg-green-100 text-green-800";
-      case "Technician":
+      case "TRANSPORTER":
         return "bg-purple-100 text-purple-800";
+      case "MANAGER":
+        return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800";
-      case "On Leave":
-        return "bg-yellow-100 text-yellow-800";
-      case "Inactive":
-        return "bg-red-100 text-red-800";
+  const getPositionName = (position: string) => {
+    switch (position) {
+      case "DOCTOR":
+        return "Bác sĩ";
+      case "NURSE":
+        return "Y tá";
+      case "TRANSPORTER":
+        return "Vận chuyển";
+      case "MANAGER":
+        return "Quản lý";
       default:
-        return "bg-gray-100 text-gray-800";
+        return position;
     }
+  };
+
+  const getInitials = (name: string) => {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  const handleViewDetail = async (_id: string) => {
+    const response = await getStaffById(_id);
+    console.log(response.data.assignedAt);
+    setSelectedStaff(response.data);
+    setIsDetailOpen(true);
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Staff Management
-          </h1>
-          <p className="text-muted-foreground">
-            Manage doctors, nurses, and other staff members
-          </p>
-        </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Staff Member
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Add Staff Member</DialogTitle>
-              <DialogDescription>
-                Add a new staff member to the facility
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="Enter full name" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="role">Role</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Doctor">Doctor</SelectItem>
-                    <SelectItem value="Nurse">Nurse</SelectItem>
-                    <SelectItem value="Technician">Technician</SelectItem>
-                    <SelectItem value="Administrator">Administrator</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="department">Department</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Hematology">Hematology</SelectItem>
-                    <SelectItem value="Blood Collection">
-                      Blood Collection
-                    </SelectItem>
-                    <SelectItem value="Blood Processing">
-                      Blood Processing
-                    </SelectItem>
-                    <SelectItem value="Emergency Medicine">
-                      Emergency Medicine
-                    </SelectItem>
-                    <SelectItem value="Administration">
-                      Administration
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="email@facility.com"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" placeholder="+1-555-0123" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="joinDate">Join Date</Label>
-                <Input id="joinDate" type="date" />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" onClick={() => setIsAddDialogOpen(false)}>
-                Add Staff Member
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Quản Lý Nhân Viên</h1>
+        <p className="text-muted-foreground">
+          Thông tin về bác sĩ, y tá và các nhân viên khác
+        </p>
       </div>
 
-      {/* Summary Cards */}
+      {/* Thẻ tổng quan */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng Nhân Viên
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">45</div>
+            <div className="text-2xl font-bold">{totalStaff}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Doctors</CardTitle>
+            <CardTitle className="text-sm font-medium">Bác Sĩ</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">8</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {totalDoctors}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Nurses</CardTitle>
+            <CardTitle className="text-sm font-medium">Y Tá</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">32</div>
+            <div className="text-2xl font-bold text-green-600">
+              {totalNurses}
+            </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">On Leave</CardTitle>
+            <CardTitle className="text-sm font-medium">Vận Chuyển</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">5</div>
+            <div className="text-2xl font-bold text-yellow-600">
+              {totalTransporters}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Staff Table */}
+      {/* Bảng nhân viên */}
       <Card>
         <CardHeader>
-          <CardTitle>Staff Members</CardTitle>
-          <CardDescription>
-            Manage facility staff and their information
-          </CardDescription>
+          <CardTitle>Danh Sách Nhân Viên</CardTitle>
+          <CardDescription>Thông tin về nhân viên tại cơ sở</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Staff Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Department</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Join Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {staffMembers.map((staff) => (
-                <TableRow key={staff.id}>
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={staff.avatar || "/placeholder.svg"}
-                          alt={staff.name}
-                        />
-                        <AvatarFallback>
-                          {staff.name
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{staff.name}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getRoleColor(staff.role)}>
-                      {staff.role}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{staff.department}</TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Mail className="w-3 h-3 mr-1" />
-                        {staff.email}
-                      </div>
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Phone className="w-3 h-3 mr-1" />
-                        {staff.phone}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(staff.status)}>
-                      {staff.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{staff.joinDate}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : staffs.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Không có nhân viên nào</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nhân Viên</TableHead>
+                  <TableHead>Vị Trí</TableHead>
+                  <TableHead>Liên Hệ</TableHead>
+                  <TableHead className="text-right">Thao Tác</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {staffs.map((staff) => (
+                  <TableRow key={staff._id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={staff.userId?.avatar || "/placeholder.svg"}
+                            alt={staff.userId?.fullName}
+                          />
+                          <AvatarFallback>
+                            {getInitials(staff.userId?.fullName)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium">
+                            {staff.userId?.fullName}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getRoleColor(staff.position)}>
+                        {getPositionName(staff.position)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Mail className="w-3 h-3 mr-1" />
+                          {staff.userId?.email}
+                        </div>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Phone className="w-3 h-3 mr-1" />
+                          {staff.userId?.phone || "N/A"}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetail(staff._id)}
+                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      >
+                        <Eye className="w-4 h-4 mr-1" />
+                        Xem Chi Tiết
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
+
+      {/* Modal Chi tiết nhân viên */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl">
+              Thông Tin Chi Tiết Nhân Viên
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Xem thông tin chi tiết của nhân viên
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedStaff && (
+            <div className="space-y-6">
+              <div className="flex flex-col items-center space-y-3">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage
+                    src={selectedStaff.userId?.avatar || "/placeholder.svg"}
+                    alt={selectedStaff.userId?.fullName}
+                  />
+                  <AvatarFallback className="text-2xl">
+                    {getInitials(selectedStaff.userId?.fullName)}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold">
+                    {selectedStaff.userId?.fullName}
+                  </h2>
+                  <Badge
+                    className={`mt-1 ${getRoleColor(selectedStaff.position)}`}
+                  >
+                    {getPositionName(selectedStaff.position)}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center border-b pb-2">
+                  <Mail className="w-5 h-5 text-gray-500 mr-2" />
+                  <span className="font-medium mr-2">Email:</span>
+                  <span>{selectedStaff.userId?.email}</span>
+                </div>
+
+                <div className="flex items-center border-b pb-2">
+                  <Phone className="w-5 h-5 text-gray-500 mr-2" />
+                  <span className="font-medium mr-2">Điện thoại:</span>
+                  <span>{selectedStaff.userId?.phone || "Chưa cập nhật"}</span>
+                </div>
+
+                <div className="flex items-center border-b pb-2">
+                  <Calendar className="w-5 h-5 text-gray-500 mr-2" />
+                  <span className="font-medium mr-2">Ngày sinh:</span>
+                  <span>
+                    {selectedStaff.userId?.yob
+                      ? formatDate(selectedStaff.userId?.yob)
+                      : "Chưa cập nhật"}
+                  </span>
+                </div>
+
+                <div className="flex items-center border-b pb-2">
+                  <MapPin className="w-5 h-5 text-gray-500 mr-2" />
+                  <span className="font-medium mr-2">Địa chỉ:</span>
+                  <span>
+                    {selectedStaff.userId?.address || "Chưa cập nhật"}
+                  </span>
+                </div>
+
+                <div className="flex items-center border-b pb-2">
+                  <Calendar className="w-5 h-5 text-gray-500 mr-2" />
+                  <span className="font-medium mr-2">Ngày vào làm:</span>
+                  <span>
+                    {selectedStaff?.assignedAt
+                      ? formatDate(selectedStaff?.assignedAt)
+                      : "Chưa cập nhật"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button onClick={() => setIsDetailOpen(false)} className="w-full">
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

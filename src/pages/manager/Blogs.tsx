@@ -277,7 +277,7 @@ export default function Blogs() {
                   <TableCell>
                     <div>
                       <div className="font-medium">{post.title}</div>
-                      <div className="text-sm text-muted-foreground line-clamp-2">
+                      <div className="text-sm text-muted-foreground line-clamp-2 max-w-md truncate">
                         {post.excerpt}
                       </div>
                     </div>

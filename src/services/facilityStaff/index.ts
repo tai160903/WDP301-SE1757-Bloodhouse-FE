@@ -50,7 +50,6 @@ export const getAllStaffsNotAssignedToFacility = async (
     const { data } = await instance.get<StaffListResponse>(
       `/facility-staff/not-assigned?position=${position}`
     );
-    console.log("getAllStaffsNotAssignedToFacility", data);
     return data;
   } catch (error: any) {
     throw new Error(
@@ -64,6 +63,16 @@ export const getAllStaffs = async (params: any): Promise<any> => {
     const { data } = await instance.get<any>(`/facility-staff`, {
       params,
     });
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error when calling API."
+    );
+  }
+};
+export const getStaffById = async (id: string): Promise<any> => {
+  try {
+    const { data } = await instance.get<any>(`/facility-staff/${id}`);
     return data;
   } catch (error: any) {
     throw new Error(

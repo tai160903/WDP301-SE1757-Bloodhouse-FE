@@ -103,7 +103,9 @@ function BloodGroupManagement() {
 
   const validateForm = () => {
     if (!VALID_BLOOD_TYPES.includes(formData.name)) {
-      setFormError("Nhóm máu phải là một trong: A+, A-, B+, B-, AB+, AB-, O+, O-");
+      setFormError(
+        "Nhóm máu phải là một trong: A+, A-, B+, B-, AB+, AB-, O+, O-"
+      );
       return false;
     }
     if (formData.populationRate < 0 || formData.populationRate > 100) {
@@ -121,7 +123,12 @@ function BloodGroupManagement() {
       const newGroup = await createBloodGroup(formData);
       setBloodGroups([...bloodGroups, newGroup]);
       setIsAddOpen(false);
-      setFormData({ name: "", note: "", characteristics: [], populationRate: 0 });
+      setFormData({
+        name: "",
+        note: "",
+        characteristics: [],
+        populationRate: 0,
+      });
     } catch (err: any) {
       setError(err.message || "Không thể thêm nhóm máu");
     } finally {
@@ -140,7 +147,12 @@ function BloodGroupManagement() {
         )
       );
       setIsDetailOpen(false);
-      setFormData({ name: "", note: "", characteristics: [], populationRate: 0 });
+      setFormData({
+        name: "",
+        note: "",
+        characteristics: [],
+        populationRate: 0,
+      });
       setSelectedGroup(null);
     } catch (err: any) {
       setError(err.message || "Không thể cập nhật nhóm máu");
@@ -166,7 +178,8 @@ function BloodGroupManagement() {
   const getStatusColor = (inventory: number, capacity: number) => {
     const percentage = (inventory / capacity) * 100;
     if (percentage >= 70) return "bg-green-100 text-green-800 border-green-200";
-    if (percentage >= 30) return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    if (percentage >= 30)
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
     return "bg-red-100 text-red-800 border-red-200";
   };
 
@@ -203,7 +216,12 @@ function BloodGroupManagement() {
     setIsAddOpen(open);
     if (open) {
       setIsDetailOpen(false);
-      setFormData({ name: "", note: "", characteristics: [], populationRate: 0 });
+      setFormData({
+        name: "",
+        note: "",
+        characteristics: [],
+        populationRate: 0,
+      });
       setFormError(null);
     }
   };
@@ -214,7 +232,12 @@ function BloodGroupManagement() {
       setIsAddOpen(false);
     } else {
       setSelectedGroup(null);
-      setFormData({ name: "", note: "", characteristics: [], populationRate: 0 });
+      setFormData({
+        name: "",
+        note: "",
+        characteristics: [],
+        populationRate: 0,
+      });
       setFormError(null);
     }
   };
@@ -301,7 +324,10 @@ function BloodGroupManagement() {
                       />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="characteristics" className="text-gray-700">
+                      <Label
+                        htmlFor="characteristics"
+                        className="text-gray-700"
+                      >
                         Đặc Điểm
                       </Label>
                       <Input
@@ -365,7 +391,9 @@ function BloodGroupManagement() {
           {error && (
             <Alert className="mb-6 border-red-200 bg-red-50">
               <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
+              <AlertDescription className="text-red-800">
+                {error}
+              </AlertDescription>
             </Alert>
           )}
 
@@ -374,7 +402,8 @@ function BloodGroupManagement() {
               <AlertTriangle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
                 <strong>Cảnh Báo Nguồn Cung Thiếu Hụt:</strong>{" "}
-                {criticalGroups.map((group) => group.name).join(", ")} đang ở mức rất thấp. Cần hành động ngay.
+                {criticalGroups.map((group) => group.name).join(", ")} đang ở
+                mức rất thấp. Cần hành động ngay.
               </AlertDescription>
             </Alert>
           )}
@@ -433,7 +462,7 @@ function BloodGroupManagement() {
                 />
               </div>
 
-              <div className="rounded-lg border overflow-hidden">
+              <div className="rounded-lg border overflow-hidden  ">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50">
@@ -474,7 +503,9 @@ function BloodGroupManagement() {
                               </div>
                               <Badge
                                 variant="outline"
-                                className={`text-xs ${getBloodTypeColor(group.name)}`}
+                                className={`text-xs ${getBloodTypeColor(
+                                  group.name
+                                )}`}
                               >
                                 {group.name === "O-"
                                   ? "Người Hiến Máu Toàn Cầu"
@@ -491,7 +522,10 @@ function BloodGroupManagement() {
                               </span>
                               <span className="text-gray-500">/ 100</span>
                             </div>
-                            <Progress value={group.populationRate} className="h-2" />
+                            <Progress
+                              value={group.populationRate}
+                              className="h-2"
+                            />
                             <div className="text-xs text-gray-500">
                               {group.populationRate}% dung lượng
                             </div>
@@ -502,7 +536,9 @@ function BloodGroupManagement() {
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="text-sm text-gray-600 truncate">
-                                  {truncateCharacteristics(group.characteristics)}
+                                  {truncateCharacteristics(
+                                    group.characteristics
+                                  )}
                                 </div>
                               </TooltipTrigger>
                               <TooltipContent>
@@ -516,7 +552,10 @@ function BloodGroupManagement() {
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="h-3 w-3 text-gray-400" />
                               <span className="text-gray-600">
-                                Cập nhật: {new Date(group.updatedAt).toLocaleDateString("vi-VN")}
+                                Cập nhật:{" "}
+                                {new Date(group.updatedAt).toLocaleDateString(
+                                  "vi-VN"
+                                )}
                               </span>
                             </div>
                           </div>
@@ -537,7 +576,10 @@ function BloodGroupManagement() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Dialog open={isDetailOpen} onOpenChange={handleDetailOpen}>
+                          <Dialog
+                            open={isDetailOpen}
+                            onOpenChange={handleDetailOpen}
+                          >
                             <DialogTrigger asChild>
                               <Button
                                 variant="outline"
@@ -568,7 +610,7 @@ function BloodGroupManagement() {
                                 <DialogDescription className="text-sm text-gray-500">
                                   Cập nhật thông tin của một nhóm máu hiện có.
                                 </DialogDescription>
-                    <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70">
+                                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70">
                                   <X className="h-4 w-4" />
                                   <span className="sr-only">Đóng</span>
                                 </DialogClose>
@@ -583,7 +625,10 @@ function BloodGroupManagement() {
                                   </Alert>
                                 )}
                                 <div className="grid gap-2">
-                                  <Label htmlFor="name" className="text-gray-700">
+                                  <Label
+                                    htmlFor="name"
+                                    className="text-gray-700"
+                                  >
                                     Nhóm Máu
                                   </Label>
                                   <Input
@@ -600,21 +645,30 @@ function BloodGroupManagement() {
                                   />
                                 </div>
                                 <div className="grid gap-2">
-                                  <Label htmlFor="note" className="text-gray-700">
+                                  <Label
+                                    htmlFor="note"
+                                    className="text-gray-700"
+                                  >
                                     Ghi Chú
                                   </Label>
                                   <Input
                                     id="note"
                                     value={formData.note}
                                     onChange={(e) =>
-                                      setFormData({ ...formData, note: e.target.value })
+                                      setFormData({
+                                        ...formData,
+                                        note: e.target.value,
+                                      })
                                     }
                                     placeholder="Nhập ghi chú"
                                     className="border-red-200 focus:border-red-400 focus:ring-red-400"
                                   />
                                 </div>
                                 <div className="grid gap-2">
-                                  <Label htmlFor="characteristics" className="text-gray-700">
+                                  <Label
+                                    htmlFor="characteristics"
+                                    className="text-gray-700"
+                                  >
                                     Đặc Điểm
                                   </Label>
                                   <Input
@@ -633,7 +687,10 @@ function BloodGroupManagement() {
                                   />
                                 </div>
                                 <div className="grid gap-2">
-                                  <Label htmlFor="populationRate" className="text-gray-700">
+                                  <Label
+                                    htmlFor="populationRate"
+                                    className="text-gray-700"
+                                  >
                                     Tỷ Lệ Dân Số (%)
                                   </Label>
                                   <Input
@@ -655,7 +712,10 @@ function BloodGroupManagement() {
                               </div>
                               <DialogFooter>
                                 <DialogClose asChild>
-                                  <Button variant="outline" className="border-gray-300">
+                                  <Button
+                                    variant="outline"
+                                    className="border-gray-300"
+                                  >
                                     Hủy
                                   </Button>
                                 </DialogClose>
@@ -686,7 +746,8 @@ function BloodGroupManagement() {
                     Không tìm thấy nhóm máu
                   </h3>
                   <p className="text-gray-500">
-                    Không có nhóm máu nào khớp với tiêu chí tìm kiếm. Hãy thử điều chỉnh từ khóa.
+                    Không có nhóm máu nào khớp với tiêu chí tìm kiếm. Hãy thử
+                    điều chỉnh từ khóa.
                   </p>
                 </div>
               )}
