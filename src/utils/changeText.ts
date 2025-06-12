@@ -136,3 +136,55 @@ export const getStatusBadgeClass = (status?: string): string => {
       return "bg-gray-100 text-gray-800 border-gray-200";
   }
 };
+
+// Gift category text mapping - based on backend enum
+export const getGiftCategoryText = (category?: string): string => {
+  const categoryMap: { [key: string]: string } = {
+    food: "Thực phẩm",
+    beverage: "Đồ uống", 
+    merchandise: "Hàng lưu niệm",
+    health: "Sức khỏe",
+    other: "Khác",
+  };
+  return categoryMap[category?.toLowerCase() || "other"] || "Khác";
+};
+
+// Get all gift categories for dropdown/filter
+export const getGiftCategories = () => [
+  { value: "food", label: "Thực phẩm" },
+  { value: "beverage", label: "Đồ uống" },
+  { value: "merchandise", label: "Hàng lưu niệm" },
+  { value: "health", label: "Sức khỏe" },
+  { value: "other", label: "Khác" },
+];
+
+// Get gift category color for badges
+export const getGiftCategoryColor = (category?: string): string => {
+  const colorMap: { [key: string]: string } = {
+    food: "bg-orange-100 text-orange-800 border-orange-200",
+    beverage: "bg-blue-100 text-blue-800 border-blue-200", 
+    merchandise: "bg-purple-100 text-purple-800 border-purple-200",
+    health: "bg-green-100 text-green-800 border-green-200",
+    other: "bg-gray-100 text-gray-800 border-gray-200",
+  };
+  return colorMap[category?.toLowerCase() || "other"] || "bg-gray-100 text-gray-800 border-gray-200";
+};
+
+// Gift unit text mapping - based on backend enum
+export const getGiftUnitText = (unit?: string): string => {
+  const unitMap: { [key: string]: string } = {
+    item: "Cái",
+    box: "Hộp",
+    bag: "Túi", 
+    pack: "Gói",
+  };
+  return unitMap[unit?.toLowerCase() || "item"] || "Cái";
+};
+
+// Get all gift units for dropdown/form
+export const getGiftUnits = () => [
+  { value: "item", label: "Cái" },
+  { value: "box", label: "Hộp" },
+  { value: "bag", label: "Túi" },
+  { value: "pack", label: "Gói" },
+];

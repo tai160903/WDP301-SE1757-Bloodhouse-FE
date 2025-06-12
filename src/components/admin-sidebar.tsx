@@ -10,17 +10,19 @@ import {
   faDroplet,
   faFlask,
   faCog,
+  faGift,
 } from "@fortawesome/free-solid-svg-icons";
 
 const sidebarItems = [
-  { name: "Dashboard", path: "/admin/", icon: faChartLine },
-  { name: "Users", path: "/admin/users", icon: faUsers },
-  { name: "Staff", path: "/admin/staffs", icon: faUserTie },
-  { name: "Facilities", path: "/admin/facilities", icon: faHospital },
-  { name: "Blog", path: "/admin/blogs", icon: faNewspaper },
-  { name: "Blood Groups", path: "/admin/blood-groups", icon: faDroplet },
-  { name: "Blood Components", path: "/admin/blood-components", icon: faFlask },
-  { name: "Settings", path: "/admin/settings", icon: faCog },
+  { name: "Thống kê", path: "/admin/", icon: faChartLine },
+  { name: "Người dùng", path: "/admin/users", icon: faUsers },
+  { name: "Nhân viên", path: "/admin/staffs", icon: faUserTie },
+  { name: "Đơn vị", path: "/admin/facilities", icon: faHospital },
+  { name: "Bài viết", path: "/admin/blogs", icon: faNewspaper },
+  { name: "Nhóm máu", path: "/admin/blood-groups", icon: faDroplet },
+  { name: "Thành phần máu", path: "/admin/blood-components", icon: faFlask },
+  // { name: "Cài đặt", path: "/admin/settings", icon: faCog },
+  { name: "Đơn vị quà tặng", path: "/admin/gift-facilities", icon: faGift },
 ];
 
 function AdminSidebar() {
@@ -39,7 +41,7 @@ function AdminSidebar() {
 
       <div className="px-4 py-2">
         <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2 pl-3">
-          Management
+          Danh sách quản lý
         </p>
       </div>
 
