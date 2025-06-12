@@ -70,3 +70,13 @@ export const getAllStaffs = async (params: any): Promise<any> => {
     );
   }
 };
+export const getStaffById = async (id: string): Promise<any> => {
+  try {
+    const { data } = await instance.get<any>(`/facility-staff/${id}`);
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error when calling API."
+    );
+  }
+};

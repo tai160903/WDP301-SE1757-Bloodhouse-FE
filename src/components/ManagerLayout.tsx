@@ -15,7 +15,7 @@ const ManagerContext = createContext<ManagerContextType | null>(null);
 export const useManagerContext = () => {
   const context = useContext(ManagerContext);
   if (!context) {
-    throw new Error('useManagerContext must be used within ManagerLayout');
+    throw new Error("useManagerContext must be used within ManagerLayout");
   }
   return context;
 };

@@ -34,9 +34,9 @@ interface SingleFacilityResponse {
   data: Facility;
 }
 
-export const getFacilities = async (): Promise<FacilityListResponse> => {
+export const getFacilities = async (): Promise<any> => {
   try {
-    const { data } = await instance.get<FacilityListResponse>("/facility");
+    const { data } = await instance.get<any>("/facility");
     return data;
   } catch (error: any) {
     throw new Error(

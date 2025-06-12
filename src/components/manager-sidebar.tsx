@@ -12,13 +12,13 @@ import {
 import { Link, useLocation } from "react-router-dom";
 
 const navigation = [
-  { name: "Dashboard", path: "/manager", icon: LayoutDashboard },
-  { name: "Blood Inventory", path: "/manager/inventory", icon: Droplets },
-  { name: "Donation Requests", path: "/manager/requests", icon: Calendar },
-  { name: "Received Requests", path: "/manager/received", icon: Inbox },
-  { name: "Gift Management", path: "/manager/gifts", icon: Gift },
-  { name: "Staff Management", path: "/manager/staff", icon: Users },
-  { name: "Blog Management", path: "/manager/blogs", icon: FileText },
+  { name: "Tổng quan", path: "/manager", icon: LayoutDashboard },
+  { name: "Kho máu", path: "/manager/inventory", icon: Droplets },
+  { name: "Yêu cầu hiến máu", path: "/manager/requests", icon: Calendar },
+  { name: "Yêu cầu nhận máu", path: "/manager/received", icon: Inbox },
+  { name: "Quản lý quà tặng", path: "/manager/gifts", icon: Gift },
+  { name: "Quản lý nhân viên", path: "/manager/staff", icon: Users },
+  { name: "Quản lý bài viết", path: "/manager/blogs", icon: FileText },
 ];
 
 export function ManagerSidebar() {
@@ -28,7 +28,7 @@ export function ManagerSidebar() {
     <div className="flex flex-col w-64 bg-white shadow-lg">
       <div className="flex items-center justify-center h-16 px-4 bg-red-600">
         <Heart className="w-8 h-8 text-white mr-2" />
-        <h1 className="text-xl font-bold text-white">BloodBank Manager</h1>
+        <h1 className="text-xl font-bold text-white">Quản Lý Ngân Hàng Máu</h1>
       </div>
       <nav className="flex-1 px-4 py-6 space-y-2">
         {navigation.map((item) => {
