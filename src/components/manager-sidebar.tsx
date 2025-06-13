@@ -20,7 +20,7 @@ const navigation = [
   { name: "Quản lý quà tặng", path: "/manager/gifts", icon: Gift },
   { name: "Quản lý nhân viên", path: "/manager/staff", icon: Users },
   { name: "Quản lý bài viết", path: "/manager/blogs", icon: FileText },
-
+  { name: "Quản lý sự kiện", path: "/manager/events", icon: MapPin },
 ];
 
 export function ManagerSidebar() {
