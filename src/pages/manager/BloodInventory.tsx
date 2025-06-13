@@ -39,70 +39,13 @@ import {
 import { Plus, Edit, Trash2 } from "lucide-react";
 import {
   getBloodInventory,
-  getBloodInventoryDetail,
+  // getBloodInventoryDetail,
 } from "@/services/bloodinventory";
-
-const bloodInventory = [
-  {
-    id: 1,
-    bloodType: "A+",
-    units: 45,
-    expiryDate: "2024-01-15",
-    status: "Good",
-  },
-  {
-    id: 2,
-    bloodType: "A-",
-    units: 23,
-    expiryDate: "2024-01-10",
-    status: "Expiring Soon",
-  },
-  {
-    id: 3,
-    bloodType: "B+",
-    units: 67,
-    expiryDate: "2024-01-20",
-    status: "Good",
-  },
-  {
-    id: 4,
-    bloodType: "B-",
-    units: 12,
-    expiryDate: "2024-01-08",
-    status: "Critical",
-  },
-  {
-    id: 5,
-    bloodType: "AB+",
-    units: 34,
-    expiryDate: "2024-01-18",
-    status: "Good",
-  },
-  {
-    id: 6,
-    bloodType: "AB-",
-    units: 8,
-    expiryDate: "2024-01-12",
-    status: "Low Stock",
-  },
-  {
-    id: 7,
-    bloodType: "O+",
-    units: 89,
-    expiryDate: "2024-01-25",
-    status: "Good",
-  },
-  {
-    id: 8,
-    bloodType: "O-",
-    units: 15,
-    expiryDate: "2024-01-14",
-    status: "Low Stock",
-  },
-];
 
 export default function BloodInventory() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [bloodInventory, setBloodInventory] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -121,45 +64,47 @@ export default function BloodInventory() {
 
   useEffect(() => {
     const fetchInventory = async () => {
+      setLoading(true);
       try {
-        const response = await getBloodInventory();
-        console.log(response);
-        return response;
+        const data = await getBloodInventory();
+        console.log(data);
+        setBloodInventory(data);
+        console.log(bloodInventory);
       } catch (error) {
         console.error("Error fetching blood inventory:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchInventory;
+    fetchInventory();
   }, []);
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Blood Inventory</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Kho máu</h1>
           <p className="text-muted-foreground">
-            Manage blood units and monitor stock levels
+            Quản lý đơn vị máu và theo dõi mức dự trữ
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              Add Blood Unit
+              Thêm đơn vị máu
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Blood Unit</DialogTitle>
-              <DialogDescription>
-                Add new blood units to the inventory
-              </DialogDescription>
+              <DialogTitle>Thêm đơn vị máu</DialogTitle>
+              <DialogDescription>Thêm 1 đơn vị máu vào kho</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="bloodType" className="text-right">
-                  Blood Type
+                  Kiểu máu
                 </Label>
                 <Select>
                   <SelectTrigger className="col-span-3">
@@ -179,7 +124,7 @@ export default function BloodInventory() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="units" className="text-right">
-                  Units
+                  Đơn vị
                 </Label>
                 <Input
                   id="units"
@@ -190,14 +135,14 @@ export default function BloodInventory() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="expiry" className="text-right">
-                  Expiry Date
+                  Ngày hết hạn
                 </Label>
                 <Input id="expiry" type="date" className="col-span-3" />
               </div>
             </div>
             <DialogFooter>
               <Button type="submit" onClick={() => setIsAddDialogOpen(false)}>
-                Add to Inventory
+                Thêm vào kho
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -208,7 +153,7 @@ export default function BloodInventory() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Units</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng đơn vị</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">293</div>
@@ -216,7 +161,7 @@ export default function BloodInventory() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
+            <CardTitle className="text-sm font-medium">Số lượng ít</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-yellow-600">2</div>
@@ -224,7 +169,7 @@ export default function BloodInventory() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
+            <CardTitle className="text-sm font-medium">Hết hạn sớm</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">1</div>
@@ -232,7 +177,9 @@ export default function BloodInventory() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Critical</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Số lượng nguy cấp
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">1</div>
@@ -241,53 +188,57 @@ export default function BloodInventory() {
       </div>
 
       {/* Inventory Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Blood Inventory</CardTitle>
-          <CardDescription>
-            Current blood stock levels and status
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Blood Type</TableHead>
-                <TableHead>Units Available</TableHead>
-                <TableHead>Expiry Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {bloodInventory.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">
-                    {item.bloodType}
-                  </TableCell>
-                  <TableCell>{item.units}</TableCell>
-                  <TableCell>{item.expiryDate}</TableCell>
-                  <TableCell>
+      {!loading && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Kho máu</CardTitle>
+            <CardDescription>
+              Current blood stock levels and status
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nhhóm máu</TableHead>
+                  <TableHead>Thành phần máu</TableHead>
+                  <TableHead>Số lượng</TableHead>
+                  <TableHead>Chi nhánh</TableHead>
+                  {/* <TableHead>Trạng thái</TableHead> */}
+                  <TableHead className="text-right">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {bloodInventory.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell className="font-medium">
+                      {item.componentId.name}
+                    </TableCell>
+                    <TableCell>{item.groupId.name}</TableCell>
+                    <TableCell>{item.totalQuantity} đơn vị</TableCell>
+                    <TableCell>{item.facilityId.name}</TableCell>
+                    {/* <TableCell>
                     <Badge className={getStatusColor(item.status)}>
                       {item.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                  </TableCell> */}
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

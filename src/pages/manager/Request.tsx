@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,47 +38,51 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Eye, CheckCircle, XCircle } from "lucide-react";
+import { set } from "date-fns";
+import { getBloodDonationRegis } from "@/services/bloodDonationRegis";
 
-const donationRequests = [
-  {
-    id: 1,
-    hospital: "City General Hospital",
-    bloodType: "O-",
-    units: 3,
-    urgency: "Emergency",
-    requestDate: "2024-01-05",
-    status: "Pending",
-    contact: "Dr. Smith",
-    phone: "+1-555-0123",
-  },
-  {
-    id: 2,
-    hospital: "St. Mary's Medical Center",
-    bloodType: "A+",
-    units: 2,
-    urgency: "Urgent",
-    requestDate: "2024-01-04",
-    status: "Approved",
-    contact: "Dr. Johnson",
-    phone: "+1-555-0124",
-  },
-  {
-    id: 3,
-    hospital: "Regional Hospital",
-    bloodType: "B-",
-    units: 1,
-    urgency: "Routine",
-    requestDate: "2024-01-03",
-    status: "Fulfilled",
-    contact: "Dr. Williams",
-    phone: "+1-555-0125",
-  },
-];
+// const donationRequests = [
+//   {
+//     id: 1,
+//     hospital: "City General Hospital",
+//     bloodType: "O-",
+//     units: 3,
+//     urgency: "Emergency",
+//     requestDate: "2024-01-05",
+//     status: "Pending",
+//     contact: "Dr. Smith",
+//     phone: "+1-555-0123",
+//   },
+//   {
+//     id: 2,
+//     hospital: "St. Mary's Medical Center",
+//     bloodType: "A+",
+//     units: 2,
+//     urgency: "Urgent",
+//     requestDate: "2024-01-04",
+//     status: "Approved",
+//     contact: "Dr. Johnson",
+//     phone: "+1-555-0124",
+//   },
+//   {
+//     id: 3,
+//     hospital: "Regional Hospital",
+//     bloodType: "B-",
+//     units: 1,
+//     urgency: "Routine",
+//     requestDate: "2024-01-03",
+//     status: "Fulfilled",
+//     contact: "Dr. Williams",
+//     phone: "+1-555-0125",
+//   },
+// ];
 
 export default function Requests() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [donationRequests, setDonationRequests] = useState<any>([]);
+  const [loading, setLoading] = useState(true);
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -107,6 +111,22 @@ export default function Requests() {
         return "bg-gray-100 text-gray-800";
     }
   };
+
+  useEffect(() => {
+    setLoading(true);
+    const fetchDonationRequests = async () => {
+      try {
+        const data = await getBloodDonationRegis();
+        setDonationRequests(data);
+      } catch (error) {
+        console.error("Error fetching donation requests:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDonationRequests();
+  }, []);
 
   const handleViewRequest = (request: any) => {
     setSelectedRequest(request);
@@ -257,17 +277,17 @@ export default function Requests() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Hospital</TableHead>
-                <TableHead>Blood Type</TableHead>
-                <TableHead>Units</TableHead>
-                <TableHead>Urgency</TableHead>
+                <TableHead>Người yêu cầu</TableHead>
+                <TableHead>Loại máu</TableHead>
+                <TableHead>Đơn vị</TableHead>
+                <TableHead>Bệnh viện</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Request Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {donationRequests.map((request) => (
+              {donationRequests.map((request: any) => (
                 <TableRow key={request.id}>
                   <TableCell className="font-medium">
                     {request.hospital}

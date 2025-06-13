@@ -1,4 +1,4 @@
-interface BloodInventory {
+export interface BloodInventory {
   _id: string;
   facilityId: {
     _id: string;
@@ -9,6 +9,7 @@ interface BloodInventory {
   componentId: {
     _id: string;
     name: string;
+    description?: string;
   };
   groupId: {
     _id: string;
@@ -36,7 +37,7 @@ interface BloodInventoryDetail extends BloodInventory {
   ]
 }
 
-interface BloodInventoryResponse extends IResponse.Response {
+export interface BloodInventoryResponse extends IResponse.Response {
   data: BloodInventory[];
 }
 
@@ -45,13 +46,13 @@ interface BloodInventoryDetailResponse extends IResponse.Response {
 }
 
 import { instance } from "../instance";
-export const getBloodInventory = async (): Promise<BloodInventoryResponse> => {
+export const getBloodInventory = async (): Promise<any> => {
   try {
-    const { data } = await instance.get<BloodInventoryResponse>(
+    const { data } = await instance.get<any & { data: any[] }>(
       "/blood-inventory"
     );
-    console.log(data)
-    return data;
+    // console.log(data.data)
+    return data.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
