@@ -353,10 +353,10 @@ export default function BloodRequestDetail() {
                   <TableCell className="font-medium">Ngày Ưu Tiên</TableCell>
                   <TableCell>{request.preferredDate}</TableCell>
                 </TableRow>
-                <TableRow>
+                {/* <TableRow>
                   <TableCell className="font-medium">Ngày Giao Hàng Dự Kiến</TableCell>
                   <TableCell>{request.scheduledDeliveryDate}</TableCell>
-                </TableRow>
+                </TableRow> */}
                 <TableRow>
                   <TableCell className="font-medium">Ngày Tạo</TableCell>
                   <TableCell>{request.createdAt}</TableCell>

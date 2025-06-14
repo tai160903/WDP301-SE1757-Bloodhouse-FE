@@ -223,13 +223,13 @@ export default function BloodRequests() {
       );
       showNotification(responseType === "accept" ? "Phê duyệt thành công!" : "Từ chối thành công!");
       setIsResponseDialogOpen(false);
+      fetchRequests(currentPage);
     } catch (err: any) {
-      console.error("API Error:", err); // Debug lỗi
+      console.error("API Error:", err); 
       showNotification("Không thể gửi phản hồi: " + (err.response?.data?.message || err.message || "Lỗi server"));
     }
   }, [responseType, responseNotes, selectedRequest, facilityId]);
 
-  // Sao chép mã yêu cầu
   const copyRequestId = (id: string) => {
     navigator.clipboard.writeText(id);
     showNotification("Đã sao chép mã yêu cầu!");
