@@ -8,11 +8,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Eye, CheckCircle, XCircle, Copy } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Copy, Search } from "lucide-react";
 import { getBloodRequests, updateStatus } from "../../services/bloodRequest/index";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 // Định nghĩa enum trạng thái
 enum BLOOD_REQUEST_STATUS {
@@ -62,6 +63,7 @@ interface UpdateStatus {
 
 export default function BloodRequests() {
   const [requests, setRequests] = useState<TableRequest[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<TableRequest[]>([]);
   const [selectedRequest, setSelectedRequest] = useState<TableRequest | null>(null);
   const [isResponseDialogOpen, setIsResponseDialogOpen] = useState(false);
   const [responseType, setResponseType] = useState<"accept" | "reject">("accept");
@@ -72,6 +74,7 @@ export default function BloodRequests() {
   const [totalPages, setTotalPages] = useState(1);
   const [progress, setProgress] = useState(0);
   const [notification, setNotification] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { facilityId, facilityName } = useManagerContext();
   const pageSize = 10;
 
@@ -145,6 +148,7 @@ export default function BloodRequests() {
       setTotalPages(Math.ceil(totalCount / pageSize));
       const mappedRequests = requestsArray.map((req: any, index: number) => mapApiDataToTableRequest(req, index, page));
       setRequests(mappedRequests);
+      setFilteredRequests(mappedRequests);
       setProgress(100);
     } catch (err: any) {
       setError(err.message || "Không thể tải danh sách yêu cầu");
@@ -154,9 +158,30 @@ export default function BloodRequests() {
     }
   }, [facilityId, facilityName]);
 
+  // Xử lý tìm kiếm
+  const handleSearch = useCallback(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) {
+      setFilteredRequests(requests);
+      return;
+    }
+    const filtered = requests.filter(
+      (request) =>
+        request.requestId.toLowerCase().includes(query) ||
+        request.fromHospital.toLowerCase().includes(query) ||
+        request.bloodType.toLowerCase().includes(query) ||
+        request.status.toLowerCase().includes(query)
+    );
+    setFilteredRequests(filtered);
+  }, [searchQuery, requests]);
+
   useEffect(() => {
     fetchRequests(currentPage);
   }, [currentPage, fetchRequests]);
+
+  useEffect(() => {
+    handleSearch();
+  }, [searchQuery, handleSearch]);
 
   // Màu sắc cho mức độ khẩn
   const getUrgencyColor = (urgency: string) => {
@@ -204,19 +229,30 @@ export default function BloodRequests() {
       const staffId = getStaffId();
       const payload: UpdatePayload = {
         status: responseType === "accept" ? "approved" : "rejected_registration",
-        staffId: staffId, 
-        needsSupport: responseType === "accept" ? true : undefined, 
+        staffId: staffId,
+        needsSupport: responseType === "accept" ? true : undefined,
       };
-      console.log("Sending payload:", payload); // Debug payload
-      const updatedRequest = await updateStatus(selectedRequest.requestId, facilityId, payload );
-      console.log("API Response:", updatedRequest); // Debug response
+      console.log("Sending payload:", payload);
+      const updatedRequest = await updateStatus(selectedRequest.requestId, facilityId, payload);
+      console.log("API Response:", updatedRequest);
       setRequests((prev) =>
         prev.map((req) =>
           req.requestId === selectedRequest.requestId
             ? {
                 ...req,
                 status: mapApiStatusToEnum(updatedRequest.status),
-                notes: responseType === "reject" ? responseNotes : req.notes, 
+                notes: responseType === "reject" ? responseNotes : req.notes,
+              }
+            : req
+        )
+      );
+      setFilteredRequests((prev) =>
+        prev.map((req) =>
+          req.requestId === selectedRequest.requestId
+            ? {
+                ...req,
+                status: mapApiStatusToEnum(updatedRequest.status),
+                notes: responseType === "reject" ? responseNotes : req.notes,
               }
             : req
         )
@@ -225,10 +261,10 @@ export default function BloodRequests() {
       setIsResponseDialogOpen(false);
       fetchRequests(currentPage);
     } catch (err: any) {
-      console.error("API Error:", err); 
+      console.error("API Error:", err);
       showNotification("Không thể gửi phản hồi: " + (err.response?.data?.message || err.message || "Lỗi server"));
     }
-  }, [responseType, responseNotes, selectedRequest, facilityId]);
+  }, [responseType, responseNotes, selectedRequest, facilityId, currentPage, fetchRequests]);
 
   const copyRequestId = (id: string) => {
     navigator.clipboard.writeText(id);
@@ -237,10 +273,10 @@ export default function BloodRequests() {
 
   // Dữ liệu tóm tắt
   const summaryData = {
-    totalRequests: requests.length,
-    pendingReview: requests.filter((r) => r.status === BLOOD_REQUEST_STATUS.PENDING_APPROVAL).length,
-    emergencyRequests: requests.filter((r) => r.urgencyLevel === "Khẩn cấp").length,
-    fulfilledRequests: requests.filter((r) => r.status === BLOOD_REQUEST_STATUS.COMPLETED).length,
+    totalRequests: filteredRequests.length,
+    pendingReview: filteredRequests.filter((r) => r.status === BLOOD_REQUEST_STATUS.PENDING_APPROVAL).length,
+    emergencyRequests: filteredRequests.filter((r) => r.urgencyLevel === "Khẩn cấp").length,
+    fulfilledRequests: filteredRequests.filter((r) => r.status === BLOOD_REQUEST_STATUS.COMPLETED).length,
   };
 
   if (loading) {
@@ -273,9 +309,7 @@ export default function BloodRequests() {
 
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Yêu Cầu Máu</h1>
-          <p className="text-gray-600 mt-2">
-            Quản lý và phản hồi các yêu cầu hiến máu từ các cơ sở y tế
-          </p>
+          <p className="text-gray-600 mt-2">Quản lý và phản hồi các yêu cầu hiến máu từ các cơ sở y tế</p>
         </div>
 
         {/* Tóm tắt thống kê */}
@@ -302,6 +336,19 @@ export default function BloodRequests() {
           <CardHeader>
             <CardTitle className="text-xl font-semibold">Danh Sách Yêu Cầu</CardTitle>
             <CardDescription>Các yêu cầu hiến máu đang chờ xử lý</CardDescription>
+            {/* Thanh tìm kiếm */}
+            <div className="flex items-center space-x-2 mt-4">
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Tìm kiếm theo mã yêu cầu, bệnh viện, nhóm máu, hoặc trạng thái..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -318,7 +365,7 @@ export default function BloodRequests() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requests.map((request) => (
+                {filteredRequests.map((request) => (
                   <TableRow key={request.requestId} className="hover:bg-gray-50">
                     <TableCell className="font-medium truncate max-w-xs">
                       <div className="flex items-center space-x-2">
@@ -418,9 +465,7 @@ export default function BloodRequests() {
         <Dialog open={isResponseDialogOpen} onOpenChange={setIsResponseDialogOpen}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {responseType === "accept" ? "Phê duyệt yêu cầu" : "Từ chối yêu cầu"}
-              </DialogTitle>
+              <DialogTitle>{responseType === "accept" ? "Phê duyệt yêu cầu" : "Từ chối yêu cầu"}</DialogTitle>
               <DialogDescription>
                 {responseType === "accept"
                   ? "Xác nhận phê duyệt yêu cầu máu này."
