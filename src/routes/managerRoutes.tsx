@@ -4,6 +4,7 @@ import Dashboard from "@/pages/manager/Dashboard";
 import Events from "@/pages/manager/Events";
 import Gifts from "@/pages/manager/Gifts";
 import ReceivedRequests from "@/pages/manager/Received";
+import ReceivedDetail from "@/pages/manager/ReceivedDetail";
 import Requests from "@/pages/manager/Request";
 import Staff from "@/pages/manager/Staff";
 
@@ -23,6 +24,10 @@ const managerRoutes = [
   {
     path: "received",
     element: <ReceivedRequests />,
+  },
+  {
+    path: "received/:id",
+    element: <ReceivedDetail />,
   },
   {
     path: "gifts",
