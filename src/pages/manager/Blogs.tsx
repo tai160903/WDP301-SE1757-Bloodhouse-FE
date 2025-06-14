@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,6 +38,12 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2, Eye, Calendar } from "lucide-react";
+import { useManagerContext } from "@/components/ManagerLayout";
+import { deleteBlog, getByFacilityId } from "@/services/blog";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { r } from "node_modules/framer-motion/dist/types.d-CtuPurYT";
+import { toast } from "sonner";
 
 const blogPosts = [
   {
@@ -87,7 +93,20 @@ const blogPosts = [
 ];
 
 export default function Blogs() {
+  const { facilityId } = useManagerContext();
+  const auth = useSelector((state: any) => state.auth);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      const response: any = await getByFacilityId(facilityId || "");
+      console.log("Fetched blogs:", response.data.data);
+      setBlogs(response.data.data || []);
+    };
+    fetchBlogs();
+  }, [facilityId]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -104,6 +123,19 @@ export default function Blogs() {
     }
   };
 
+  const handleDeletePost = (postId: string) => async () => {
+    try {
+      if (window.confirm("Are you sure you want to delete this post?")) {
+        await deleteBlog(postId, auth?.user?.role);
+      }
+      setBlogs((prevBlogs) => prevBlogs.filter((post) => post._id !== postId));
+      toast.success("Xóa bài viết thành công.");
+    } catch (error: any) {
+      console.error("Error deleting post:", error);
+      toast.error(error?.response?.data?.message || "Lỗi khi xóa bài viết.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -115,7 +147,11 @@ export default function Blogs() {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button
+              onClick={() =>
+                navigate(`/manager/blogs/create?role=${auth?.user?.role}`)
+              }
+            >
               <Plus className="w-4 h-4 mr-2" />
               New Blog Post
             </Button>
@@ -223,7 +259,7 @@ export default function Blogs() {
             <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{blogs.length || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -231,7 +267,7 @@ export default function Blogs() {
             <CardTitle className="text-sm font-medium">Published</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">18</div>
+            <div className="text-2xl font-bold text-green-600">{}</div>
           </CardContent>
         </Card>
         <Card>
@@ -267,26 +303,34 @@ export default function Blogs() {
                 <TableHead>Category</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Publish Date</TableHead>
-                <TableHead>Views</TableHead>
+                {/* <TableHead>Views</TableHead> */}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {blogPosts.map((post) => (
-                <TableRow key={post.id}>
+              {blogs?.map((post) => (
+                <TableRow key={post._id}>
                   <TableCell>
                     <div>
                       <div className="font-medium">{post.title}</div>
                       <div className="text-sm text-muted-foreground line-clamp-2 max-w-md truncate">
-                        {post.excerpt}
+                        {post.summary}
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{post.author}</TableCell>
-                  <TableCell>{post.category}</TableCell>
+                  <TableCell>{post.author || "Unknown"}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusColor(post.status)}>
-                      {post.status}
+                    {post.type.charAt(0).toUpperCase() + post.type.slice(1)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      className={getStatusColor(
+                        post.status.charAt(0).toUpperCase() +
+                          post.status.slice(1)
+                      )}
+                    >
+                      {post.status.charAt(0).toUpperCase() +
+                        post.status.slice(1)}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -301,16 +345,28 @@ export default function Blogs() {
                       </span>
                     )}
                   </TableCell>
-                  <TableCell>{post.views.toLocaleString()}</TableCell>
+                  {/* <TableCell>{post.views.toLocaleString()}</TableCell> */}
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button variant="outline" size="sm">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          navigate(
+                            `/manager/blogs/edit/${post._id}?role=${auth?.user?.role}`
+                          )
+                        }
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeletePost(post._id)}
+                      >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
