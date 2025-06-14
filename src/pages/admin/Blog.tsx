@@ -283,7 +283,6 @@ function BlogManagement() {
                             </Button>
                             <Button
                               variant="outline"
-                              size="sm"
                               className="text-red-600"
                               aria-label="Xóa bài viết"
                             >

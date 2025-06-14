@@ -1,3 +1,4 @@
+import BlogForm from "@/components/BlogForm";
 import Blogs from "@/pages/manager/Blogs";
 import BloodInventory from "@/pages/manager/BloodInventory";
 import Dashboard from "@/pages/manager/Dashboard";
@@ -35,6 +36,14 @@ const managerRoutes = [
   {
     path: "blogs",
     element: <Blogs />,
+  },
+  {
+    path: "blogs/create",
+    element: <BlogForm />,
+  },
+  {
+    path: "blogs/edit/:id",
+    element: <BlogForm isEditing />,
   },
   {
     path: "events",
