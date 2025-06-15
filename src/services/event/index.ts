@@ -29,3 +29,29 @@ export const getAllEventsByFacilityId = async (
     );
   }
 };
+
+
+export const getAllEvents = async (
+): Promise<any> => {
+  try {
+    const response = await axiosInstance.get(`/event`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error when getting events."
+    );
+  }
+};
+
+export const getEventById = async (
+  eventId: string
+): Promise<any> => {
+  try {
+    const response = await axiosInstance.get(`/event/${eventId}`);
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error when getting events."
+    );
+  }
+};

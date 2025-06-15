@@ -10,6 +10,8 @@ import FAQPage from "@/pages/resource/Faq";
 import ProfilePage from "@/pages/Profile/ProfilePage";
 import BloodDonationHistory from "@/pages/Profile/BloodDonationHistory/BloodDonationHistory";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Events from "@/pages/event/Events";
+import EventDetail from "@/pages/event/EventDetail";
 
 const userRoutes = [
   {
@@ -67,7 +69,15 @@ const userRoutes = [
         <BloodDonationHistory />
       </ProtectedRoute>
     ),
-  }
+  },
+  {
+    path: "/events",
+    element: <Events />,
+  },
+  {
+    path: "/events/:id",
+    element: <EventDetail />,
+  },
 ];
 
 export default userRoutes;
