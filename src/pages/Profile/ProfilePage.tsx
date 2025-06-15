@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +55,7 @@ import {
 } from "@/utils/changeText";
 import { cn } from "@/lib/utils";
 import useAuth from "@/hooks/useAuth";
+import VerifyLevel2Page from './VerifyLevel2Page';
 
 const formSchema = z.object({
   fullName: z.string().min(2, {
@@ -63,7 +64,7 @@ const formSchema = z.object({
   phone: z.string().min(10, {
     message: "Số điện thoại không hợp lệ",
   }),
-  sex: z.enum(["MALE", "FEMALE"], {
+  sex: z.enum(["Nam", "Nữ"], {
     required_error: "Vui lòng chọn giới tính",
   }),
   address: z.string().min(5, {
@@ -80,7 +81,7 @@ interface UserProfile {
   email: string;
   phone?: string;
   address?: string;
-  sex?: "MALE" | "FEMALE";
+  sex?: "Nam" | "Nữ";
   yob?: string;
   avatar?: string;
   bloodId?: {
@@ -107,6 +108,14 @@ const ProfilePage: React.FC = () => {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showVerifyLevel2, setShowVerifyLevel2] = useState(false);
+  const [showUploadCCCDModal, setShowUploadCCCDModal] = useState(false);
+  const [verifyLevel2Data, setVerifyLevel2Data] = useState<any>(null);
+  const [showConfirmCloseUpload, setShowConfirmCloseUpload] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
 
@@ -115,7 +124,7 @@ const ProfilePage: React.FC = () => {
     defaultValues: {
       fullName: "",
       phone: "",
-      sex: "MALE",
+      sex: "Nam",
       address: "",
       yob: "",
     },
@@ -141,7 +150,7 @@ const ProfilePage: React.FC = () => {
       form.reset({
         fullName: profileData.fullName || "",
         phone: profileData.phone || "",
-        sex: profileData.sex || "MALE",
+        sex: profileData.sex || "Nam",
         address: profileData.address || "",
         yob: profileData.yob || "",
       });
@@ -236,6 +245,19 @@ const ProfilePage: React.FC = () => {
             Chỉnh sửa thông tin
           </Button>
         </div>
+        {/* Nút xác thực mức 2 nếu profileLevel === 1 */}
+        {profile?.profileLevel === 1 && (
+          <div className="mb-6 flex justify-end">
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-lg flex items-center gap-2 animate-pulse"
+              size="lg"
+              onClick={() => setShowUploadCCCDModal(true)}
+            >
+              <CheckCircle className="w-5 h-5" />
+              Xác thực mức 2
+            </Button>
+          </div>
+        )}
 
         {/* Success/Error Messages */}
         {success && (
@@ -442,8 +464,8 @@ const ProfilePage: React.FC = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="MALE">Nam</SelectItem>
-                        <SelectItem value="FEMALE">Nữ</SelectItem>
+                        <SelectItem value="Nam">Nam</SelectItem>
+                        <SelectItem value="Nữ">Nữ</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -506,8 +528,121 @@ const ProfilePage: React.FC = () => {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Modal upload CCCD */}
+      <Dialog
+        open={showUploadCCCDModal}
+        onOpenChange={(open) => {
+          if (!open && verifyLevel2Data) {
+            setShowConfirmCloseUpload(true);
+          } else if (!open) {
+            setShowUploadCCCDModal(false);
+          } else {
+            setShowUploadCCCDModal(true);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload CCCD/CMND</DialogTitle>
+            <DialogDescription>
+              Vui lòng tải lên ảnh hoặc file CCCD/CMND để tự động nhận diện thông tin.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setUploadError(null);
+              setUploading(true);
+              const file = fileInputRef.current?.files?.[0];
+              if (!file) {
+                setUploadError('Vui lòng chọn file');
+                setUploading(false);
+                return;
+              }
+              try {
+                const formData = new FormData();
+                formData.append('cccd', file);
+                const res = await userAPI.post('/kyc/upload-cccd', formData, {
+                  headers: { 'Content-Type': 'multipart/form-data' },
+                });
+                const data = (res.data as APIResponse<any>).data;
+                setVerifyLevel2Data({
+                  idCard: data.idCard || '',
+                  fullName: data.fullName || '',
+                  yob: data.dob ? formatYobToDateInput(data.dob) : '',
+                  address: data.address || '',
+                  sex: data.sex?.toUpperCase() === 'NAM' ? 'Nam' : 'Nữ',
+                });
+                setShowUploadCCCDModal(false);
+                setShowVerifyLevel2(true);
+                setPreviewUrl(null);
+              } catch (err: any) {
+                setUploadError(err?.response?.data?.message || 'Upload thất bại');
+              } finally {
+                setUploading(false);
+              }
+            }}
+            className="space-y-4"
+          >
+            <input
+              type="file"
+              name="cccd"
+              accept="image/*,.pdf"
+              ref={fileInputRef}
+              className="block w-full border rounded-md px-3 py-2"
+              required
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file && file.type.startsWith('image/')) {
+                  setPreviewUrl(URL.createObjectURL(file));
+                } else {
+                  setPreviewUrl(null);
+                }
+              }}
+            />
+            {previewUrl && (
+              <div className="mb-2 flex justify-center">
+                <img src={previewUrl} alt="CCCD preview" className="max-h-48 rounded shadow" />
+              </div>
+            )}
+            {uploadError && <div className="text-red-500 text-sm">{uploadError}</div>}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => {
+                  if (verifyLevel2Data) {
+                    setShowConfirmCloseUpload(true);
+                  } else {
+                    setShowUploadCCCDModal(false);
+                  }
+                }}
+                disabled={uploading}
+              >
+                Đóng
+              </Button>
+              <Button type="submit" disabled={uploading}>{uploading ? 'Đang upload...' : 'Tiếp tục'}</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal xác thực mức 2 */}
+      <VerifyLevel2Page fetchProfile={fetchProfile} open={showVerifyLevel2} onClose={() => setShowVerifyLevel2(false)} initialData={verifyLevel2Data} />
     </div>
   );
 };
+
+// Helper: convert dd/mm/yyyy or yyyy-mm-dd to yyyy-mm-dd
+function formatYobToDateInput(yob: string | undefined): string {
+  if (!yob) return '';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(yob)) return yob; // yyyy-mm-dd
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(yob)) {
+    const [day, month, year] = yob.split('/');
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  return yob;
+}
 
 export default ProfilePage;
