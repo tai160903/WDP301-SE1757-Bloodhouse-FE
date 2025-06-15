@@ -20,6 +20,14 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -28,14 +36,21 @@ import {
   Edit, 
   AlertTriangle,
   CheckCircle,
-  Plus
+  Plus,
+  History,
+  Package,
+  Warehouse,
+  User
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   getBudget,
   manageBudget,
+  getGiftLogs,
   type GiftBudget,
-  type ManageBudgetData
+  type ManageBudgetData,
+  type GiftLog,
+  type GetGiftLogsParams
 } from "@/services/gift";
 
 interface GiftBudgetManagerProps {
@@ -47,6 +62,12 @@ export function GiftBudgetManager({ onBudgetUpdate }: GiftBudgetManagerProps) {
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  // Gift log states
+  const [logs, setLogs] = useState<GiftLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsTotalPages, setLogsTotalPages] = useState(0);
+
   // Form states
   const [formData, setFormData] = useState({
     budget: 0,
@@ -56,6 +77,7 @@ export function GiftBudgetManager({ onBudgetUpdate }: GiftBudgetManagerProps) {
 
   useEffect(() => {
     fetchBudget();
+    fetchBudgetLogs();
   }, []);
 
   const fetchBudget = async () => {
@@ -71,6 +93,37 @@ export function GiftBudgetManager({ onBudgetUpdate }: GiftBudgetManagerProps) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchBudgetLogs = async (page = 1) => {
+    try {
+      setLogsLoading(true);
+      
+      // Get all logs and filter budget-related actions on frontend
+      // since backend doesn't support comma-separated actions
+      const params: GetGiftLogsParams = {
+        page,
+        limit: 30, // Get more logs to account for filtering
+      };
+      
+      const response = await getGiftLogs(params);
+      
+      // Filter for budget-related actions (actions that affect budget)
+      const budgetRelatedActions = ['update_budget', 'stock_in', 'stock_out', 'distribute', 'distribute_package'];
+      const filteredLogs = response.data.data.filter(log => 
+        budgetRelatedActions.includes(log.action)
+      );
+      
+      // Take only the first 10 for display
+      setLogs(filteredLogs.slice(0, 10));
+      setLogsPage(response.data.metadata.page);
+      setLogsTotalPages(Math.ceil(filteredLogs.length / 10));
+    } catch (error: any) {
+      console.error('Error fetching gift logs:', error);
+      toast.error("Không thể tải lịch sử hoạt động");
+    } finally {
+      setLogsLoading(false);
     }
   };
 
@@ -107,6 +160,7 @@ export function GiftBudgetManager({ onBudgetUpdate }: GiftBudgetManagerProps) {
       toast.success("Cập nhật ngân sách thành công");
       setIsEditDialogOpen(false);
       fetchBudget();
+      fetchBudgetLogs(); // Refresh logs after budget update
       onBudgetUpdate?.();
     } catch (error: any) {
       console.error('Error updating budget:', error);
@@ -181,6 +235,78 @@ export function GiftBudgetManager({ onBudgetUpdate }: GiftBudgetManagerProps) {
     const diffTime = endDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return Math.max(diffDays, 0);
+  };
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('vi-VN');
+  };
+
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case 'update_budget':
+        return <DollarSign className="w-4 h-4 text-blue-500" />;
+      case 'stock_in':
+        return <TrendingUp className="w-4 h-4 text-green-500" />;
+      case 'stock_out':
+        return <TrendingDown className="w-4 h-4 text-red-500" />;
+      case 'distribute':
+        return <Package className="w-4 h-4 text-purple-500" />;
+      case 'distribute_package':
+        return <Package className="w-4 h-4 text-purple-600" />;
+      default:
+        return <History className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getActionText = (action: string) => {
+    switch (action) {
+      case 'update_budget':
+        return 'Cập nhật ngân sách';
+      case 'stock_in':
+        return 'Nhập kho';
+      case 'stock_out':
+        return 'Xuất kho';
+      case 'distribute':
+        return 'Phân phối quà lẻ';
+      case 'distribute_package':
+        return 'Phân phối gói quà';
+      default:
+        return action;
+    }
+  };
+
+  const getActionDetails = (log: GiftLog) => {
+    switch (log.action) {
+      case 'update_budget':
+        return `Ngân sách: ${formatCurrency(log.details.budget)}`;
+      case 'stock_in':
+        // Handle two different formats for stock_in
+        if (log.details.oldQuantity !== undefined) {
+          // Update existing inventory format
+          const quantityChange = log.details.quantityChange || 0;
+          const changeText = quantityChange > 0 ? `+${quantityChange}` : `${quantityChange}`;
+          return `${log.giftItemId?.name || 'N/A'} - SL: ${log.details.oldQuantity} → ${log.details.newQuantity} (${changeText}) - Chi phí: ${formatCurrency((log.details.newQuantity * log.details.newCost) - (log.details.oldQuantity * log.details.oldCost))}`;
+        } else {
+          // Add new inventory format
+          return `${log.giftItemId?.name || log.details.name || 'N/A'} - SL: ${log.details.quantity || 0} - Chi phí: ${formatCurrency(log.details.totalCost || 0)}`;
+        }
+      case 'stock_out':
+        // Handle stock_out (similar to stock_in update format)
+        if (log.details.oldQuantity !== undefined) {
+          const quantityChange = log.details.quantityChange || 0;
+          const changeText = quantityChange < 0 ? `${quantityChange}` : `-${Math.abs(quantityChange)}`;
+          return `${log.giftItemId?.name || 'N/A'} - SL: ${log.details.oldQuantity} → ${log.details.newQuantity} (${changeText}) - Chi phí: ${formatCurrency((log.details.newQuantity * log.details.newCost) - (log.details.oldQuantity * log.details.oldCost))}`;
+        } else {
+          return `${log.giftItemId?.name || log.details.name || 'N/A'} - SL: ${log.details.quantity || 0} - Chi phí: ${formatCurrency(log.details.totalCost || 0)}`;
+        }
+      case 'distribute':
+        return `${log.details.name || log.giftItemId?.name || 'N/A'} - SL: ${log.details.quantity || 0} - Người nhận: ${log.details.recipientName || 'N/A'} - Chi phí: ${formatCurrency(log.details.totalCost || 0)}`;
+      case 'distribute_package':
+        const itemCount = log.details.items?.length || 0;
+        return `${log.details.packageName || log.packageId?.name || 'N/A'} (${itemCount} loại quà) - Người nhận: ${log.details.recipientName || 'N/A'} - Chi phí: ${formatCurrency(log.details.totalCost || 0)}`;
+      default:
+        return 'Chi tiết không có sẵn';
+    }
   };
 
   if (loading) {
@@ -436,6 +562,109 @@ export function GiftBudgetManager({ onBudgetUpdate }: GiftBudgetManagerProps) {
                 <Plus className="w-4 h-4 mr-2" />
                 Thiết lập ngân sách
               </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Gift Logs Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <History className="w-5 h-5" />
+            <div>
+              <CardTitle>Lịch sử hoạt động ngân sách</CardTitle>
+              <CardDescription>
+                Theo dõi các hoạt động liên quan đến ngân sách và kho
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {logsLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : logs.length > 0 ? (
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Hoạt động</TableHead>
+                    <TableHead>Chi tiết</TableHead>
+                    <TableHead>Người thực hiện</TableHead>
+                    <TableHead>Thời gian</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {logs.map((log) => (
+                    <TableRow key={log._id}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getActionIcon(log.action)}
+                          <span className="font-medium">{getActionText(log.action)}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {getActionDetails(log)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm font-medium">
+                              {log?.userId?.userId?.fullName}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {log?.userId?.position}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm text-muted-foreground">
+                          {formatDateTime(log.timestamp)}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              
+              {/* Pagination */}
+              {logsTotalPages > 1 && (
+                <div className="flex justify-center gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchBudgetLogs(logsPage - 1)}
+                    disabled={logsPage <= 1}
+                  >
+                    Trước
+                  </Button>
+                  <span className="flex items-center px-3 text-sm text-muted-foreground">
+                    Trang {logsPage} / {logsTotalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchBudgetLogs(logsPage + 1)}
+                    disabled={logsPage >= logsTotalPages}
+                  >
+                    Sau
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <History className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">Chưa có hoạt động</h3>
+              <p className="text-muted-foreground">
+                Các hoạt động liên quan đến ngân sách sẽ được hiển thị ở đây
+              </p>
             </div>
           )}
         </CardContent>

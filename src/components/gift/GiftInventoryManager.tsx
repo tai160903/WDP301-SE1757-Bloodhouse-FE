@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,7 +34,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Package, AlertTriangle, TrendingUp } from "lucide-react";
+import { Plus, Edit, Trash2, Package, AlertTriangle, TrendingUp, Search } from "lucide-react";
 import { toast } from "sonner";
 import {
   getGiftInventory,
@@ -53,6 +53,154 @@ interface GiftInventoryManagerProps {
   onInventoryUpdate?: () => void;
 }
 
+// Separate component for the inventory list to prevent search bar re-renders
+const InventoryList = React.memo(({ 
+  inventories, 
+  loading, 
+  onEdit, 
+  onDelete,
+  getStockStatus,
+  getCategoryText,
+  formatCurrency 
+}: {
+  inventories: GiftInventory[];
+  loading: boolean;
+  onEdit: (inventory: GiftInventory) => void;
+  onDelete: (inventoryId: string) => void;
+  getStockStatus: (inventory: GiftInventory) => any;
+  getCategoryText: (category: string) => string;
+  formatCurrency: (amount: number) => string;
+}) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-32">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Quà tặng</TableHead>
+          <TableHead>Danh mục</TableHead>
+          <TableHead>Tồn kho</TableHead>
+          <TableHead>Có sẵn</TableHead>
+          <TableHead>Giá/đơn vị</TableHead>
+          <TableHead>Mức tối thiểu</TableHead>
+          <TableHead>Trạng thái</TableHead>
+          <TableHead>Cập nhật cuối</TableHead>
+          <TableHead className="text-right">Thao tác</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {inventories.map((inventory) => {
+          const stockStatus = getStockStatus(inventory);
+          const StatusIcon = stockStatus.icon;
+          
+          return (
+            <TableRow key={inventory._id}>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={inventory.giftItemId.image || 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a'}
+                    alt={inventory.giftItemId.name}
+                    className="w-10 h-10 rounded object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a';
+                    }}
+                  />
+                  <div>
+                    <div className="font-medium">{inventory.giftItemId.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {inventory.giftItemId.unit}
+                    </div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge variant="secondary">
+                  {getCategoryText(inventory.giftItemId.category)}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {inventory.quantity}
+                  {inventory.reservedQuantity > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      ({inventory.reservedQuantity} đã đặt)
+                    </span>
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {inventory.availableQuantity}
+                  {inventory.availableQuantity <= inventory.minStockLevel && (
+                    <AlertTriangle className="w-4 h-4 text-orange-500" />
+                  )}
+                </div>
+              </TableCell>
+              <TableCell>{formatCurrency(inventory.costPerUnit)}</TableCell>
+              <TableCell>{inventory.minStockLevel}</TableCell>
+              <TableCell>
+                <Badge 
+                  variant={stockStatus.variant}
+                  className={stockStatus.className}
+                >
+                  <StatusIcon className="w-3 h-3 mr-1" />
+                  {stockStatus.status}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {new Date(inventory.updatedAt).toLocaleDateString('vi-VN')}
+              </TableCell>
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit(inventory)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onDelete(inventory._id)}
+                    disabled={inventory.quantity > 0}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
+});
+
+
+// Custom hook for debounced search
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManagerProps) {
   const [inventories, setInventories] = useState<GiftInventory[]>([]);
   const [giftItems, setGiftItems] = useState<GiftItem[]>([]);
@@ -63,9 +211,11 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [stockFilter, setStockFilter] = useState("all");
+
+  // Debounced search term to prevent excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -75,19 +225,22 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
     minStockLevel: 10,
   });
 
-  // Debounce search term
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
   // Reset page when filters change
   useEffect(() => {
-    setCurrentPage(1);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
   }, [debouncedSearchTerm, categoryFilter, stockFilter]);
+
+  // Fetch inventories when debounced search term, filters, or page changes
+  useEffect(() => {
+    fetchInventories();
+  }, [debouncedSearchTerm, categoryFilter, stockFilter, currentPage]);
+
+  // Fetch gift items only once
+  useEffect(() => {
+    fetchGiftItems();
+  }, []);
 
   const fetchGiftItems = useCallback(async () => {
     try {
@@ -104,7 +257,7 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
       setLoading(true);
       const response = await getGiftInventory({ 
         page: currentPage, 
-        search: debouncedSearchTerm,
+        search: debouncedSearchTerm || undefined,
         category: categoryFilter === "all" ? undefined : categoryFilter,
         lowStock: stockFilter === 'low',
         limit: 10
@@ -118,14 +271,6 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
       setLoading(false);
     }
   }, [currentPage, debouncedSearchTerm, categoryFilter, stockFilter]);
-
-  useEffect(() => {
-    fetchInventories();
-  }, [fetchInventories]);
-
-  useEffect(() => {
-    fetchGiftItems();
-  }, [fetchGiftItems]); // Use memoized function
 
   const handleAddToInventory = async () => {
     try {
@@ -234,20 +379,57 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
     }).format(amount);
   }, []);
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Quản lý kho quà tặng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center items-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Memoized search and filter bar to prevent unnecessary re-renders
+  const SearchAndFilterBar = useMemo(() => (
+    <div className="flex gap-4 mb-6">
+      <div className="relative flex-1 max-w-sm">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Input
+          placeholder="Tìm kiếm quà tặng theo tên..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="Lọc theo danh mục" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Tất cả danh mục</SelectItem>
+          <SelectItem value="food">Thực phẩm</SelectItem>
+          <SelectItem value="beverage">Đồ uống</SelectItem>
+          <SelectItem value="merchandise">Hàng lưu niệm</SelectItem>
+          <SelectItem value="health">Sức khỏe</SelectItem>
+          <SelectItem value="other">Khác</SelectItem>
+        </SelectContent>
+      </Select>
+      <Select value={stockFilter} onValueChange={setStockFilter}>
+        <SelectTrigger className="w-48">
+          <SelectValue placeholder="Lọc theo tồn kho" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Tất cả</SelectItem>
+          <SelectItem value="low">Sắp hết hàng</SelectItem>
+          <SelectItem value="available">Còn hàng</SelectItem>
+          {/* <SelectItem value="out">Hết hàng</SelectItem> */}
+        </SelectContent>
+      </Select>
+      {(searchTerm || categoryFilter !== "all" || stockFilter !== "all") && (
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSearchTerm("");
+            setCategoryFilter("all");
+            setStockFilter("all");
+          }}
+          size="sm"
+        >
+          Xóa bộ lọc
+        </Button>
+      )}
+    </div>
+  ), [searchTerm, categoryFilter, stockFilter]);
 
   return (
     <Card>
@@ -349,143 +531,24 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-4 mb-4">
-          <Input
-            placeholder="Tìm kiếm quà tặng..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Lọc theo danh mục" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả danh mục</SelectItem>
-              <SelectItem value="food">Thực phẩm</SelectItem>
-              <SelectItem value="beverage">Đồ uống</SelectItem>
-              <SelectItem value="merchandise">Hàng lưu niệm</SelectItem>
-              <SelectItem value="health">Sức khỏe</SelectItem>
-              <SelectItem value="other">Khác</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={stockFilter} onValueChange={setStockFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Lọc theo tồn kho" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả</SelectItem>
-              <SelectItem value="low">Sắp hết hàng</SelectItem>
-              <SelectItem value="available">Còn hàng</SelectItem>
-              <SelectItem value="out">Hết hàng</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {SearchAndFilterBar}
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Quà tặng</TableHead>
-              <TableHead>Danh mục</TableHead>
-              <TableHead>Tồn kho</TableHead>
-              <TableHead>Có sẵn</TableHead>
-              <TableHead>Giá/đơn vị</TableHead>
-              <TableHead>Mức tối thiểu</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Cập nhật cuối</TableHead>
-              <TableHead className="text-right">Thao tác</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {inventories.map((inventory) => {
-              const stockStatus = getStockStatus(inventory);
-              const StatusIcon = stockStatus.icon;
-              
-              return (
-                <TableRow key={inventory._id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={inventory.giftItemId.image || 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a'}
-                        alt={inventory.giftItemId.name}
-                        className="w-10 h-10 rounded object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a';
-                        }}
-                      />
-                      <div>
-                        <div className="font-medium">{inventory.giftItemId.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {inventory.giftItemId.unit}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
-                      {getCategoryText(inventory.giftItemId.category)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {inventory.quantity}
-                      {inventory.reservedQuantity > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          ({inventory.reservedQuantity} đã đặt)
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {inventory.availableQuantity}
-                      {inventory.availableQuantity <= inventory.minStockLevel && (
-                        <AlertTriangle className="w-4 h-4 text-orange-500" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatCurrency(inventory.costPerUnit)}</TableCell>
-                  <TableCell>{inventory.minStockLevel}</TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant={stockStatus.variant}
-                      className={stockStatus.className}
-                    >
-                      <StatusIcon className="w-3 h-3 mr-1" />
-                      {stockStatus.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(inventory.updatedAt).toLocaleDateString('vi-VN')}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(inventory)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteInventory(inventory._id)}
-                        disabled={inventory.quantity > 0}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <InventoryList
+          inventories={inventories}
+          loading={loading}
+          onEdit={openEditDialog}
+          onDelete={handleDeleteInventory}
+          getStockStatus={getStockStatus}
+          getCategoryText={getCategoryText}
+          formatCurrency={formatCurrency}
+        />
 
-        {inventories.length === 0 && (
+        {!loading && inventories.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            Chưa có quà tặng nào trong kho. Nhập quà tặng đầu tiên của bạn!
+            {searchTerm || categoryFilter !== "all" || stockFilter !== "all" ? 
+              "Không tìm thấy quà tặng nào phù hợp với bộ lọc" : 
+              "Chưa có quà tặng nào trong kho. Nhập quà tặng đầu tiên của bạn!"
+            }
           </div>
         )}
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -35,7 +35,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit, Trash2, Package, Eye, AlertCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Package, Eye, AlertCircle, Search } from "lucide-react";
 import { toast } from "sonner";
 import { 
   getGiftPackages, 
@@ -48,7 +48,6 @@ import {
   type CreateGiftPackageData,
   type UpdateGiftPackageData
 } from "@/services/gift";
-import { getGiftCategoryText } from "@/utils/changeText";
 
 interface PackageItem {
   giftItemId: string | GiftItem;
@@ -58,6 +57,142 @@ interface PackageItem {
 interface GiftPackageManagerProps {
   onPackageUpdate?: () => void;
 }
+
+// Separate component for the package list to prevent search bar re-renders
+const PackageList = React.memo(({ 
+  packages, 
+  loading, 
+  onEdit, 
+  onView, 
+  onDelete,
+  getStatusBadge,
+  getGiftItemFromPackageItem 
+}: {
+  packages: GiftPackage[];
+  loading: boolean;
+  onEdit: (pkg: GiftPackage) => void;
+  onView: (pkg: GiftPackage) => void;
+  onDelete: (packageId: string) => void;
+  getStatusBadge: (pkg: GiftPackage) => React.ReactNode;
+  getGiftItemFromPackageItem: (item: PackageItem) => string;
+}) => {
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-32">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Tên gói quà</TableHead>
+          <TableHead>Hình ảnh</TableHead>
+          <TableHead>Số lượng</TableHead>
+          <TableHead>Trạng thái</TableHead>
+          <TableHead>Ngày tạo</TableHead>
+          <TableHead className="text-right">Thao tác</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {packages.map((pkg) => (
+          <TableRow key={pkg._id}>
+            <TableCell>
+              <div>
+                <div className="font-medium">{pkg.name}</div>
+                {pkg.description && (
+                  <div className="text-sm text-muted-foreground line-clamp-2">
+                    {pkg.description}
+                  </div>
+                )}
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center">
+                <img
+                  src={pkg.image || 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a'}
+                  alt={pkg.name}
+                  className="w-12 h-12 rounded-lg object-cover border"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a';
+                  }}
+                />
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex flex-col">
+                <span className="font-medium">{pkg.quantity}</span>
+                <span className="text-sm text-muted-foreground">
+                  Còn: {pkg.availableQuantity}
+                  {pkg.availableQuantity < 10 && (
+                    <AlertCircle className="w-3 h-3 text-orange-500 inline ml-1" />
+                  )}
+                </span>
+              </div>
+            </TableCell>
+            <TableCell>{getStatusBadge(pkg)}</TableCell>
+            <TableCell>
+              <div className="flex flex-col">
+                <span>{new Date(pkg.createdAt).toLocaleDateString('vi-VN')}</span>
+                <span className="text-sm text-muted-foreground">
+                  {new Date(pkg.createdAt).toLocaleTimeString('vi-VN', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </span>
+              </div>
+            </TableCell>
+            <TableCell className="text-right">
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onView(pkg)}
+                >
+                  <Eye className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(pkg)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDelete(pkg._id)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+});
+
+
+// Custom hook for debounced search
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps) {
   const [packages, setPackages] = useState<GiftPackage[]>([]);
@@ -70,6 +205,9 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Debounced search term to prevent excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Form states
   const [formData, setFormData] = useState({
@@ -80,17 +218,29 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
     image: "",
   });
 
+  // Fetch packages when debounced search term or page changes
   useEffect(() => {
     fetchPackages();
-    fetchGiftItems();
-  }, [currentPage, searchTerm]);
+  }, [debouncedSearchTerm, currentPage]);
 
-  const fetchPackages = async () => {
+  // Reset page when search term changes
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearchTerm]);
+
+  // Fetch gift items only once
+  useEffect(() => {
+    fetchGiftItems();
+  }, []);
+
+  const fetchPackages = useCallback(async () => {
     try {
       setLoading(true);
       const response = await getGiftPackages({ 
         page: currentPage, 
-        search: searchTerm,
+        search: debouncedSearchTerm || undefined,
         limit: 10
       });
       setPackages(response.data.data);
@@ -101,9 +251,9 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, debouncedSearchTerm]);
 
-  const fetchGiftItems = async () => {
+  const fetchGiftItems = useCallback(async () => {
     try {
       const response = await getSharedGiftItems({ isActive: true });
       setGiftItems(response.data.data);
@@ -111,7 +261,7 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
       console.error('Error fetching gift items:', error);
       toast.error("Không thể tải danh sách quà tặng");
     }
-  };
+  }, []);
 
   const handleCreatePackage = async () => {
     try {
@@ -237,7 +387,7 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
     }));
   };
 
-  const getStatusBadge = (pkg: GiftPackage) => {
+  const getStatusBadge = useCallback((pkg: GiftPackage) => {
     if (!pkg.isActive) {
       return <Badge variant="secondary">Không hoạt động</Badge>;
     }
@@ -248,35 +398,44 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
       return <Badge variant="outline" className="border-orange-500 text-orange-600">Sắp hết</Badge>;
     }
     return <Badge variant="default" className="bg-green-100 text-green-800">Còn hàng</Badge>;
-  };
+  }, []);
 
-  const getGiftItemName = (itemId: string) => {
+  const getGiftItemName = useCallback((itemId: string) => {
     const item = giftItems.find(gi => gi._id === itemId);
     return item ? item.name : 'Không xác định';
-  };
+  }, [giftItems]);
 
-  const getGiftItemFromPackageItem = (packageItem: PackageItem): string => {
+  const getGiftItemFromPackageItem = useCallback((packageItem: PackageItem): string => {
     if (typeof packageItem.giftItemId === 'string') {
       return getGiftItemName(packageItem.giftItemId);
     } else {
       return (packageItem.giftItemId as GiftItem).name;
     }
-  };
+  }, [getGiftItemName]);
 
-  if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Quản lý gói quà</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center items-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Memoized search bar to prevent unnecessary re-renders
+  const SearchBar = useMemo(() => (
+    <div className="flex gap-4 mb-6">
+      <div className="relative flex-1 max-w-sm">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <Input
+          placeholder="Tìm kiếm gói quà theo tên..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+      {searchTerm && (
+        <Button
+          variant="outline"
+          onClick={() => setSearchTerm("")}
+          size="sm"
+        >
+          Xóa bộ lọc
+        </Button>
+      )}
+    </div>
+  ), [searchTerm]);
 
   return (
     <Card>
@@ -408,107 +567,24 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-4 mb-4">
-          <Input
-            placeholder="Tìm kiếm gói quà..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
-          />
-        </div>
+        {SearchBar}
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tên gói quà</TableHead>
-              <TableHead>Hình ảnh</TableHead>
-              <TableHead>Số lượng</TableHead>
-              <TableHead>Trạng thái</TableHead>
-              <TableHead>Ngày tạo</TableHead>
-              <TableHead className="text-right">Thao tác</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {packages.map((pkg) => (
-              <TableRow key={pkg._id}>
-                <TableCell>
-                  <div>
-                    <div className="font-medium">{pkg.name}</div>
-                    {pkg.description && (
-                      <div className="text-sm text-muted-foreground line-clamp-2">
-                        {pkg.description}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center">
-                    <img
-                      src={pkg.image || 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a'}
-                      alt={pkg.name}
-                      className="w-12 h-12 rounded-lg object-cover border"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzykzjypyie96a';
-                      }}
-                    />
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{pkg.quantity}</span>
-                    <span className="text-sm text-muted-foreground">
-                      Còn: {pkg.availableQuantity}
-                      {pkg.availableQuantity < 10 && (
-                        <AlertCircle className="w-3 h-3 text-orange-500 inline ml-1" />
-                      )}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell>{getStatusBadge(pkg)}</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span>{new Date(pkg.createdAt).toLocaleDateString('vi-VN')}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(pkg.createdAt).toLocaleTimeString('vi-VN', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openViewDialog(pkg)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => openEditDialog(pkg)}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeletePackage(pkg._id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <PackageList
+          packages={packages}
+          loading={loading}
+          onEdit={openEditDialog}
+          onView={openViewDialog}
+          onDelete={handleDeletePackage}
+          getStatusBadge={getStatusBadge}
+          getGiftItemFromPackageItem={getGiftItemFromPackageItem}
+        />
 
-        {packages.length === 0 && (
+        {!loading && packages.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            Chưa có gói quà nào. Tạo gói quà đầu tiên của bạn!
+            {searchTerm ? 
+              `Không tìm thấy gói quà nào với từ khóa "${searchTerm}"` : 
+              "Chưa có gói quà nào. Tạo gói quà đầu tiên của bạn!"
+            }
           </div>
         )}
 

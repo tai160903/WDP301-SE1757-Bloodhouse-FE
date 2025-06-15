@@ -258,9 +258,65 @@ export interface DistributionReportResponse {
 export interface GetDistributionReportParams {
   startDate?: string;
   endDate?: string;
-  giftItemId?: string;
   packageId?: string;
-  distributedBy?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+// ===== GIFT LOG API (Manager) =====
+export interface GiftLog {
+  _id: string;
+  facilityId: {
+    _id: string;
+    name: string;
+    code: string;
+  };
+  giftItemId?: {
+    _id: string;
+    name: string;
+    unit: string;
+  };
+  packageId?: {
+    _id: string;
+    name: string;
+  };
+  action: string;
+  userId: {
+    _id: string;
+    userId: {
+      _id: string;
+      fullName: string;
+    };
+    position: string;
+  };
+  donationId?: {
+    _id: string;
+    donationDate: string;
+  };
+  details: any;
+  timestamp: string;
+}
+
+export interface GiftLogsResponse {
+  data: {
+    data: GiftLog[];
+    metadata: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  };
+}
+
+export interface GetGiftLogsParams {
+  action?: string;
+  giftItemId?: string;
+  userId?: string;
+  packageId?: string;
+  startDate?: string;
+  endDate?: string;
   page?: number;
   limit?: number;
 }
@@ -486,6 +542,16 @@ const getDistributionReport = async (params?: GetDistributionReportParams): Prom
   }
 };
 
+// ===== GIFT LOG FUNCTIONS (Manager) =====
+const getGiftLogs = async (params?: GetGiftLogsParams): Promise<GiftLogsResponse> => {
+  try {
+    const { data } = await instance.get<GiftLogsResponse>("/gift/logs", { params });
+    return data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi lấy lịch sử hoạt động.");
+  }
+};
+
 export {
   // Shared Gift Items (Manager & Nurse)
   getSharedGiftItems,
@@ -513,4 +579,6 @@ export {
   manageBudget,
   // Gift Distribution (Manager)
   getDistributionReport,
+  // Gift Log API (Manager)
+  getGiftLogs,
 }; 
