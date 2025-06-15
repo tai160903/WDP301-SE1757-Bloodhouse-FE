@@ -25,7 +25,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/donate" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/donation-registration" className="text-muted-foreground hover:text-primary transition-colors">
                   Hiến máu
                 </Link>
               </li>

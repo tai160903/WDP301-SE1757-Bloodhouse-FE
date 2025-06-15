@@ -51,17 +51,25 @@ export const getBloodInventory = async (): Promise<any> => {
     const { data } = await instance.get<any & { data: any[] }>(
       "/blood-inventory"
     );
-    // console.log(data.data)
     return data.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
 };
 
-export const getBloodInventoryDetail = async (id : string): Promise<BloodInventoryDetailResponse> => {
+export const createBloodInventory = async (values: any): Promise<any> => {
   try{
-    const {data} = await instance.get<BloodInventoryDetailResponse>(`/blood-inventory/${id}`);
+    const { data } = await instance.post<any & { data: any[] }>(`/blood-inventory`, values);
     return data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+}
+
+export const getBloodInventoryDetail = async (id : string): Promise<any> => {
+  try{
+    const {data} = await instance.get<any>(`/blood-inventory/detail/${id}`);
+    return data.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
