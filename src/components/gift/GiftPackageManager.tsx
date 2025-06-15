@@ -486,8 +486,9 @@ export function GiftPackageManager({ onPackageUpdate }: GiftPackageManagerProps)
                     <Input
                       id="quantity"
                       type="number"
+                      placeholder="1"
                       min="1"
-                      value={formData.quantity}
+                      value={formData.quantity === 1 ? '' : formData.quantity}
                       onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
                     />
                   </div>

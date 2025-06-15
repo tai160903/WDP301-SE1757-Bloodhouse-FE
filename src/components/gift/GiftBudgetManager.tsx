@@ -374,7 +374,7 @@ export function GiftBudgetManager({ onBudgetUpdate }: GiftBudgetManagerProps) {
                       type="number"
                       min="0"
                       step="100000"
-                      value={formData.budget}
+                      value={formData.budget === 0 ? '' : formData.budget}
                       onChange={(e) => setFormData(prev => ({ ...prev, budget: parseFloat(e.target.value) || 0 }))}
                       placeholder="10000000"
                     />
