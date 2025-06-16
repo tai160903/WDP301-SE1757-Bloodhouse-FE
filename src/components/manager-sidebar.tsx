@@ -10,8 +10,9 @@ import {
   Heart,
   MapPin,
   LogOut,
+  House,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +41,8 @@ export function ManagerSidebar() {
   const { signOut, loading } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
+  const navigate = useNavigate();
+
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
   };
@@ -49,7 +52,7 @@ export function ManagerSidebar() {
       await signOut();
       setShowLogoutModal(false);
     } catch (error) {
-      console.error('Logout thất bại:', error);
+      console.error("Logout thất bại:", error);
       setShowLogoutModal(false);
     }
   };
@@ -63,7 +66,9 @@ export function ManagerSidebar() {
       <div className="flex flex-col w-64 bg-white shadow-lg h-full">
         <div className="flex items-center justify-center h-16 px-4 bg-red-600">
           <Heart className="w-8 h-8 text-white mr-2" />
-          <h1 className="text-xl font-bold text-white">Quản Lý Ngân Hàng Máu</h1>
+          <h1 className="text-xl font-bold text-white">
+            Quản Lý Ngân Hàng Máu
+          </h1>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navigation.map((item) => {
@@ -88,6 +93,13 @@ export function ManagerSidebar() {
 
         {/* Logout Button */}
         <div className="px-4 py-4 border-t border-gray-200">
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:bg-red-50 hover:text-red-600 w-full"
+          >
+            <House className="w-5 h-5 mr-3" />
+            Trang chủ
+          </button>
           <button
             onClick={handleLogoutClick}
             className="flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors text-gray-600 hover:bg-red-50 hover:text-red-600 w-full"
@@ -122,7 +134,7 @@ export function ManagerSidebar() {
               disabled={loading}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
-              {loading ? 'Đang đăng xuất...' : 'Đăng xuất'}
+              {loading ? "Đang đăng xuất..." : "Đăng xuất"}
             </Button>
           </DialogFooter>
         </DialogContent>
