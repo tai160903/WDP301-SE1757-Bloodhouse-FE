@@ -39,13 +39,30 @@ import {
 import { Plus, Edit, Trash2 } from "lucide-react";
 import {
   getBloodInventory,
+  createBloodInventory,
   // getBloodInventoryDetail,
 } from "@/services/bloodinventory";
+import { getFacilities } from "@/services/location/facility";
+import { getBloodComponents } from "@/services/bloodComponent/blood-component";
+import { getBloodGroups } from "@/services/bloodGroup/blood-group";
+import { useNavigate } from "react-router-dom";
 
 export default function BloodInventory() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [bloodInventory, setBloodInventory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [facility, setFacility] = useState<any[]>([]);
+  const [components, setComponents] = useState<any[]>([]);
+  const [bloodGroups, setBloodGroups] = useState<any[]>([]);
+
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    groupId: "",
+    componentId: "",
+    facilityId: "",
+    totalQuantity: "",
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -62,14 +79,28 @@ export default function BloodInventory() {
     }
   };
 
+  const fetchInventory = async () => {
+    setLoading(true);
+    try {
+      const data = await getBloodInventory();
+      setBloodInventory(data);
+    } catch (error) {
+      console.error("Error fetching blood inventory:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchInventory = async () => {
+    fetchInventory();
+  }, []);
+
+  useEffect(() => {
+    const fetchFacility = async () => {
       setLoading(true);
       try {
-        const data = await getBloodInventory();
-        console.log(data);
-        setBloodInventory(data);
-        console.log(bloodInventory);
+        const data = await getFacilities();
+        setFacility(data.data.result);
       } catch (error) {
         console.error("Error fetching blood inventory:", error);
       } finally {
@@ -77,8 +108,52 @@ export default function BloodInventory() {
       }
     };
 
-    fetchInventory();
+    fetchFacility();
   }, []);
+
+  useEffect(() => {
+    const fetchComponents = async () => {
+      setLoading(true);
+      try {
+        const data = await getBloodComponents();
+        setComponents(data);
+      } catch (err: any) {
+        console.log(err.message || "Không thể tải danh sách thành phần máu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchComponents();
+  }, []);
+
+  useEffect(() => {
+    const fetchBloodGroups = async () => {
+      setLoading(true);
+      try {
+        const data = await getBloodGroups();
+        setBloodGroups(data);
+      } catch (err: any) {
+        console.log(err.message || "Không thể tải danh sách nhóm máu");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBloodGroups();
+  }, []);
+
+  const handleCreateBloodInventory = async () => {
+    try {
+      const payload = {
+        ...formData,
+        totalQuantity: Number(formData.totalQuantity),
+      };
+      await createBloodInventory(payload);
+      setIsAddDialogOpen(false);
+      fetchInventory();
+    } catch (error) {
+      console.error("Failed to create blood inventory", error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -101,47 +176,95 @@ export default function BloodInventory() {
               <DialogTitle>Thêm đơn vị máu</DialogTitle>
               <DialogDescription>Thêm 1 đơn vị máu vào kho</DialogDescription>
             </DialogHeader>
+
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="bloodType" className="text-right">
-                  Kiểu máu
+                <Label htmlFor="componentId" className="text-right">
+                  Nhóm máu
                 </Label>
-                <Select>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select blood type" />
+                <Select
+                  value={formData.groupId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, groupId: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3 w-full">
+                    <SelectValue placeholder="Lựa chọn nhóm máu" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="A+">A+</SelectItem>
-                    <SelectItem value="A-">A-</SelectItem>
-                    <SelectItem value="B+">B+</SelectItem>
-                    <SelectItem value="B-">B-</SelectItem>
-                    <SelectItem value="AB+">AB+</SelectItem>
-                    <SelectItem value="AB-">AB-</SelectItem>
-                    <SelectItem value="O+">O+</SelectItem>
-                    <SelectItem value="O-">O-</SelectItem>
+                    {bloodGroups.map((group) => (
+                      <SelectItem key={group._id} value={group._id}>
+                        {group.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="units" className="text-right">
-                  Đơn vị
+                <Label htmlFor="groupId" className="text-right">
+                  Thành phần
+                </Label>
+                <Select
+                  value={formData.componentId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, componentId: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3 w-full">
+                    <SelectValue placeholder="Lựa chọn thành phần máu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {components.map((component) => (
+                      <SelectItem key={component._id} value={component._id}>
+                        {component.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="facilityId" className="text-right">
+                  Chi nhánh
+                </Label>
+                <Select
+                  value={formData.facilityId}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, facilityId: value })
+                  }
+                >
+                  <SelectTrigger className="col-span-3 w-full">
+                    <SelectValue placeholder="Lựa chọn chi nhánh" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {facility.map((facility) => (
+                      <SelectItem key={facility._id} value={facility._id}>
+                        {facility.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="totalQuantity" className="text-right">
+                  Số lượng
                 </Label>
                 <Input
-                  id="units"
+                  id="totalQuantity"
                   type="number"
-                  placeholder="Number of units"
+                  value={formData.totalQuantity}
+                  onChange={(e) =>
+                    setFormData({ ...formData, totalQuantity: e.target.value })
+                  }
+                  placeholder="Đơn vị"
                   className="col-span-3"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="expiry" className="text-right">
-                  Ngày hết hạn
-                </Label>
-                <Input id="expiry" type="date" className="col-span-3" />
-              </div>
             </div>
             <DialogFooter>
-              <Button type="submit" onClick={() => setIsAddDialogOpen(false)}>
+              <Button type="submit" onClick={handleCreateBloodInventory}>
                 Thêm vào kho
               </Button>
             </DialogFooter>
@@ -191,17 +314,17 @@ export default function BloodInventory() {
       {!loading && (
         <Card>
           <CardHeader>
-            <CardTitle>Kho máu</CardTitle>
+            <CardTitle style={{ fontSize: "2rem" }}>Kho máu</CardTitle>
             <CardDescription>
-              Current blood stock levels and status
+              Mức độ và tình trạng dự trữ máu hiện tại
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nhhóm máu</TableHead>
                   <TableHead>Thành phần máu</TableHead>
+                  <TableHead>Nhhóm máu</TableHead>
                   <TableHead>Số lượng</TableHead>
                   <TableHead>Chi nhánh</TableHead>
                   {/* <TableHead>Trạng thái</TableHead> */}
@@ -210,7 +333,10 @@ export default function BloodInventory() {
               </TableHeader>
               <TableBody>
                 {bloodInventory.map((item) => (
-                  <TableRow key={item.id}>
+                  <TableRow
+                    key={item._id}
+                    onClick={() => navigate(`detail/${item._id}`)}
+                  >
                     <TableCell className="font-medium">
                       {item.componentId.name}
                     </TableCell>

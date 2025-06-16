@@ -1,6 +1,5 @@
 import { instance } from "../instance";
 
-
 export interface IResponse {
   success: boolean;
   message: string;
@@ -112,7 +111,9 @@ export const getAll = async (): Promise<BlogResponsePagination> => {
     const { data } = await instance.get<BlogResponsePagination>("/content");
     return data;
   } catch (error: any) {
-    throw new Error(error?.response?.data?.message || "Lỗi khi lấy danh sách blog.");
+    throw new Error(
+      error?.response?.data?.message || "Lỗi khi lấy danh sách blog."
+    );
   }
 };
 
@@ -121,27 +122,86 @@ export const getById = async (id: string): Promise<BlogResponse> => {
     const { data } = await instance.get<BlogResponse>(`/content/${id}`);
     return data;
   } catch (error: any) {
-    throw new Error(error?.response?.data?.message || "Lỗi khi lấy chi tiết blog.");
+    throw new Error(
+      error?.response?.data?.message || "Lỗi khi lấy chi tiết blog."
+    );
   }
 };
 
-export const create = async (formData: FormData): Promise<BlogResponse> => {
+export const getByFacilityId = async (
+  facilityId: string
+): Promise<BlogResponse> => {
   try {
-    const response = await instance.post<BlogResponse>("/content", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
+    const { data } = await instance.get<BlogResponse>(
+      `/content/facility/${facilityId}`
+    );
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Lỗi khi lấy chi tiết blog."
+    );
+  }
+};
+
+export const create = async (
+  formData: FormData,
+  role: string
+): Promise<BlogResponse> => {
+  try {
+    if (role === "ADMIN") {
+      const response = await instance.post<BlogResponse>(
+        "/content/admin",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data;
+    } else if (role === "MANAGER") {
+      const response = await instance.post<BlogResponse>(
+        "/content/facility",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data;
+    }
   } catch (error: any) {
     throw new Error(error?.response?.message);
   }
+  throw new Error("Vai trò không hợp lệ khi tạo blog.");
 };
 
-export const update = async (id: string, formData: FormData): Promise<BlogResponse> => {
+export const update = async (
+  id: string,
+  formData: FormData,
+  role: string
+): Promise<BlogResponse> => {
   try {
-    const response = await instance.put<BlogResponse>(`/content/${id}`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return response.data;
+    console.log(`Updating blog with ID: ${id} for role: ${role}`);
+    if (role === "ADMIN") {
+      const response = await instance.put<BlogResponse>(
+        `/content/admin/${id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data;
+    }
+    if (role === "MANAGER") {
+      console.log(`Updating blog with ID: ${id} for role: ${role}`);
+      const response = await instance.put<BlogResponse>(
+        `/content/facility/${id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      return response.data;
+    }
+    throw new Error("Vai trò không hợp lệ khi cập nhật blog.");
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi cập nhật blog.");
   }
@@ -149,17 +209,26 @@ export const update = async (id: string, formData: FormData): Promise<BlogRespon
 
 export const getBlogs = async (params: any): Promise<any> => {
   try {
-    const { data } = await instance.get<any>(`/content`, { params });
+    const { data } = await instance.get<any>(`/content/public`, { params });
     return data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
 };
 
-
-export const deleteBlog = async (id: string): Promise<BlogResponse> => {
+export const deleteBlog = async (
+  id: string,
+  role: string
+): Promise<BlogResponse> => {
   try {
-    const response = await instance.delete<BlogResponse>(`/content/${id}`);
+    let response;
+    if (role === "ADMIN") {
+      response = await instance.delete<BlogResponse>(`/content/admin/${id}`);
+    } else if (role === "MANAGER") {
+      response = await instance.delete<BlogResponse>(`/content/facility/${id}`);
+    } else {
+      throw new Error("Vai trò không hợp lệ khi xóa blog.");
+    }
     return response.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi xóa blog.");
