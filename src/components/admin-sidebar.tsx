@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -12,6 +12,7 @@ import {
   faCog,
   faGift,
   faSignOutAlt,
+  faHouse,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Dialog,
@@ -42,6 +43,8 @@ function AdminSidebar() {
   const { signOut, loading } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
+  const navigate = useNavigate();
+
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
   };
@@ -51,7 +54,7 @@ function AdminSidebar() {
       await signOut();
       setShowLogoutModal(false);
     } catch (error) {
-      console.error('Logout thất bại:', error);
+      console.error("Logout thất bại:", error);
       setShowLogoutModal(false);
     }
   };
@@ -66,7 +69,10 @@ function AdminSidebar() {
         <div className="p-6">
           <Link to="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center">
-              <FontAwesomeIcon icon={faDroplet} className="text-white text-xl" />
+              <FontAwesomeIcon
+                icon={faDroplet}
+                className="text-white text-xl"
+              />
             </div>
             <h1 className="text-white text-xl font-bold">BloodHouse Admin</h1>
           </Link>
@@ -114,6 +120,16 @@ function AdminSidebar() {
         {/* Logout Button */}
         <div className="px-3 py-4 border-t border-slate-600">
           <button
+            onClick={() => navigate("/")}
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-slate-300 hover:bg-red-600/20 hover:text-red-400 w-full"
+          >
+            <FontAwesomeIcon
+              icon={faHouse}
+              className="text-lg text-slate-400"
+            />
+            <span className="font-medium">Trang chủ</span>
+          </button>
+          <button
             onClick={handleLogoutClick}
             className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 text-slate-300 hover:bg-red-600/20 hover:text-red-400 w-full"
           >
@@ -150,7 +166,7 @@ function AdminSidebar() {
               disabled={loading}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
-              {loading ? 'Đang đăng xuất...' : 'Đăng xuất'}
+              {loading ? "Đang đăng xuất..." : "Đăng xuất"}
             </Button>
           </DialogFooter>
         </DialogContent>

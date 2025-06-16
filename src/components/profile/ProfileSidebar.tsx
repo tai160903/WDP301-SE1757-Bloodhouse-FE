@@ -66,7 +66,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
       id: "requests",
       label: "Yêu cầu hiến máu",
       icon: HandHeart,
-      onClick: () => navigate("/donation-requests"),
+      onClick: () => navigate("/donation-registration"),
     },
   ];
 
@@ -85,19 +85,23 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
               onClick={item.onClick}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors",
-                activeTab === item.id 
-                  ? "bg-accent text-primary font-medium" 
+                activeTab === item.id
+                  ? "bg-accent text-primary font-medium"
                   : "text-gray-700"
               )}
             >
-              <div className={cn(
-                "p-2 rounded-full",
-                activeTab === item.id ? "bg-primary/10" : "bg-gray-100"
-              )}>
-                <item.icon className={cn(
-                  "h-4 w-4",
-                  activeTab === item.id ? "text-primary" : "text-gray-600"
-                )} />
+              <div
+                className={cn(
+                  "p-2 rounded-full",
+                  activeTab === item.id ? "bg-primary/10" : "bg-gray-100"
+                )}
+              >
+                <item.icon
+                  className={cn(
+                    "h-4 w-4",
+                    activeTab === item.id ? "text-primary" : "text-gray-600"
+                  )}
+                />
               </div>
               <span className="flex-1">{item.label}</span>
               {activeTab === item.id && (
@@ -105,7 +109,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
               )}
             </button>
           ))}
-          
+
           {/* Logout Button */}
           <div className="pt-2 mt-4 border-t">
             <button
@@ -171,4 +175,4 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
   );
 };
 
-export default ProfileSidebar; 
+export default ProfileSidebar;
