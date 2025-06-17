@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { getById } from "../../services/blog";
 
-
 const BlogDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [blog, setBlog] = useState<any | null>(null);
@@ -15,7 +14,7 @@ const BlogDetail: React.FC = () => {
         const response = await getById(id);
         setBlog(response.data || null);
         console.log("dmm");
-        console.log(response.data)
+        console.log(response.data);
       } catch (error) {
         console.error("Lỗi khi lấy chi tiết blog:", error);
       } finally {
@@ -28,7 +27,8 @@ const BlogDetail: React.FC = () => {
 
   if (loading) return <p className="text-center mt-10">Đang tải chi tiết...</p>;
 
-  if (!blog) return <p className="text-center mt-10">Không tìm thấy bài viết.</p>;
+  if (!blog)
+    return <p className="text-center mt-10">Không tìm thấy bài viết.</p>;
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -56,7 +56,11 @@ const BlogDetail: React.FC = () => {
         />
         <span>{blog.authorId?.fullName || "Ẩn danh"}</span>
       </div>
-      <img src={blog.image} alt={blog.title} className="w-full h-auto mb-6 rounded" />
+      <img
+        src={blog.image}
+        alt={blog.title}
+        className="w-full h-auto mb-6 rounded"
+      />
       <div
         className="blog-content prose max-w-none"
         dangerouslySetInnerHTML={{ __html: blog.content || blog.summary }}
