@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { BASE_URL } from '@/constants/globalVariables';
 
-// Create axios instance
-const API_BASE_URL = 'http://localhost:3000/api/v1';
+// Create axios instance using environment-based URL
+const API_BASE_URL = BASE_URL;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -78,8 +79,8 @@ axiosInstance.interceptors.response.use(
         localStorage.removeItem('userId');
         
         // Only redirect if we're not already on the login page
-        if (!window.location.pathname.includes('/auth/sign-in')) {
-          window.location.href = '/auth/sign-in';
+        if (!window.location.pathname.includes('/auth/login')) {
+          window.location.href = '/auth/login';
         }
         
         return Promise.reject(refreshError);

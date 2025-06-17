@@ -6,7 +6,7 @@ import { Link } from "react-router-dom"
 import { HeroSection } from "@/pages/home/components/hero-section"
 import { BlogSection } from "@/pages/home/components/blog-section"
 import { BloodTypeInfo } from "@/pages/home/components/blood-type-info"
-import { UrgentRequests } from "@/pages/home/components/urgent-requests"
+// import { UrgentRequests } from "@/pages/home/components/urgent-requests"
 import { Stats } from "@/pages/home/components/stats"
 
 export default function Home() {
