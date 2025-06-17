@@ -1,12 +1,15 @@
 import BlogForm from "@/components/BlogForm";
 import Blogs from "@/pages/manager/Blogs";
 import BloodInventory from "@/pages/manager/BloodInventory";
+import BloodInventoryDetail from "@/pages/manager/BloodInventoryDetail";
 import Dashboard from "@/pages/manager/Dashboard";
 import Events from "@/pages/manager/Events";
 import Gifts from "@/pages/manager/Gifts";
 import ReceivedRequests from "@/pages/manager/Received";
+import ReceivedDetail from "@/pages/manager/ReceivedDetail";
 import Requests from "@/pages/manager/Request";
 import Staff from "@/pages/manager/Staff";
+import { Children } from "react";
 
 const managerRoutes = [
   {
@@ -15,7 +18,16 @@ const managerRoutes = [
   },
   {
     path: "inventory",
-    element: <BloodInventory />,
+    children: [
+      {
+        path: "",
+        element: <BloodInventory />,
+      },
+      {
+        path: "detail/:id",
+        element: <BloodInventoryDetail />,
+      },
+    ],
   },
   {
     path: "requests",
@@ -24,6 +36,10 @@ const managerRoutes = [
   {
     path: "received",
     element: <ReceivedRequests />,
+  },
+  {
+    path: "received/:id",
+    element: <ReceivedDetail />,
   },
   {
     path: "gifts",

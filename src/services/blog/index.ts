@@ -209,7 +209,7 @@ export const update = async (
 
 export const getBlogs = async (params: any): Promise<any> => {
   try {
-    const { data } = await instance.get<any>(`/content`, { params });
+    const { data } = await instance.get<any>(`/content/public`, { params });
     return data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");

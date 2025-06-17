@@ -137,6 +137,7 @@ const VerifyLevel2Page: React.FC<VerifyLevel2PageProps> = ({
         className="sm:max-w-lg border-t-8"
         style={{ borderTopColor: "#d40c3b" }}
         onInteractOutside={handleDialogInteractOutside}
+        onEscapeKeyDown={handleDialogInteractOutside}
       >
         <DialogHeader>
           <DialogTitle className="text-[#d40c3b] text-2xl font-bold">

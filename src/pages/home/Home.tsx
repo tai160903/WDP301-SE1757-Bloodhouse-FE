@@ -24,7 +24,7 @@ export default function Home() {
               <p className="text-muted-foreground mt-2">Quy trình hiến máu đơn giản và hiệu quả của chúng tôi</p>
             </div>
             <Button asChild>
-              <Link to="/register">
+              <Link to="/donation-registration">
                 Trở thành người hiến máu <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -124,7 +124,6 @@ export default function Home() {
         </div>
       </section>
 
-      <UrgentRequests />
 
       <BlogSection />
     </div>

@@ -40,6 +40,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Eye, CheckCircle, XCircle } from "lucide-react";
 import { set } from "date-fns";
 import { getBloodDonationRegis } from "@/services/bloodDonationRegis";
+import { useNavigate } from "react-router-dom";
 
 // const donationRequests = [
 //   {
@@ -83,6 +84,8 @@ export default function Requests() {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [donationRequests, setDonationRequests] = useState<any>([]);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate();
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
@@ -138,91 +141,12 @@ export default function Requests() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Donation Requests
+            Yêu cầu hiến máu
           </h1>
           <p className="text-muted-foreground">
-            Manage incoming blood donation requests from hospitals
+            Quản lý các yêu cầu hiến máu tại các bệnh viện
           </p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Request
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Create New Request</DialogTitle>
-              <DialogDescription>
-                Create a new blood donation request
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="hospital">Hospital Name</Label>
-                <Input id="hospital" placeholder="Enter hospital name" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="contact">Contact Person</Label>
-                <Input id="contact" placeholder="Doctor/Contact name" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" placeholder="+1-555-0123" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="bloodType">Blood Type</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A+">A+</SelectItem>
-                      <SelectItem value="A-">A-</SelectItem>
-                      <SelectItem value="B+">B+</SelectItem>
-                      <SelectItem value="B-">B-</SelectItem>
-                      <SelectItem value="AB+">AB+</SelectItem>
-                      <SelectItem value="AB-">AB-</SelectItem>
-                      <SelectItem value="O+">O+</SelectItem>
-                      <SelectItem value="O-">O-</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="units">Units</Label>
-                  <Input id="units" type="number" placeholder="1" />
-                </div>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="urgency">Urgency Level</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select urgency" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Emergency">Emergency</SelectItem>
-                    <SelectItem value="Urgent">Urgent</SelectItem>
-                    <SelectItem value="Routine">Routine</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="notes">Additional Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Any additional information..."
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" onClick={() => setIsAddDialogOpen(false)}>
-                Create Request
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Summary Cards */}
@@ -268,9 +192,9 @@ export default function Requests() {
       {/* Requests Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Blood Donation Requests</CardTitle>
+          <CardTitle>Yêu cầu hiến máu</CardTitle>
           <CardDescription>
-            Manage and track blood donation requests
+            Quảnh lý và theo dõi yêu cầu hiến máu
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -278,33 +202,32 @@ export default function Requests() {
             <TableHeader>
               <TableRow>
                 <TableHead>Người yêu cầu</TableHead>
-                <TableHead>Loại máu</TableHead>
-                <TableHead>Đơn vị</TableHead>
+                <TableHead>Nhóm máu</TableHead>
+                <TableHead>Đơn vị cần</TableHead>
                 <TableHead>Bệnh viện</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Request Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {donationRequests.map((request: any) => (
-                <TableRow key={request.id}>
+                <TableRow
+                  key={request._id}
+                  onClick={() => navigate(`detail/${request._id}`)}
+                >
                   <TableCell className="font-medium">
-                    {request.hospital}
+                    {request.userId.fullName}
                   </TableCell>
-                  <TableCell>{request.bloodType}</TableCell>
-                  <TableCell>{request.units}</TableCell>
+                  <TableCell>{request.bloodGroupId.name}</TableCell>
                   <TableCell>
-                    <Badge className={getUrgencyColor(request.urgency)}>
-                      {request.urgency}
-                    </Badge>
+                    {request.expectedQuantity.toLocaleString()} đơn vị
                   </TableCell>
+                  <TableCell>{request.facilityId.name}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(request.status)}>
                       {request.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{request.requestDate}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end space-x-2">
                       <Button

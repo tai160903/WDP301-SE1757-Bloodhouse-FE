@@ -44,18 +44,18 @@ import {
 import { useNavigate } from "react-router-dom";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
 import { userAPI } from "@/utils/axiosInstance";
-import { 
-  getRoleText, 
-  getStatusText, 
-  getSexText, 
-  getProfileLevelText, 
+import {
+  getRoleText,
+  getStatusText,
+  getSexText,
+  getProfileLevelText,
   getAvailabilityText,
   formatPhoneNumber,
-  formatYearOfBirth
+  formatYearOfBirth,
 } from "@/utils/changeText";
 import { cn } from "@/lib/utils";
 import useAuth from "@/hooks/useAuth";
-import VerifyLevel2Page from './VerifyLevel2Page';
+import VerifyLevel2Page from "./VerifyLevel2Page";
 
 const formSchema = z.object({
   fullName: z.string().min(2, {
@@ -145,7 +145,7 @@ const ProfilePage: React.FC = () => {
       const response = await userAPI.get("/me");
       const profileData = (response.data as APIResponse<UserProfile>).data;
       setProfile(profileData);
-      
+
       // Update form with profile data
       form.reset({
         fullName: profileData.fullName || "",
@@ -156,7 +156,9 @@ const ProfilePage: React.FC = () => {
       });
     } catch (error: any) {
       console.error("Error fetching profile:", error);
-      setError(error.response?.data?.message || "Có lỗi xảy ra khi tải thông tin");
+      setError(
+        error.response?.data?.message || "Có lỗi xảy ra khi tải thông tin"
+      );
     } finally {
       setLoading(false);
     }
@@ -176,16 +178,18 @@ const ProfilePage: React.FC = () => {
 
       const response = await userAPI.patch("/profile", values);
       const updatedProfile = (response.data as APIResponse<UserProfile>).data;
-      
-      setProfile(prev => ({ ...prev, ...updatedProfile }));
+
+      setProfile((prev) => ({ ...prev, ...updatedProfile }));
       setSuccess("Cập nhật thông tin thành công!");
       setIsEditing(false);
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(null), 3000);
     } catch (error: any) {
       console.error("Error updating profile:", error);
-      setError(error.response?.data?.message || "Có lỗi xảy ra khi cập nhật thông tin");
+      setError(
+        error.response?.data?.message || "Có lỗi xảy ra khi cập nhật thông tin"
+      );
     } finally {
       setUpdating(false);
     }
@@ -213,9 +217,13 @@ const ProfilePage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Không thể tải thông tin</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Không thể tải thông tin
+          </h2>
           <p className="text-gray-600 mb-4">Vui lòng thử lại sau</p>
-          <Button onClick={fetchProfile} variant="outline">Thử lại</Button>
+          <Button onClick={fetchProfile} variant="outline">
+            Thử lại
+          </Button>
         </div>
       </div>
     );
@@ -231,8 +239,12 @@ const ProfilePage: React.FC = () => {
               <User className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-primary">Thông tin cá nhân</h1>
-              <p className="text-muted-foreground">Quản lý và cập nhật thông tin của bạn</p>
+              <h1 className="text-3xl font-bold tracking-tight text-primary">
+                Thông tin cá nhân
+              </h1>
+              <p className="text-muted-foreground">
+                Quản lý và cập nhật thông tin của bạn
+              </p>
             </div>
           </div>
           <Button
@@ -305,13 +317,15 @@ const ProfilePage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex-1 text-center sm:text-left">
                     <h2 className="text-2xl font-bold mb-2">
                       {profile.fullName || "Người dùng"}
                     </h2>
-                    <p className="text-muted-foreground mb-3">{profile.email}</p>
-                    
+                    <p className="text-muted-foreground mb-3">
+                      {profile.email}
+                    </p>
+
                     <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                       <Badge variant="outline">
                         <Star className="h-3 w-3 mr-1" />
@@ -342,30 +356,54 @@ const ProfilePage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Email</label>
-                      <p className="font-medium text-foreground">{profile.email}</p>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Email
+                      </label>
+                      <p className="font-medium text-foreground">
+                        {profile.email}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Số điện thoại</label>
-                      <p className="font-medium text-foreground">{formatPhoneNumber(profile.phone)}</p>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Số điện thoại
+                      </label>
+                      <p className="font-medium text-foreground">
+                        {formatPhoneNumber(profile.phone)}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Giới tính</label>
-                      <p className="font-medium text-foreground">{getSexText(profile.sex)}</p>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Giới tính
+                      </label>
+                      <p className="font-medium text-foreground">
+                        {getSexText(profile.sex)}
+                      </p>
                     </div>
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Năm sinh</label>
-                      <p className="font-medium text-foreground">{formatYearOfBirth(profile.yob)}</p>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Năm sinh
+                      </label>
+                      <p className="font-medium text-foreground">
+                        {formatYearOfBirth(profile.yob)}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Địa chỉ</label>
-                      <p className="font-medium text-foreground">{profile.address || "Chưa cập nhật"}</p>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Địa chỉ
+                      </label>
+                      <p className="font-medium text-foreground">
+                        {profile.address || "Chưa cập nhật"}
+                      </p>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-muted-foreground">Nhóm máu</label>
-                      <p className="font-medium text-foreground">{profile.bloodId?.name || "Chưa cập nhật"}</p>
+                      <label className="text-sm font-medium text-muted-foreground">
+                        Nhóm máu
+                      </label>
+                      <p className="font-medium text-foreground">
+                        {profile.bloodId?.name || "Chưa cập nhật"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -387,16 +425,19 @@ const ProfilePage: React.FC = () => {
                       <Heart className="h-6 w-6 text-primary-foreground" />
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">{getAvailabilityText(profile.isAvailable)}</p>
+                      <p className="font-medium text-foreground">
+                        {getAvailabilityText(profile.isAvailable)}
+                      </p>
                       <p className="text-sm text-muted-foreground">
-                        {profile.isAvailable 
-                          ? "Bạn có thể tham gia hiến máu" 
-                          : "Hiện tại chưa thể hiến máu"
-                        }
+                        {profile.isAvailable
+                          ? "Bạn có thể tham gia hiến máu"
+                          : "Hiện tại chưa thể hiến máu"}
                       </p>
                     </div>
                   </div>
-                  <Badge variant={profile.isAvailable ? "default" : "secondary"}>
+                  <Badge
+                    variant={profile.isAvailable ? "default" : "secondary"}
+                  >
                     {profile.isAvailable ? "Sẵn sàng" : "Chưa sẵn sàng"}
                   </Badge>
                 </div>
@@ -415,7 +456,7 @@ const ProfilePage: React.FC = () => {
               Cập nhật thông tin cá nhân của bạn
             </DialogDescription>
           </DialogHeader>
-          
+
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -457,7 +498,10 @@ const ProfilePage: React.FC = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Giới tính</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Chọn giới tính" />
@@ -510,10 +554,7 @@ const ProfilePage: React.FC = () => {
                 >
                   Hủy
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={updating}
-                >
+                <Button type="submit" disabled={updating}>
                   {updating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -546,7 +587,8 @@ const ProfilePage: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Upload CCCD/CMND</DialogTitle>
             <DialogDescription>
-              Vui lòng tải lên ảnh hoặc file CCCD/CMND để tự động nhận diện thông tin.
+              Vui lòng tải lên ảnh hoặc file CCCD/CMND để tự động nhận diện
+              thông tin.
             </DialogDescription>
           </DialogHeader>
           <form
@@ -556,29 +598,31 @@ const ProfilePage: React.FC = () => {
               setUploading(true);
               const file = fileInputRef.current?.files?.[0];
               if (!file) {
-                setUploadError('Vui lòng chọn file');
+                setUploadError("Vui lòng chọn file");
                 setUploading(false);
                 return;
               }
               try {
                 const formData = new FormData();
-                formData.append('cccd', file);
-                const res = await userAPI.post('/kyc/upload-cccd', formData, {
-                  headers: { 'Content-Type': 'multipart/form-data' },
+                formData.append("cccd", file);
+                const res = await userAPI.post("/kyc/upload-cccd", formData, {
+                  headers: { "Content-Type": "multipart/form-data" },
                 });
                 const data = (res.data as APIResponse<any>).data;
                 setVerifyLevel2Data({
-                  idCard: data.idCard || '',
-                  fullName: data.fullName || '',
-                  yob: data.dob ? formatYobToDateInput(data.dob) : '',
-                  address: data.address || '',
-                  sex: data.sex?.toUpperCase() === 'NAM' ? 'Nam' : 'Nữ',
+                  idCard: data.idCard || "",
+                  fullName: data.fullName || "",
+                  yob: data.dob ? formatYobToDateInput(data.dob) : "",
+                  address: data.address || "",
+                  sex: data.sex?.toUpperCase() === "NAM" ? "Nam" : "Nữ",
                 });
                 setShowUploadCCCDModal(false);
                 setShowVerifyLevel2(true);
                 setPreviewUrl(null);
               } catch (err: any) {
-                setUploadError(err?.response?.data?.message || 'Upload thất bại');
+                setUploadError(
+                  err?.response?.data?.message || "Upload thất bại"
+                );
               } finally {
                 setUploading(false);
               }
@@ -592,9 +636,9 @@ const ProfilePage: React.FC = () => {
               ref={fileInputRef}
               className="block w-full border rounded-md px-3 py-2"
               required
-              onChange={e => {
+              onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file && file.type.startsWith('image/')) {
+                if (file && file.type.startsWith("image/")) {
                   setPreviewUrl(URL.createObjectURL(file));
                 } else {
                   setPreviewUrl(null);
@@ -603,10 +647,16 @@ const ProfilePage: React.FC = () => {
             />
             {previewUrl && (
               <div className="mb-2 flex justify-center">
-                <img src={previewUrl} alt="CCCD preview" className="max-h-48 rounded shadow" />
+                <img
+                  src={previewUrl}
+                  alt="CCCD preview"
+                  className="max-h-48 rounded shadow"
+                />
               </div>
             )}
-            {uploadError && <div className="text-red-500 text-sm">{uploadError}</div>}
+            {uploadError && (
+              <div className="text-red-500 text-sm">{uploadError}</div>
+            )}
             <DialogFooter>
               <Button
                 variant="outline"
@@ -622,25 +672,32 @@ const ProfilePage: React.FC = () => {
               >
                 Đóng
               </Button>
-              <Button type="submit" disabled={uploading}>{uploading ? 'Đang upload...' : 'Tiếp tục'}</Button>
+              <Button type="submit" disabled={uploading}>
+                {uploading ? "Đang upload..." : "Tiếp tục"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       {/* Modal xác thực mức 2 */}
-      <VerifyLevel2Page fetchProfile={fetchProfile} open={showVerifyLevel2} onClose={() => setShowVerifyLevel2(false)} initialData={verifyLevel2Data} />
+      <VerifyLevel2Page
+        fetchProfile={fetchProfile}
+        open={showVerifyLevel2}
+        onClose={() => setShowVerifyLevel2(false)}
+        initialData={verifyLevel2Data}
+      />
     </div>
   );
 };
 
 // Helper: convert dd/mm/yyyy or yyyy-mm-dd to yyyy-mm-dd
 function formatYobToDateInput(yob: string | undefined): string {
-  if (!yob) return '';
+  if (!yob) return "";
   if (/^\d{4}-\d{2}-\d{2}$/.test(yob)) return yob; // yyyy-mm-dd
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(yob)) {
-    const [day, month, year] = yob.split('/');
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    const [day, month, year] = yob.split("/");
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
   return yob;
 }
