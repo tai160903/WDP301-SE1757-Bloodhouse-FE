@@ -11,6 +11,7 @@ import { ArrowRight, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getAll } from "@/services/blog";
+import { formatDate } from "date-fns";
 
 export function BlogSection() {
   const [blog, setBlog] = useState([]);
@@ -78,8 +79,8 @@ export function BlogSection() {
           <Card key={post._id} className="overflow-hidden card-hover">
             <div className="relative h-48 overflow-hidden">
               <img
-                src={post.image || "/placeholder.svg"}
-                alt={post.title}
+                src={post?.image || "/placeholder.svg"}
+                alt={post?.title}
                 width={400}
                 height={200}
                 className="w-full h-full object-cover transition-transform hover:scale-105 duration-300"
@@ -88,10 +89,10 @@ export function BlogSection() {
             <CardHeader className="space-y-1">
               <div className="flex items-center text-sm text-muted-foreground">
                 <Calendar className="mr-1 h-4 w-4" />
-                {post.date}
+                {formatDate(post?.createdAt, "dd/MM/yyyy HH:mm")}
               </div>
-              <CardTitle className="line-clamp-1">{post.title}</CardTitle>
-              <CardDescription>Tác giả: {post.authorId}</CardDescription>
+              <CardTitle className="line-clamp-1">{post?.title}</CardTitle>
+              <CardDescription>Tác giả: {post?.authorId?.fullName}</CardDescription>
             </CardHeader>
 
             <CardFooter>
