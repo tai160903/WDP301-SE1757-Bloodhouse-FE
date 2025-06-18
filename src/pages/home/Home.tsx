@@ -139,9 +139,9 @@ export default function Home() {
 
           <div className="flex justify-center mt-8">
             <Button asChild>
-              <Link to="/compatibility">
-                <Search className="mr-2 h-4 w-4" /> Tìm người hiến máu tương
-                thích
+              <Link to="/bloodInfo">
+                <Search className="mr-2 h-4 w-4" />
+                Tìm kiếm nhóm máu tương thích
               </Link>
             </Button>
           </div>
