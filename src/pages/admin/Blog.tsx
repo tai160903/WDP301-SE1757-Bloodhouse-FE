@@ -204,21 +204,21 @@ function BlogManagement() {
                         <TableCell>
                           <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-medium text-gray-900 line-clamp-1">
+                              <h3 className="font-medium text-gray-900 line-clamp-1 max-w-[400px] truncate">
                                 {blog.title}
                               </h3>
                               {blog.featured && (
                                 <Heart className="h-4 w-4 text-pink-500 fill-current" />
                               )}
                             </div>
-                            <p className="text-sm text-gray-600 line-clamp-2">
+                            <p className="text-sm text-gray-600 line-clamp-2  max-w-[400px] truncate">
                               {blog.summary}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-2">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center  gap-2">
                               <Avatar className="h-8 w-8">
                                 <AvatarFallback className="bg-gradient-to-br from-orange-500 to-red-600 text-white text-xs font-semibold">
                                   {getInitials(blog.authorId?.fullName)}
