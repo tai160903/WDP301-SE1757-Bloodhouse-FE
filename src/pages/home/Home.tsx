@@ -1,27 +1,36 @@
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowRight, Calendar, Droplet, Search, Users } from "lucide-react"
-import { Link } from "react-router-dom"
-import { HeroSection } from "@/pages/home/components/hero-section"
-import { BlogSection } from "@/pages/home/components/blog-section"
-import { BloodTypeInfo } from "@/pages/home/components/blood-type-info"
-// import { UrgentRequests } from "@/pages/home/components/urgent-requests"
-import { Stats } from "@/pages/home/components/stats"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight, Calendar, Droplet, Search, Users } from "lucide-react";
+import { Link } from "react-router-dom";
+import { HeroSection } from "@/pages/home/components/hero-section";
+import { BlogSection } from "@/pages/home/components/blog-section";
+import { BloodTypeInfo } from "@/pages/home/components/blood-type-info";
+import { UrgentRequests } from "@/pages/home/components/urgent-requests";
+import { Stats } from "@/pages/home/components/stats";
 
 export default function Home() {
   return (
     <div className="flex flex-col w-full">
       <HeroSection />
 
-      <Stats />
-
       <section className="w-full py-16">
         <div className="container mx-auto px-4 sm:px-6 space-y-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-red-600">BloodHouse Hoạt Động Như Thế Nào?</h2>
-              <p className="text-muted-foreground mt-2">Quy trình hiến máu đơn giản và hiệu quả của chúng tôi</p>
+              <h2 className="text-3xl font-bold tracking-tight text-red-600">
+                BloodHouse Hoạt Động Như Thế Nào?
+              </h2>
+              <p className="text-muted-foreground mt-2">
+                Quy trình hiến máu đơn giản và hiệu quả của chúng tôi
+              </p>
             </div>
             <Button asChild>
               <Link to="/donation-registration">
@@ -40,7 +49,10 @@ export default function Home() {
                 <CardDescription>Đăng ký làm người hiến máu</CardDescription>
               </CardHeader>
               <CardContent>
-                <p>Tạo hồ sơ, xác định nhóm máu và đặt lịch sẵn sàng hiến máu của bạn.</p>
+                <p>
+                  Tạo hồ sơ, xác định nhóm máu và đặt lịch sẵn sàng hiến máu của
+                  bạn.
+                </p>
               </CardContent>
               <CardFooter>
                 <Button variant="outline" asChild>
@@ -48,42 +60,50 @@ export default function Home() {
                 </Button>
               </CardFooter>
             </Card>
-            
-            <Card className="card-hover border-t-4 border-t-primary">
-            <CardHeader className="space-y-1">
-              <div className="bg-accent w-12 h-12 rounded-full flex items-center justify-center mb-2">
-                <Calendar className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Lịch hẹn</CardTitle>
-              <CardDescription>Đặt lịch hẹn hiến máu</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>Chọn thời gian và địa điểm thuận tiện để hiến máu dựa trên lịch trình của bạn.</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" asChild>
-                <Link to="/schedule">Đặt lịch ngay</Link>
-              </Button>
-            </CardFooter>
-          </Card>
 
-          <Card className="card-hover border-t-4 border-t-primary">
-            <CardHeader className="space-y-1">
-              <div className="bg-accent w-12 h-12 rounded-full flex items-center justify-center mb-2">
-                <Droplet className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle>Hiến máu</CardTitle>
-              <CardDescription>Cứu sống người khác bằng việc hiến máu</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>Đến cơ sở y tế theo lịch hẹn và hoàn thành quá trình hiến máu cứu người.</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline" asChild>
-                <Link to="/learn-more">Tìm hiểu thêm</Link>
-              </Button>
-            </CardFooter>
-          </Card>
+            <Card className="card-hover border-t-4 border-t-primary">
+              <CardHeader className="space-y-1">
+                <div className="bg-accent w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                  <Calendar className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Lịch hẹn</CardTitle>
+                <CardDescription>Đặt lịch hẹn hiến máu</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>
+                  Chọn thời gian và địa điểm thuận tiện để hiến máu dựa trên
+                  lịch trình của bạn.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" asChild>
+                  <Link to="/schedule">Đặt lịch ngay</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card className="card-hover border-t-4 border-t-primary">
+              <CardHeader className="space-y-1">
+                <div className="bg-accent w-12 h-12 rounded-full flex items-center justify-center mb-2">
+                  <Droplet className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle>Hiến máu</CardTitle>
+                <CardDescription>
+                  Cứu sống người khác bằng việc hiến máu
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p>
+                  Đến cơ sở y tế theo lịch hẹn và hoàn thành quá trình hiến máu
+                  cứu người.
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Button variant="outline" asChild>
+                  <Link to="/learn-more">Tìm hiểu thêm</Link>
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         </div>
       </section>
@@ -91,9 +111,12 @@ export default function Home() {
       <section className="bg-accent py-16 section-pattern">
         <div className="container space-y-8">
           <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold tracking-tight text-red-600">Tìm Nhóm Máu Tương Thích</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-red-600">
+              Tìm Nhóm Máu Tương Thích
+            </h2>
             <p className="text-muted-foreground mt-2">
-              Sử dụng công cụ tương thích của chúng tôi để tìm người hiến máu hoặc người nhận phù hợp dựa trên nhóm máu
+              Sử dụng công cụ tương thích của chúng tôi để tìm người hiến máu
+              hoặc người nhận phù hợp dựa trên nhóm máu
             </p>
           </div>
 
@@ -116,16 +139,16 @@ export default function Home() {
 
           <div className="flex justify-center mt-8">
             <Button asChild>
-              <Link to="/compatibility">
-                <Search className="mr-2 h-4 w-4" /> Tìm người hiến máu tương thích
+              <Link to="/bloodInfo">
+                <Search className="mr-2 h-4 w-4" />
+                Tìm kiếm nhóm máu tương thích
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-
       <BlogSection />
     </div>
-  )
+  );
 }

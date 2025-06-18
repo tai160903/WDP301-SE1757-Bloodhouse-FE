@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function HeroSection() {
   return (
@@ -16,19 +16,29 @@ export function HeroSection() {
               <span className="text-accent">Cứu một mạng người</span>
             </h1>
             <p className="text-lg md:text-xl max-w-xl text-white/80">
-              Tham gia BloodHouse để giúp đỡ những bệnh nhân đang cần. Việc hiến máu của bạn có thể cứu sống đến ba người
-              và tạo nên sự khác biệt thực sự trong cộng đồng.
+              Tham gia BloodHouse để giúp đỡ những bệnh nhân đang cần. Việc hiến
+              máu của bạn có thể cứu sống đến ba người và tạo nên sự khác biệt
+              thực sự trong cộng đồng.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="bg-white text-primary hover:bg-white/90" asChild>
+            <Button
+              size="lg"
+              className="bg-white text-primary hover:bg-white/90"
+              asChild
+            >
               <Link to="/register">
                 Trở thành người hiến máu <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="bg-red-100 text-primary hover:bg-red-200 hover:text-gray-600" asChild>
+            <Button
+              size="lg"
+              variant="outline"
+              className="bg-red-100 text-primary hover:bg-red-200 hover:text-gray-600"
+              asChild
+            >
               <Link to="/request">
-              Yêu cầu hiến máu  <ArrowRight className="ml-2 h-4 w-4" />
+                Yêu cầu hiến máu <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>
@@ -43,9 +53,6 @@ export function HeroSection() {
                 </div>
               ))}
             </div>
-            <p>
-              Tham gia cùng <strong>2.500+</strong> người hiến máu trong cộng đồng của chúng tôi
-            </p>
           </div>
         </div>
         <div className="flex-1 relative w-full max-w-lg mx-auto lg:mx-0">
@@ -58,13 +65,9 @@ export function HeroSection() {
               className="w-full h-auto"
             />
           </div>
-          <div className="absolute -bottom-6 -right-6 bg-white text-primary p-6 rounded-lg shadow-xl z-20">
-            <div className="text-3xl font-bold">150+</div>
-            <div className="text-sm">Mạng sống được cứu trong tháng này</div>
-          </div>
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"></div>
     </section>
-  )
+  );
 }

@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Droplet, Eye, EyeOff, Heart, Users, Shield, ArrowLeft } from 'lucide-react';
-import useAuth from '@/hooks/useAuth';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
+import {
+  Droplet,
+  Eye,
+  EyeOff,
+  Heart,
+  Users,
+  Shield,
+  ArrowLeft,
+} from "lucide-react";
+import useAuth from "@/hooks/useAuth";
 
 interface LoginFormData {
   emailOrPhone: string;
@@ -21,10 +29,10 @@ interface FormErrors {
 const Login = () => {
   const navigate = useNavigate();
   const { signIn, loading, error, clearError, isAuthenticated } = useAuth();
-  
+
   const [formData, setFormData] = useState<LoginFormData>({
-    emailOrPhone: '',
-    password: '',
+    emailOrPhone: "",
+    password: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +41,7 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
@@ -52,15 +60,16 @@ const Login = () => {
     const isPhone = /^(0|\+84)(3|5|7|8|9)[0-9]{8}$/.test(formData.emailOrPhone);
 
     if (!formData.emailOrPhone.trim()) {
-      newErrors.emailOrPhone = 'Vui lòng nhập email hoặc số điện thoại';
+      newErrors.emailOrPhone = "Vui lòng nhập email hoặc số điện thoại";
     } else if (!isEmail && !isPhone) {
-      newErrors.emailOrPhone = 'Định dạng email hoặc số điện thoại không hợp lệ';
+      newErrors.emailOrPhone =
+        "Định dạng email hoặc số điện thoại không hợp lệ";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Vui lòng nhập mật khẩu';
+      newErrors.password = "Vui lòng nhập mật khẩu";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
     }
 
     return newErrors;
@@ -69,12 +78,12 @@ const Login = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Clear field-specific errors when user starts typing
     if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
-    
+
     // Clear auth error when user modifies input
     if (error) {
       clearError();
@@ -83,23 +92,23 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     // Clear previous errors
     setErrors({});
     if (error) {
       clearError();
     }
-    
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length === 0) {
       try {
         await signIn({
           emailOrPhone: formData.emailOrPhone.trim(),
-          password: formData.password
+          password: formData.password,
         });
         // Navigation will be handled by useEffect when isAuthenticated becomes true
       } catch (err) {
-        console.error('Đăng nhập thất bại:', err);
+        console.error("Đăng nhập thất bại:", err);
         // Error is handled by Redux and will show in the error state
       }
     } else {
@@ -110,16 +119,21 @@ const Login = () => {
   // Translate backend error messages to Vietnamese
   const getVietnameseErrorMessage = (errorMessage: string): string => {
     const errorMap: { [key: string]: string } = {
-      'Email or phone does not exist': 'Email hoặc số điện thoại không tồn tại',
-      'Password is incorrect': 'Mật khẩu không chính xác',
-      'Account is inactive': 'Tài khoản đã bị vô hiệu hóa',
-      'Email/Phone and password are required': 'Email/SĐT và mật khẩu là bắt buộc',
-      'Login failed': 'Đăng nhập thất bại, vui lòng thử lại',
-      'Network Error': 'Lỗi kết nối mạng, vui lòng kiểm tra internet',
-      'Request failed with status code 500': 'Lỗi server, vui lòng thử lại sau',
+      "Email or phone does not exist": "Email hoặc số điện thoại không tồn tại",
+      "Password is incorrect": "Mật khẩu không chính xác",
+      "Account is inactive": "Tài khoản đã bị vô hiệu hóa",
+      "Email/Phone and password are required":
+        "Email/SĐT và mật khẩu là bắt buộc",
+      "Login failed": "Đăng nhập thất bại, vui lòng thử lại",
+      "Network Error": "Lỗi kết nối mạng, vui lòng kiểm tra internet",
+      "Request failed with status code 500": "Lỗi server, vui lòng thử lại sau",
     };
-    
-    return errorMap[errorMessage] || errorMessage || 'Đã xảy ra lỗi, vui lòng thử lại';
+
+    return (
+      errorMap[errorMessage] ||
+      errorMessage ||
+      "Đã xảy ra lỗi, vui lòng thử lại"
+    );
   };
 
   return (
@@ -154,7 +168,8 @@ const Login = () => {
                 <span className="text-white/90">Cứu một mạng người</span>
               </h1>
               <p className="text-lg text-white/80 max-w-md">
-                Đăng nhập để tiếp tục hành trình hiến máu cứu người và góp phần xây dựng cộng đồng khỏe mạnh.
+                Đăng nhập để tiếp tục hành trình hiến máu cứu người và góp phần
+                xây dựng cộng đồng khỏe mạnh.
               </p>
             </div>
 
@@ -181,15 +196,21 @@ const Login = () => {
             <div className="space-y-3 max-w-md">
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                <span className="text-white/80 text-sm">Quy trình hiến máu an toàn và chuyên nghiệp</span>
+                <span className="text-white/80 text-sm">
+                  Quy trình hiến máu an toàn và chuyên nghiệp
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                <span className="text-white/80 text-sm">Đặt lịch hẹn dễ dàng và linh hoạt</span>
+                <span className="text-white/80 text-sm">
+                  Đặt lịch hẹn dễ dàng và linh hoạt
+                </span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                <span className="text-white/80 text-sm">Theo dõi lịch sử hiến máu chi tiết</span>
+                <span className="text-white/80 text-sm">
+                  Theo dõi lịch sử hiến máu chi tiết
+                </span>
               </div>
             </div>
 
@@ -203,8 +224,12 @@ const Login = () => {
                     <Droplet className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <div className="text-white font-semibold text-sm">Cứu sống 3 người</div>
-                    <div className="text-white/80 text-xs">với mỗi lần hiến máu</div>
+                    <div className="text-white font-semibold text-sm">
+                      Cứu sống 3 người
+                    </div>
+                    <div className="text-white/80 text-xs">
+                      với mỗi lần hiến máu
+                    </div>
                   </div>
                 </div>
               </div>
@@ -224,7 +249,10 @@ const Login = () => {
               </div>
               <span className="font-bold text-lg text-primary">BloodHouse</span>
             </Link>
-            <Link to="/" className="flex items-center text-sm text-muted-foreground hover:text-primary">
+            <Link
+              to="/"
+              className="flex items-center text-sm text-muted-foreground hover:text-primary"
+            >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Trang chủ
             </Link>
@@ -241,9 +269,21 @@ const Login = () => {
               <span className="font-bold text-xl text-primary">BloodHouse</span>
             </Link>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <Link to="/" className="hover:text-primary transition-colors">Trang chủ</Link>
-              <Link to="/about" className="hover:text-primary transition-colors">Giới thiệu</Link>
-              <Link to="/contact" className="hover:text-primary transition-colors">Liên hệ</Link>
+              <Link to="/" className="hover:text-primary transition-colors">
+                Trang chủ
+              </Link>
+              <Link
+                to="/about"
+                className="hover:text-primary transition-colors"
+              >
+                Giới thiệu
+              </Link>
+              <Link
+                to="/contact"
+                className="hover:text-primary transition-colors"
+              >
+                Liên hệ
+              </Link>
             </div>
           </div>
         </div>
@@ -252,7 +292,9 @@ const Login = () => {
         <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-background">
           <div className="w-full max-w-md">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-foreground mb-2">Đăng nhập</h2>
+              <h2 className="text-3xl font-bold text-foreground mb-2">
+                Đăng nhập
+              </h2>
               <p className="text-muted-foreground">
                 Nhập thông tin để truy cập tài khoản của bạn
               </p>
@@ -260,7 +302,10 @@ const Login = () => {
 
             {/* Display auth error */}
             {error && (
-              <Alert variant="destructive" className="mb-6 border-red-500 bg-red-50">
+              <Alert
+                variant="destructive"
+                className="mb-6 border-red-500 bg-red-50"
+              >
                 <AlertDescription className="text-red-700 font-medium">
                   {getVietnameseErrorMessage(error)}
                 </AlertDescription>
@@ -278,7 +323,11 @@ const Login = () => {
                   value={formData.emailOrPhone}
                   onChange={handleInputChange}
                   disabled={loading}
-                  className={errors.emailOrPhone ? 'border-red-500 focus:border-red-500 focus:ring-red-200' : ''}
+                  className={
+                    errors.emailOrPhone
+                      ? "border-red-500 focus:border-red-500 focus:ring-red-200"
+                      : ""
+                  }
                 />
                 {errors.emailOrPhone && (
                   <p className="text-sm text-red-600 font-medium flex items-center gap-1">
@@ -294,12 +343,16 @@ const Login = () => {
                   <Input
                     id="password"
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Nhập mật khẩu của bạn"
                     value={formData.password}
                     onChange={handleInputChange}
                     disabled={loading}
-                    className={errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-200 pr-10' : 'pr-10'}
+                    className={
+                      errors.password
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-200 pr-10"
+                        : "pr-10"
+                    }
                   />
                   <Button
                     type="button"
@@ -345,12 +398,8 @@ const Login = () => {
                 </Link>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={loading}
-              >
-                {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Đang đăng nhập..." : "Đăng nhập"}
               </Button>
             </form>
 

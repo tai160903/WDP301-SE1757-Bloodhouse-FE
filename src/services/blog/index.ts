@@ -108,7 +108,9 @@ export const getAuthors = async (): Promise<userProfiles> => {
 
 export const getAll = async (): Promise<BlogResponsePagination> => {
   try {
-    const { data } = await instance.get<BlogResponsePagination>("/content");
+    const { data } = await instance.get<BlogResponsePagination>(
+      "/content/public"
+    );
     return data;
   } catch (error: any) {
     throw new Error(
@@ -119,7 +121,7 @@ export const getAll = async (): Promise<BlogResponsePagination> => {
 
 export const getById = async (id: string): Promise<BlogResponse> => {
   try {
-    const { data } = await instance.get<BlogResponse>(`/content/${id}`);
+    const { data } = await instance.get<BlogResponse>(`/content/public/${id}`);
     return data;
   } catch (error: any) {
     throw new Error(
