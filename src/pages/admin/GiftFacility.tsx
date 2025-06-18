@@ -50,7 +50,7 @@ import {
   GiftStats,
 } from "@/services/gift";
 import { getGiftCategories, getGiftCategoryText, getGiftCategoryColor, getGiftUnitText, getGiftUnits } from "@/utils/changeText";
-import { GiftStatsCards } from "@/components/gift/GiftStatsCards";
+import { GiftStatsCards, GiftStatsCardsRef } from "@/components/gift/GiftStatsCards";
 
 const GIFT_CATEGORIES = [
   "food",
@@ -72,7 +72,6 @@ function GiftFacilityManagement() {
   const [limit] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [stats, setStats] = useState<GiftStats | null>(null);
   
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -80,6 +79,9 @@ function GiftFacilityManagement() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedGiftItem, setSelectedGiftItem] = useState<GiftItem | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+
+  // Ref for GiftStatsCards
+  const statsCardsRef = React.useRef<GiftStatsCardsRef>(null);
 
   // Form data
   const [formData, setFormData] = useState<CreateGiftItemData>({
@@ -150,6 +152,9 @@ function GiftFacilityManagement() {
       setShowCreateModal(false);
       resetForm();
       fetchGiftItems();
+      if (statsCardsRef.current) {
+        statsCardsRef.current.refreshStats();
+      }
     } catch (err: any) {
       toast.error(err.message || "Không thể tạo quà tặng.");
     } finally {
@@ -170,6 +175,9 @@ function GiftFacilityManagement() {
       setShowEditModal(false);
       resetForm();
       fetchGiftItems();
+      if (statsCardsRef.current) {
+        statsCardsRef.current.refreshStats();
+      }
     } catch (err: any) {
       toast.error(err.message || "Không thể cập nhật quà tặng.");
     } finally {
@@ -186,6 +194,9 @@ function GiftFacilityManagement() {
       toast.success("Xóa quà tặng thành công!");
       setShowDeleteModal(false);
       fetchGiftItems();
+      if (statsCardsRef.current) {
+        statsCardsRef.current.refreshStats();
+      }
     } catch (err: any) {
       toast.error(err.message || "Không thể xóa quà tặng.");
     } finally {
@@ -223,7 +234,7 @@ function GiftFacilityManagement() {
       image: "",
       unit: "item",
       category: "other",
-      costPerUnit: 0,
+      costPerUnit:  0,
     });
     setSelectedGiftItem(null);
   };
@@ -266,7 +277,7 @@ function GiftFacilityManagement() {
         </div>
 
         {/* Stats Cards */}
-        <GiftStatsCards onStatsUpdate={setStats} />
+        <GiftStatsCards ref={statsCardsRef} />
 
         {/* Main Content */}
         <Card className="shadow-xl border-0 py-0">
@@ -319,6 +330,31 @@ function GiftFacilityManagement() {
               <div className="flex justify-center items-center h-64">
                 <div className="text-lg text-red-600">{error}</div>
               </div>
+            ) : safeGiftItems.length === 0 ? (
+              /* Empty State */
+              <div className="flex flex-col items-center justify-center h-64 text-center">
+                <div className="p-4 bg-purple-50 rounded-full mb-4">
+                  <Gift className="h-12 w-12 text-purple-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Không có quà tặng nào
+                </h3>
+                <p className="text-gray-500 mb-4 max-w-md">
+                  {searchTerm || selectedCategory !== "all" 
+                    ? "Không tìm thấy quà tặng nào phù hợp với tiêu chí tìm kiếm của bạn."
+                    : "Chưa có quà tặng nào trong hệ thống. Hãy thêm quà tặng đầu tiên."
+                  }
+                </p>
+                {(!searchTerm && selectedCategory === "all") && (
+                  <Button 
+                    onClick={openCreateModal}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Thêm quà tặng đầu tiên
+                  </Button>
+                )}
+              </div>
             ) : (
               <>
                 {/* Table */}
@@ -326,25 +362,25 @@ function GiftFacilityManagement() {
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-gray-50">
-                        <TableHead className="font-semibold text-gray-700">
+                        <TableHead className="font-semibold text-gray-700 w-80">
                           Thông tin quà tặng
                         </TableHead>
-                        <TableHead className="font-semibold text-gray-700">
+                        <TableHead className="font-semibold text-gray-700 w-32">
                           Danh mục
                         </TableHead>
-                        <TableHead className="font-semibold text-gray-700">
+                        <TableHead className="font-semibold text-gray-700 w-24">
                           Đơn vị
                         </TableHead>
-                        <TableHead className="font-semibold text-gray-700">
+                        <TableHead className="font-semibold text-gray-700 w-32">
                           Giá trị
                         </TableHead>
-                        <TableHead className="font-semibold text-gray-700">
+                        <TableHead className="font-semibold text-gray-700 w-28">
                           Trạng thái
                         </TableHead>
-                        <TableHead className="font-semibold text-gray-700">
+                        <TableHead className="font-semibold text-gray-700 w-28">
                           Ngày tạo
                         </TableHead>
-                        <TableHead className="font-semibold text-gray-700">
+                        <TableHead className="font-semibold text-gray-700 w-24">
                           Hành động
                         </TableHead>
                       </TableRow>
@@ -355,24 +391,24 @@ function GiftFacilityManagement() {
                           key={giftItem._id}
                           className="hover:bg-gray-50 transition-colors"
                         >
-                          <TableCell>
+                          <TableCell className="max-w-0">
                             <div className="flex items-center gap-3">
                               {giftItem.image ? (
                                 <img
                                   src={giftItem.image}
                                   alt={giftItem.name}
-                                  className="h-10 w-10 rounded-lg object-cover"
+                                  className="h-10 w-10 rounded-lg object-cover flex-shrink-0"
                                 />
                               ) : (
-                                <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                                <div className="h-10 w-10 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0">
                                   <Gift className="h-5 w-5 text-purple-600" />
                                 </div>
                               )}
-                              <div>
-                                <div className="font-medium text-gray-900">
+                              <div className="min-w-0 flex-1">
+                                <div className="font-medium text-gray-900 truncate">
                                   {giftItem.name}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-gray-500 truncate" title={giftItem.description || "Không có mô tả"}>
                                   {giftItem.description || "Không có mô tả"}
                                 </div>
                               </div>
@@ -437,69 +473,71 @@ function GiftFacilityManagement() {
                   </Table>
                 </div>
 
-                {/* Pagination */}
-                <div className="flex items-center justify-between px-6 py-4 border-t">
-                  <div className="text-sm text-gray-600">
-                    Hiển thị {(currentPage - 1) * limit + 1} đến{" "}
-                    {Math.min(currentPage * limit, totalItems)} trong số {totalItems}{" "}
-                    mục
-                  </div>
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          className={`cursor-pointer hover:bg-gray-100 transition-colors ${
-                            currentPage === 1
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          }`}
-                        />
-                      </PaginationItem>
+                {/* Pagination - Only show when there are items and multiple pages */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between px-6 py-4 border-t">
+                    <div className="text-sm text-gray-600">
+                      Hiển thị {(currentPage - 1) * limit + 1} đến{" "}
+                      {Math.min(currentPage * limit, totalItems)} trong số {totalItems}{" "}
+                      mục
+                    </div>
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                              currentPage === 1
+                                ? "pointer-events-none opacity-50"
+                                : ""
+                            }`}
+                          />
+                        </PaginationItem>
 
-                      {Array.from({ length: totalPages }, (_, i) => i + 1)
-                        .filter(
-                          (page) =>
-                            page === 1 ||
-                            page === totalPages ||
-                            (page >= currentPage - 1 && page <= currentPage + 1)
-                        )
-                        .map((page, index, array) => (
-                          <React.Fragment key={page}>
-                            {index > 0 && array[index - 1] !== page - 1 && (
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                          .filter(
+                            (page) =>
+                              page === 1 ||
+                              page === totalPages ||
+                              (page >= currentPage - 1 && page <= currentPage + 1)
+                          )
+                          .map((page, index, array) => (
+                            <React.Fragment key={page}>
+                              {index > 0 && array[index - 1] !== page - 1 && (
+                                <PaginationItem>
+                                  <PaginationEllipsis className="cursor-default" />
+                                </PaginationItem>
+                              )}
                               <PaginationItem>
-                                <PaginationEllipsis className="cursor-default" />
+                                <PaginationLink
+                                  onClick={() => handlePageChange(page)}
+                                  isActive={currentPage === page}
+                                  className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                                    currentPage === page
+                                      ? "bg-purple-600 text-white"
+                                      : ""
+                                  }`}
+                                >
+                                  {page}
+                                </PaginationLink>
                               </PaginationItem>
-                            )}
-                            <PaginationItem>
-                              <PaginationLink
-                                onClick={() => handlePageChange(page)}
-                                isActive={currentPage === page}
-                                className={`cursor-pointer hover:bg-gray-100 transition-colors ${
-                                  currentPage === page
-                                    ? "bg-purple-600 text-white"
-                                    : ""
-                                }`}
-                              >
-                                {page}
-                              </PaginationLink>
-                            </PaginationItem>
-                          </React.Fragment>
-                        ))}
+                            </React.Fragment>
+                          ))}
 
-                      <PaginationItem>
-                        <PaginationNext
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          className={`cursor-pointer hover:bg-gray-100 transition-colors ${
-                            currentPage === totalPages
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          }`}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            className={`cursor-pointer hover:bg-gray-100 transition-colors ${
+                              currentPage === totalPages
+                                ? "pointer-events-none opacity-50"
+                                : ""
+                            }`}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
               </>
             )}
           </CardContent>
@@ -588,7 +626,7 @@ function GiftFacilityManagement() {
                 type="number"
                 min="0"
                 step="1000"
-                value={formData.costPerUnit}
+                value={formData.costPerUnit === 0 ? '' : formData.costPerUnit}
                 onChange={(e) => setFormData({ ...formData, costPerUnit: parseInt(e.target.value) || 0 })}
                 placeholder="Nhập giá trị..."
               />

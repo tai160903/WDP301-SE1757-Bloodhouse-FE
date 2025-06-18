@@ -488,7 +488,7 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
                       id="quantity"
                       type="number"
                       min="1"
-                      value={formData.quantity}
+                      value={formData.quantity === 0 ? '' : formData.quantity}
                       onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 0 }))}
                       placeholder="0"
                     />
@@ -500,7 +500,7 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
                       type="number"
                       min="0"
                       step="1000"
-                      value={formData.costPerUnit}
+                      value={formData.costPerUnit === 0 ? '' : formData.costPerUnit}
                       onChange={(e) => setFormData(prev => ({ ...prev, costPerUnit: parseFloat(e.target.value) || 0 }))}
                       placeholder="0"
                     />
@@ -615,7 +615,7 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
                     id="edit-quantity"
                     type="number"
                     min="0"
-                    value={formData.quantity}
+                    value={formData.quantity === 0 ? '' : formData.quantity}
                     onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 0 }))}
                   />
                 </div>
@@ -626,7 +626,7 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
                     type="number"
                     min="0"
                     step="1000"
-                    value={formData.costPerUnit}
+                    value={formData.costPerUnit === 0 ? '' : formData.costPerUnit}
                     onChange={(e) => setFormData(prev => ({ ...prev, costPerUnit: parseFloat(e.target.value) || 0 }))}
                   />
                 </div>
@@ -637,7 +637,7 @@ export function GiftInventoryManager({ onInventoryUpdate }: GiftInventoryManager
                   id="edit-minStockLevel"
                   type="number"
                   min="0"
-                  value={formData.minStockLevel}
+                  value={formData.minStockLevel === 0 ? '' : formData.minStockLevel}
                   onChange={(e) => setFormData(prev => ({ ...prev, minStockLevel: parseInt(e.target.value) || 10 }))}
                 />
               </div>

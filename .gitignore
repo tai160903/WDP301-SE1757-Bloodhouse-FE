@@ -28,3 +28,6 @@ dist-ssr
 
 examples
 
+.env.local
+.env.development
+.env.production
