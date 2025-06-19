@@ -10,7 +10,7 @@ interface RegisterFormData {
 interface FormErrors extends Partial<Record<keyof RegisterFormData, string>> {}
 
 const inputClass =
-  'w-full mt-1 px-3 py-1.5 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent text-sm';
+  'w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 text-gray-900 placeholder-gray-400 text-sm hover:border-red-300';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState<RegisterFormData>({
@@ -57,32 +57,35 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-red-50 flex flex-col items-center justify-start px-4 py-6">
-      <nav className="w-full max-w-6xl flex justify-between items-center mb-4 px-4 text-gray-800 hover:text-red-600">
-        <span className="font-semibold text-base">Chào mừng đến với BloodHouse</span>
-        <div className="space-x-4">
-          <a href="/" className="text-gray-800 hover:text-red-600 transition-colors duration-200 text-sm">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex flex-col items-center justify-center px-4 py-12">
+      <nav className="w-full max-w-5xl flex justify-between items-center mb-10 px-8 py-5 bg-white/80 backdrop-blur-lg rounded-full shadow-lg">
+        <span className="font-extrabold text-xl text-red-600 tracking-tight">BloodHouse</span>
+        <div className="space-x-8">
+          <a href="/" className="text-gray-700 hover:text-red-600 transition-colors duration-300 font-semibold text-sm">
             Trang chủ
           </a>
-          <a href="/" className="text-gray-800 hover:text-red-600 transition-colors duration-200 text-sm">
+          <a href="/contact" className="text-gray-700 hover:text-red-600 transition-colors duration-300 font-semibold text-sm">
             Liên hệ
           </a>
         </div>
       </nav>
 
-      <div className="w-full max-w-6xl bg-white shadow-md rounded-xl overflow-hidden flex flex-col md:flex-row">
-        <div className="md:w-1/2 bg-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-5xl bg-white shadow-2xl rounded-3xl overflow-hidden flex flex-col md:flex-row transform hover:scale-[1.01] transition-transform duration-500">
+        <div className="md:w-1/2 bg-gradient-to-b from-red-200 to-red-100 flex items-center justify-center p-10 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/white-diamond.png')] opacity-20"></div>
           <img
             src="https://cdn3.iconfinder.com/data/icons/blood-donation-25/128/blood-drop-medical-donation-256.png"
             alt="Blood Donation"
-            className="max-w-[200px]"
+            className="max-w-[240px] animate-pulse-slow transform hover:scale-110 transition-transform duration-500"
           />
         </div>
-        <div className="md:w-1/2 p-4">
-          <h2 className="text-2xl font-semibold text-center text-red-600 mb-4">Đăng ký tài khoản</h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="md:w-1/2 p-10">
+          <h2 className="text-4xl font-extrabold text-center text-red-600 mb-8 tracking-tight animate-fade-in">
+            Đăng ký tài khoản
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-sm">Email *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Email *</label>
               <input
                 type="email"
                 name="email"
@@ -91,10 +94,10 @@ const Register: React.FC = () => {
                 onChange={handleInputChange}
                 className={inputClass}
               />
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
+              {errors.email && <p className="text-xs text-red-500 mt-2 animate-shake">{errors.email}</p>}
             </div>
             <div>
-              <label className="text-sm">Mật khẩu *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Mật khẩu *</label>
               <input
                 type="password"
                 name="password"
@@ -102,10 +105,10 @@ const Register: React.FC = () => {
                 onChange={handleInputChange}
                 className={inputClass}
               />
-              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
+              {errors.password && <p className="text-xs text-red-500 mt-2 animate-shake">{errors.password}</p>}
             </div>
             <div>
-              <label className="text-sm">Xác nhận mật khẩu *</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Xác nhận mật khẩu *</label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -113,25 +116,50 @@ const Register: React.FC = () => {
                 onChange={handleInputChange}
                 className={inputClass}
               />
-              {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="text-xs text-red-500 mt-2 animate-shake">{errors.confirmPassword}</p>}
             </div>
-            <div className="pt-2">
+            <div className="pt-6">
               <button
                 type="submit"
-                className="w-full bg-red-600 text-white py-1.5 rounded-md font-semibold hover:bg-red-700 transition text-sm"
+                className="w-full bg-red-600 text-white py-3.5 rounded-xl font-bold text-sm hover:bg-red-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 Đăng ký
               </button>
             </div>
-            <p className="text-center text-xs text-gray-600 mt-3">
+            <p className="text-center text-sm text-gray-500 mt-6">
               Đã có tài khoản?{' '}
-              <a href="/auth/login" className="text-red-600 hover:underline">
+              <a href="/auth/login" className="text-red-600 hover:text-red-700 font-semibold hover:underline transition-colors duration-200">
                 Đăng nhập
               </a>
             </p>
           </form>
         </div>
       </div>
+
+      <style jsx>{`
+        @keyframes pulse-slow {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 3s ease-in-out infinite;
+        }
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+        .animate-shake {
+          animation: shake 0.3s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };
