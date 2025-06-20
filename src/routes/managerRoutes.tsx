@@ -8,6 +8,7 @@ import Gifts from "@/pages/manager/Gifts";
 import ReceivedRequests from "@/pages/manager/Received";
 import ReceivedDetail from "@/pages/manager/ReceivedDetail";
 import Requests from "@/pages/manager/Request";
+import RequestDetail from "@/pages/manager/RequestDetail";
 import Staff from "@/pages/manager/Staff";
 import { Children } from "react";
 
@@ -32,6 +33,10 @@ const managerRoutes = [
   {
     path: "requests",
     element: <Requests />,
+  },
+   {
+    path: "requests/:id",
+    element: <RequestDetail />,
   },
   {
     path: "received",
