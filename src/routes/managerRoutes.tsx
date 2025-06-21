@@ -3,6 +3,7 @@ import Blogs from "@/pages/manager/Blogs";
 import BloodInventory from "@/pages/manager/BloodInventory";
 import BloodInventoryDetail from "@/pages/manager/BloodInventoryDetail";
 import Dashboard from "@/pages/manager/Dashboard";
+import DonationManagement from "@/pages/manager/Donation";
 import Events from "@/pages/manager/Events";
 import Gifts from "@/pages/manager/Gifts";
 import ReceivedRequests from "@/pages/manager/Received";
@@ -34,9 +35,13 @@ const managerRoutes = [
     path: "requests",
     element: <Requests />,
   },
-   {
+  {
     path: "requests/:id",
     element: <RequestDetail />,
+  },
+  {
+    path: "donations",
+    element: <DonationManagement />,
   },
   {
     path: "received",

@@ -42,69 +42,26 @@ import { useManagerContext } from "@/components/ManagerLayout";
 import { deleteBlog, getByFacilityId } from "@/services/blog";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { r } from "node_modules/framer-motion/dist/types.d-CtuPurYT";
 import { toast } from "sonner";
-
-const blogPosts = [
-  {
-    id: 1,
-    title: "The Importance of Regular Blood Donation",
-    author: "Dr. Sarah Johnson",
-    category: "Health Education",
-    status: "Published",
-    publishDate: "2024-01-03",
-    views: 1247,
-    excerpt:
-      "Learn why regular blood donation is crucial for maintaining community health and how it benefits both donors and recipients.",
-  },
-  {
-    id: 2,
-    title: "Blood Types and Compatibility: What You Need to Know",
-    author: "Dr. Michael Chen",
-    category: "Medical Information",
-    status: "Published",
-    publishDate: "2024-01-01",
-    views: 892,
-    excerpt:
-      "Understanding blood types and compatibility is essential for safe blood transfusions. This guide explains the basics.",
-  },
-  {
-    id: 3,
-    title: "Preparing for Your First Blood Donation",
-    author: "Nurse Emily Davis",
-    category: "Donor Guide",
-    status: "Draft",
-    publishDate: null,
-    views: 0,
-    excerpt:
-      "A comprehensive guide for first-time blood donors, covering preparation, the donation process, and aftercare.",
-  },
-  {
-    id: 4,
-    title: "Community Impact: How Your Donation Saves Lives",
-    author: "Dr. Sarah Johnson",
-    category: "Community",
-    status: "Scheduled",
-    publishDate: "2024-01-10",
-    views: 0,
-    excerpt:
-      "Real stories from our community showing how blood donations have made a difference in people's lives.",
-  },
-];
 
 export default function Blogs() {
   const { facilityId } = useManagerContext();
   const auth = useSelector((state: any) => state.auth);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [blogs, setBlogs] = useState<any[]>([]);
+  const [totalPuslished, setTotalPublished] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchBlogs = async () => {
       const response: any = await getByFacilityId(facilityId || "");
-      console.log("Fetched blogs:", response.data.data);
       setBlogs(response.data.data || []);
+      const publishedCount = response.data.data.filter(
+        (post: any) => post.status === "published"
+      ).length;
+      setTotalPublished(publishedCount);
     };
+
     fetchBlogs();
   }, [facilityId]);
 
@@ -267,7 +224,9 @@ export default function Blogs() {
             <CardTitle className="text-sm font-medium">Published</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">{}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {totalPuslished || 0}
+            </div>
           </CardContent>
         </Card>
         <Card>

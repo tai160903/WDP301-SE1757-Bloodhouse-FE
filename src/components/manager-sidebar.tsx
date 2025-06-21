@@ -29,6 +29,11 @@ const navigation = [
   { name: "Tổng quan", path: "/manager", icon: LayoutDashboard },
   { name: "Kho máu", path: "/manager/inventory", icon: Droplets },
   { name: "Yêu cầu hiến máu", path: "/manager/requests", icon: Calendar },
+  {
+    name: "Thông tin hiến máu",
+    path: "/manager/donations",
+    icon: Calendar,
+  },
   { name: "Yêu cầu nhận máu", path: "/manager/received", icon: Inbox },
   { name: "Quản lý quà tặng", path: "/manager/gifts", icon: Gift },
   { name: "Quản lý nhân viên", path: "/manager/staff", icon: Users },
