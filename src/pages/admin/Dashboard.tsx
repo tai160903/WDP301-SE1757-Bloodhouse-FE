@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAdminContext } from "@/components/AdminLayout";
 import {
@@ -15,6 +15,9 @@ import {
   AlertTriangle,
   CheckCircle,
 } from "lucide-react";
+import { getAllEvents } from "@/services/event";
+import { getBloodRequests } from "@/services/bloodRequest";
+import { getUsers } from "@/services/users";
 
 // Mock data for the dashboard
 const dashboardData = {
@@ -67,10 +70,45 @@ const recentActivity = [
 function Dashboard() {
   const { user, userRole, isAdmin } = useAdminContext();
   const [selectedPeriod, setSelectedPeriod] = useState("This Month");
+  const [totalEvents, setTotalEvents] = useState(0);
+  const [totalBloodRequests, setTotalBloodRequests] = useState(0);
+  const [users, setUsers] = useState(0);
 
-  console.log("🚀 ~ Admin Dashboard ~ user:", user);
-  console.log("🚀 ~ Admin Dashboard ~ userRole:", userRole);
-  console.log("🚀 ~ Admin Dashboard ~ isAdmin:", isAdmin);
+  const fetchTotalEvents = async () => {
+    try {
+      const response = await getAllEvents();
+      setTotalEvents(response.data.metadata.total);
+    } catch (error) {
+      console.error("Error fetching total events:", error);
+    }
+  };
+
+  const fetchTotalUsers = async () => {
+    try {
+      const response = await getUsers({});
+      console.log("Total Users Response:", response);
+      setUsers(response.data.metadata.total);
+    } catch (error) {
+      console.error("Error fetching total users:", error);
+    }
+  };
+
+  // const fetchTotalBloodRequests = async () => {
+  //   try {
+  //     const response = await getBloodRequests();
+  //     console.log("Total Blood Requests Response:", response);
+  //     setTotalBloodRequests(response.data.metadata.total);
+  //   } catch (error) {
+  //     console.error("Error fetching total blood requests:", error);
+  //   }
+  // };
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchTotalEvents();
+      fetchTotalUsers();
+    }
+  }, [isAdmin]);
 
   return (
     <div className="p-6 bg-gradient-to-br from-red-50 via-white to-pink-50 min-h-screen">
@@ -81,36 +119,24 @@ function Dashboard() {
             <Activity className="h-8 w-8 text-red-600" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Admin Dashboard
+            </h1>
             <p className="text-gray-600 mt-1">
               Welcome back, {user?.fullName || user?.email || "Administrator"}
             </p>
           </div>
-        </div>
-        <div className="flex gap-2">
-          <select
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 focus:ring-2 focus:ring-red-500 focus:border-red-500"
-          >
-            <option>Today</option>
-            <option>This Week</option>
-            <option>This Month</option>
-            <option>This Year</option>
-          </select>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatsCard
-          icon={Users}
-          label="Total Users"
-          value={dashboardData.totalUsers}
+          icon={Calendar}
+          label="Total Events"
+          value={totalEvents}
           color="text-blue-500"
           bgColor="bg-blue-100"
-          trend="+12%"
-          trendUp={true}
         />
         <StatsCard
           icon={Droplets}
@@ -118,8 +144,6 @@ function Dashboard() {
           value={dashboardData.totalBloodRequests}
           color="text-red-500"
           bgColor="bg-red-100"
-          trend="+8%"
-          trendUp={true}
         />
         <StatsCard
           icon={Building2}
@@ -127,8 +151,6 @@ function Dashboard() {
           value={dashboardData.totalFacilities}
           color="text-green-500"
           bgColor="bg-green-100"
-          trend="+2%"
-          trendUp={true}
         />
         <StatsCard
           icon={FileText}
@@ -136,8 +158,6 @@ function Dashboard() {
           value={dashboardData.totalBlogPosts}
           color="text-purple-500"
           bgColor="bg-purple-100"
-          trend="+15%"
-          trendUp={true}
         />
       </div>
 
@@ -290,16 +310,12 @@ function StatsCard({
   value,
   color,
   bgColor,
-  trend,
-  trendUp,
 }: {
   icon: any;
   label: string;
   value: number;
   color: string;
   bgColor: string;
-  trend: string;
-  trendUp: boolean;
 }) {
   return (
     <Card className="shadow-lg border-0 hover:shadow-xl transition-shadow">
@@ -307,14 +323,6 @@ function StatsCard({
         <div className="flex items-center justify-between mb-4">
           <div className={`p-3 ${bgColor} rounded-full`}>
             <Icon className={`h-6 w-6 ${color}`} />
-          </div>
-          <div
-            className={`flex items-center gap-1 text-sm ${
-              trendUp ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            <TrendingUp className={`h-3 w-3 ${trendUp ? "" : "rotate-180"}`} />
-            <span>{trend}</span>
           </div>
         </div>
         <div>
