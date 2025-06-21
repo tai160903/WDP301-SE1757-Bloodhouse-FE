@@ -7,11 +7,13 @@ import Blog from "@/pages/resource/Blog";
 import BlogDetails from "@/pages/resource/BlogDetail";
 import BloodInfo from "@/pages/resource/BloodInfo";
 import FAQPage from "@/pages/resource/Faq";
+import ProcessInfo from "@/pages/resource/processInfo";
 import ProfilePage from "@/pages/Profile/ProfilePage";
 import BloodDonationHistory from "@/pages/Profile/BloodDonationHistory/BloodDonationHistory";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Events from "@/pages/event/Events";
 import EventDetail from "@/pages/event/EventDetail";
+import MatchBlood from "@/pages/location/matchBlood/matchBlood";
 
 const userRoutes = [
   {
@@ -53,6 +55,14 @@ const userRoutes = [
   {
     path: "/faq",
     element: <FAQPage />,
+  },
+  {
+    path: "/matchBloodType",
+    element: <MatchBlood />,
+  },
+  {
+    path: "/process",
+    element: <ProcessInfo />,
   },
   {
     path: "/profile",

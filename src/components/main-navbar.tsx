@@ -83,9 +83,9 @@ const locationItems = [
     description: "Các sự kiện hiến máu sắp diễn ra",
   },
   {
-    title: "Đặt lịch hẹn",
-    href: "/appointments",
-    description: "Đặt lịch hẹn hiến máu",
+    title: "Kiểm tra tương thích máu",
+    href: "/matchBloodType",
+    description: "Giải đáp độ tương thích máu",
   },
 ];
 
