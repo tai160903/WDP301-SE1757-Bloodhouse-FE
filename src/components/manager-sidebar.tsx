@@ -11,6 +11,7 @@ import {
   MapPin,
   LogOut,
   House,
+  Clock,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -27,6 +28,7 @@ import * as React from "react";
 
 const navigation = [
   { name: "Tổng quan", path: "/manager", icon: LayoutDashboard },
+  { name: "Lịch hiến máu", path: "/manager/schedule", icon: Clock },
   { name: "Kho máu", path: "/manager/inventory", icon: Droplets },
   { name: "Yêu cầu hiến máu", path: "/manager/requests", icon: Calendar },
   {

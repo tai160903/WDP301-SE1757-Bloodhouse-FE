@@ -1,5 +1,6 @@
 import BlogForm from "@/components/BlogForm";
 import Blogs from "@/pages/manager/Blogs";
+import BloodDonationCalendar from "@/pages/manager/BloodDonationSchedule";
 import BloodInventory from "@/pages/manager/BloodInventory";
 import BloodInventoryDetail from "@/pages/manager/BloodInventoryDetail";
 import Dashboard from "@/pages/manager/Dashboard";
@@ -11,12 +12,15 @@ import ReceivedDetail from "@/pages/manager/ReceivedDetail";
 import Requests from "@/pages/manager/Request";
 import RequestDetail from "@/pages/manager/RequestDetail";
 import Staff from "@/pages/manager/Staff";
-import { Children } from "react";
 
 const managerRoutes = [
   {
     path: "",
     element: <Dashboard />,
+  },
+  {
+    path: "schedule",
+    element: <BloodDonationCalendar />,
   },
   {
     path: "inventory",
