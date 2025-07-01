@@ -14,6 +14,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Events from "@/pages/event/Events";
 import EventDetail from "@/pages/event/EventDetail";
 import MatchBlood from "@/pages/location/matchBlood/matchBlood";
+import BloodRequestHistory from "@/pages/Profile/BloodRequestHistory/BloodRequestHistory";
 
 const userRoutes = [
   {
@@ -77,6 +78,14 @@ const userRoutes = [
     element: (
       <ProtectedRoute fallbackPath="/auth/login">
         <BloodDonationHistory />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/request-history",
+    element: (
+      <ProtectedRoute fallbackPath="/auth/login">
+        <BloodRequestHistory />
       </ProtectedRoute>
     ),
   },

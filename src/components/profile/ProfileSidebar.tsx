@@ -64,9 +64,9 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
     },
     {
       id: "requests",
-      label: "Yêu cầu hiến máu",
+      label: "Lịch sử nhận máu",
       icon: HandHeart,
-      onClick: () => navigate("/donation-registration"),
+      onClick: () => navigate("/request-history"),
     },
   ];
 
