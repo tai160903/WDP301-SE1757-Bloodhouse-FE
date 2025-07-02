@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,8 +23,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { getBloodRequestHistory } from "@/services/bloodRequest";
 
-// Utility functions for formatting
+// Utility function
 const formatRequestDate = (dateString: string) => {
   const date = new Date(dateString);
   return date.toLocaleDateString("vi-VN", {
@@ -34,136 +35,64 @@ const formatRequestDate = (dateString: string) => {
   });
 };
 
-const getRequestStatusInfo = (status: string) => {
-  switch (status) {
-    case "FULFILLED":
-      return {
-        text: "Đã hoàn thành",
-        className: "border-green-200 bg-green-50 text-green-700",
-      };
-    case "PENDING":
-      return {
-        text: "Đang chờ",
-        className: "border-yellow-200 bg-yellow-50 text-yellow-700",
-      };
-    case "CANCELLED":
-      return {
-        text: "Đã hủy",
-        className: "border-red-200 bg-red-50 text-red-700",
-      };
-    case "EXPIRED":
-      return {
-        text: "Đã hết hạn",
-        className: "border-gray-200 bg-gray-50 text-gray-700",
-      };
-    default:
-      return {
-        text: "Không xác định",
-        className: "border-gray-200 bg-gray-50 text-gray-700",
-      };
-  }
-};
-
 const BloodRequestHistory: React.FC = () => {
+  const [bloodRequest, setBloodRequest] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages] = useState(3);
-  const [totalItems] = useState(18);
   const [limit] = useState(10);
+
   const navigate = useNavigate();
 
-  const mockRequestHistory = [
-    {
-      id: 1,
-      date: "2024-01-15",
-      location: "Bệnh viện Chợ Rẫy",
-      facilityAddress: "201B Nguyễn Chí Thanh, Quận 5",
-      status: "FULFILLED",
-      volume: "450ml",
-      bloodType: "O+",
-      urgency: "URGENT",
-      reason: "Phẫu thuật tim",
-    },
-    {
-      id: 2,
-      date: "2023-11-20",
-      location: "Bệnh viện Đại học Y Dược",
-      facilityAddress: "215 Hồng Bàng, Quận 5",
-      status: "FULFILLED",
-      volume: "350ml",
-      bloodType: "O+",
-      urgency: "NORMAL",
-      reason: "Điều trị ung thư",
-    },
-    {
-      id: 3,
-      date: "2023-09-10",
-      location: "Bệnh viện Nhi Đồng 1",
-      facilityAddress: "341 Sư Vạn Hạnh, Quận 10",
-      status: "CANCELLED",
-      volume: "200ml",
-      bloodType: "O+",
-      urgency: "URGENT",
-      reason: "Phẫu thuật nhi khoa",
-    },
-    {
-      id: 4,
-      date: "2023-07-05",
-      location: "Bệnh viện Huyết học TP.HCM",
-      facilityAddress: "201 Nguyễn Chí Thanh, Quận 5",
-      status: "FULFILLED",
-      volume: "400ml",
-      bloodType: "O+",
-      urgency: "NORMAL",
-      reason: "Điều trị bệnh máu",
-    },
-    {
-      id: 5,
-      date: "2023-05-12",
-      location: "Bệnh viện Bình Dân",
-      facilityAddress: "371 Điện Biên Phủ, Quận 3",
-      status: "EXPIRED",
-      volume: "300ml",
-      bloodType: "O+",
-      urgency: "NORMAL",
-      reason: "Phẫu thuật tổng quát",
-    },
-  ];
+  useEffect(() => {
+    fetchBloodRequestHistory();
+  }, []);
 
-  const fulfilledRequests = mockRequestHistory.filter(
-    (item) => item.status === "FULFILLED"
-  );
-  const totalVolumeRequested = fulfilledRequests.reduce((sum, item) => {
-    const volume = Number.parseInt(item.volume.replace("ml", "")) || 0;
-    return sum + volume;
-  }, 0);
-
-  const urgentRequests = mockRequestHistory.filter(
-    (item) => item.urgency === "URGENT"
-  ).length;
+  const fetchBloodRequestHistory = async () => {
+    setLoading(true);
+    try {
+      const response = await getBloodRequestHistory();
+      if (response.status === 200) {
+        setBloodRequest(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching request history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-    // Here you would fetch the data for the new page
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
-  const getUrgencyBadge = (urgency: string) => {
-    if (urgency === "URGENT") {
-      return (
-        <Badge
-          variant="outline"
-          className="border-red-200 bg-red-50 text-red-700 ml-2"
-        >
-          Khẩn cấp
-        </Badge>
-      );
-    }
-    return null;
+  const getUrgencyBadge = (isUrgent: boolean) => {
+    return (
+      <Badge
+        variant="outline"
+        className={`border-red-200 bg-red-50 text-red-700 ml-2`}
+      >
+        {isUrgent ? "Khẩn cấp" : "Không khẩn cấp"}
+      </Badge>
+    );
   };
+
+  const totalPages = Math.ceil(bloodRequest.length / limit);
+  const paginatedData = bloodRequest.slice(
+    (currentPage - 1) * limit,
+    currentPage * limit
+  );
+
+  const handleDetailClick = (id: any) => {
+    navigate(`/request-history/${id}`);
+  };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 sm:px-6 py-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div className="flex items-center gap-3">
             <div className="bg-accent p-3 rounded-full">
@@ -181,65 +110,11 @@ const BloodRequestHistory: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <ProfileSidebar activeTab="request-history" />
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="shadow-lg">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className="bg-accent p-4 rounded-full">
-                    <Search className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Tổng yêu cầu
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {mockRequestHistory.length}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className="bg-accent p-4 rounded-full">
-                    <CheckCircle className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Đã hoàn thành
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {fulfilledRequests.length}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg">
-                <CardContent className="p-6 flex items-center gap-4">
-                  <div className="bg-accent p-4 rounded-full">
-                    <Droplet className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Tổng lượng nhận
-                    </p>
-                    <p className="text-2xl font-bold">
-                      {totalVolumeRequested}ml
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Request History Table Card */}
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center gap-2">
@@ -282,84 +157,78 @@ const BloodRequestHistory: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {mockRequestHistory.map((item) => {
-                        const statusInfo = getRequestStatusInfo(item.status);
-                        return (
-                          <tr
-                            key={item.id}
-                            className="hover:bg-accent/50 transition-colors"
-                          >
-                            <td className="py-4 px-6">
-                              <div className="flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">
-                                  {formatRequestDate(item.date)}
-                                </span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-6">
-                              <div>
-                                <p className="font-medium">{item.location}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {item.facilityAddress}
-                                </p>
-                              </div>
-                            </td>
-                            <td className="py-4 px-6">
-                              <div className="flex items-center gap-2">
-                                <Badge
-                                  variant="outline"
-                                  className={`${statusInfo.className} font-medium`}
-                                >
-                                  {statusInfo.text}
-                                </Badge>
-                                {getUrgencyBadge(item.urgency)}
-                              </div>
-                            </td>
-                            <td className="py-4 px-6">
-                              <div className="flex items-center gap-2">
-                                <Droplet
-                                  className={`h-4 w-4 ${
-                                    item.status === "FULFILLED"
-                                      ? "text-primary"
-                                      : "text-muted-foreground"
-                                  }`}
-                                />
-                                <span
-                                  className={`font-medium ${
-                                    item.status === "FULFILLED"
-                                      ? "text-foreground"
-                                      : "text-muted-foreground"
-                                  }`}
-                                >
-                                  {item.volume}
-                                </span>
-                                {item.bloodType && (
-                                  <Badge variant="outline" className="ml-2">
-                                    {item.bloodType}
-                                  </Badge>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-4 px-6">
-                              <span className="text-sm text-muted-foreground">
-                                {item.reason}
+                      {paginatedData.map((item) => (
+                        <tr
+                          key={item._id}
+                          className="hover:bg-accent/50 transition-colors cursor-pointer"
+                          onClick={() => handleDetailClick(item._id)}
+                        >
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">
+                                {formatRequestDate(item.preferredDate)}
                               </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div>
+                              <p className="font-medium">
+                                {item.facilityId.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {item.facilityId.address}
+                              </p>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              {getUrgencyBadge(item.isUrgent)}
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <div className="flex items-center gap-2">
+                              <Droplet
+                                className={`h-4 w-4 ${
+                                  item.status === "FULFILLED"
+                                    ? "text-primary"
+                                    : "text-muted-foreground"
+                                }`}
+                              />
+                              <span
+                                className={`font-medium ${
+                                  item.status === "FULFILLED"
+                                    ? "text-foreground"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                {item.quantity} ml
+                              </span>
+                              {item.bloodType && (
+                                <Badge variant="outline" className="ml-2">
+                                  {item.bloodType}
+                                </Badge>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-4 px-6">
+                            <span className="text-sm text-muted-foreground">
+                              {item.reason}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between px-6 py-4 border-t bg-accent/50">
-                  <div className="text-sm text-muted-foreground">
+                  {/* <div className="text-sm text-muted-foreground">
                     Hiển thị {(currentPage - 1) * limit + 1} đến{" "}
-                    {Math.min(currentPage * limit, totalItems)} trong số{" "}
-                    {totalItems} yêu cầu máu
-                  </div>
+                    {Math.min(currentPage * limit, bloodRequest.length)} trong
+                    số {bloodRequest.length} yêu cầu máu
+                  </div> */}
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>

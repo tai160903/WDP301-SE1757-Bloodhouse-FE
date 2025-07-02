@@ -185,3 +185,21 @@ export const createBloodRequest = async (
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
 };
+
+export const getBloodRequestHistory = async (): Promise<any> => {
+  try {
+    const response = await instance.get("/blood-request/user");
+    return response;
+  } catch (err) {
+    console.log("Error:",err);
+  }
+}
+
+export const getBloodRequestHistoryDetail = async (id: string): Promise<any> => {
+  try {
+    const response = await instance.get(`/blood-request/user/${id}`);
+    return response;
+  } catch (err) {
+    console.log("Error:",err);
+  }
+}
