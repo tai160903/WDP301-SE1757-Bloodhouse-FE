@@ -15,6 +15,8 @@ import Events from "@/pages/event/Events";
 import EventDetail from "@/pages/event/EventDetail";
 import MatchBlood from "@/pages/location/matchBlood/matchBlood";
 import BloodRequestHistory from "@/pages/Profile/BloodRequestHistory/BloodRequestHistory";
+import BloodRequestDetail from "@/pages/Profile/BloodRequestHistory/BloodRequestHIstoryDetail";
+import BloodDonationDetail from "@/pages/Profile/BloodDonationHistory/BloodDonationHistoryDetail";
 
 const userRoutes = [
   {
@@ -82,12 +84,20 @@ const userRoutes = [
     ),
   },
   {
+    path: "/donation-history/:id",
+    element: <BloodDonationDetail />,
+  },
+  {
     path: "/request-history",
     element: (
       <ProtectedRoute fallbackPath="/auth/login">
         <BloodRequestHistory />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/request-history/:id",
+    element: <BloodRequestDetail />,
   },
   {
     path: "/events",

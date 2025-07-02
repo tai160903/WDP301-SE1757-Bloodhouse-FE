@@ -10,6 +10,7 @@ import {
   Clock,
   Heart,
   TrendingUp,
+  ScanQrCode,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ProfileSidebar from "@/components/profile/ProfileSidebar";
@@ -23,63 +24,82 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { formatDonationDate, getDonationStatusInfo } from "@/utils/changeText";
+import { bloodDonationRegisHistory } from "@/services/bloodDonationRegis";
 
 const BloodDonationHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages] = useState(3);
-  const [totalItems] = useState(25);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [donationHistory, setDonationHistory] = useState<any>([]);
+  const [metaData, setMetaData] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+
   const navigate = useNavigate();
 
-  const mockHistory = [
-    {
-      id: 1,
-      date: "2024-01-20",
-      location: "Bệnh viện Huyết học TP.HCM",
-      facilityAddress: "201 Nguyễn Chí Thanh, Quận 5",
-      status: "COMPLETED",
-      volume: "350ml",
-      bloodType: "O+",
-    },
-    {
-      id: 2,
-      date: "2023-08-15",
-      location: "Trường ĐH Bách Khoa",
-      facilityAddress: "268 Lý Thường Kiệt, Quận 10",
-      status: "COMPLETED",
-      volume: "450ml",
-      bloodType: "O+",
-    },
-    {
-      id: 3,
-      date: "2023-03-01",
-      location: "Nhà văn hóa Thanh Niên",
-      facilityAddress: "4 Phạm Ngọc Thạch, Quận 3",
-      status: "CANCELLED",
-      volume: "-",
-      bloodType: "O+",
-    },
-    {
-      id: 4,
-      date: "2022-12-10",
-      location: "Bệnh viện Chợ Rẫy",
-      facilityAddress: "201B Nguyễn Chí Thanh, Quận 5",
-      status: "COMPLETED",
-      volume: "400ml",
-      bloodType: "O+",
-    },
-  ];
+  const translateStatus = (status: string) => {
+    const translate = {
+      pending_approval: "Chờ duyệt",
+      rejected_registration: "Từ chối đăng ký",
+      registered: "Đã đăng ký",
+      checked_in: "Đã điểm danh",
+      in_consult: "Đang tư vấn",
+      rejected: "Bị từ chối",
+      waiting_donation: "Chờ hiến máu",
+      donating: "Đang hiến máu",
+      donated: "Đã hiến máu",
+      resting: "Nghỉ ngời",
+      post_rest_check: "Kiểm tra sau nghỉ ngơi",
+      completed: "Hoàn tất",
+      cancelled: "Đã hủy",
+    };
 
-  const completedDonations = mockHistory.filter(item => item.status === "COMPLETED");
+    return translate[status];
+  };
+
+  const fetchDonationHistory = async () => {
+    setLoading(true);
+    try {
+      const response = await bloodDonationRegisHistory();
+
+      if (response.status === 200) {
+        console.log(response.message);
+        setDonationHistory(response.data.data);
+        const meta = response.metadata;
+        setLimit(meta.limit);
+        setTotalItems(meta.total);
+        setTotalPages(meta.totalPages);
+        setCurrentPage(meta.page);
+      }
+    } catch (error) {
+      console.error("Error fetching donation history:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchDonationHistory();
+  }, [currentPage]);
+
+  const completedDonations = donationHistory.filter(
+    (item: any) => item.status === "COMPLETED"
+  );
   const totalVolume = completedDonations.reduce((sum, item) => {
-    const volume = parseInt(item.volume.replace('ml', '')) || 0;
+    const volume = parseInt(item.volume.replace("ml", "")) || 0;
     return sum + volume;
   }, 0);
 
   const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-    // Here you would fetch the data for the new page
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,8 +111,12 @@ const BloodDonationHistory: React.FC = () => {
               <History className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-primary">Lịch sử hiến máu</h1>
-              <p className="text-muted-foreground">Theo dõi hành trình hiến máu của bạn</p>
+              <h1 className="text-3xl font-bold tracking-tight text-primary">
+                Lịch sử hiến máu
+              </h1>
+              <p className="text-muted-foreground">
+                Theo dõi hành trình hiến máu của bạn
+              </p>
             </div>
           </div>
         </div>
@@ -106,15 +130,19 @@ const BloodDonationHistory: React.FC = () => {
           {/* Main Content */}
           <div className="lg:col-span-3 space-y-6">
             {/* Statistics Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card className="shadow-lg">
                 <CardContent className="p-6 flex items-center gap-4">
                   <div className="bg-accent p-4 rounded-full">
                     <Heart className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Tổng lần hiến</p>
-                    <p className="text-2xl font-bold">{completedDonations.length}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tổng lần hiến
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {completedDonations.length}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -125,7 +153,9 @@ const BloodDonationHistory: React.FC = () => {
                     <Droplet className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Tổng lượng máu</p>
+                    <p className="text-sm text-muted-foreground">
+                      Tổng lượng máu
+                    </p>
                     <p className="text-2xl font-bold">{totalVolume}ml</p>
                   </div>
                 </CardContent>
@@ -137,12 +167,16 @@ const BloodDonationHistory: React.FC = () => {
                     <TrendingUp className="h-6 w-6 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Mạng sống cứu</p>
-                    <p className="text-2xl font-bold">{completedDonations.length * 3}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Mạng sống cứu
+                    </p>
+                    <p className="text-2xl font-bold">
+                      {completedDonations.length * 3}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </div> */}
 
             {/* History Table Card */}
             <Card className="shadow-lg">
@@ -181,46 +215,75 @@ const BloodDonationHistory: React.FC = () => {
                             Lượng máu
                           </div>
                         </th>
+                        <th className="text-left py-4 px-6 font-medium text-muted-foreground">
+                          <div className="flex items-center gap-2">
+                            <ScanQrCode className="h-4 w-4" />
+                            Mã
+                          </div>
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {mockHistory.map((item) => {
-                        const statusInfo = getDonationStatusInfo(item.status);
+                      {donationHistory.map((item: any) => {
                         return (
-                          <tr key={item.id}>
+                          <tr
+                            key={item._id}
+                            onClick={() =>
+                              navigate(`/donation-history/${item._id}`)
+                            }
+                            className="cursor-pointer"
+                          >
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
                                 <span className="font-medium">
-                                  {formatDonationDate(item.date)}
+                                  {formatDonationDate(item.preferredDate)}
                                 </span>
                               </div>
                             </td>
                             <td className="py-4 px-6">
                               <div>
-                                <p className="font-medium">{item.location}</p>
-                                <p className="text-sm text-muted-foreground">{item.facilityAddress}</p>
+                                <p className="font-medium">
+                                  {item.facilityId.name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {item.facilityId.address}
+                                </p>
                               </div>
                             </td>
                             <td className="py-4 px-6">
-                              <Badge 
-                                variant="outline" 
-                                className={`${statusInfo.className} font-medium`}
-                              >
-                                {statusInfo.text}
+                              <Badge variant="outline" className="font-medium">
+                                {translateStatus(item.status)}
                               </Badge>
                             </td>
                             <td className="py-4 px-6">
                               <div className="flex items-center gap-2">
-                                <Droplet className={`h-4 w-4 ${item.status === 'COMPLETED' ? 'text-primary' : 'text-muted-foreground'}`} />
-                                <span className={`font-medium ${item.status === 'COMPLETED' ? 'text-foreground' : 'text-muted-foreground'}`}>
-                                  {item.volume}
+                                <Droplet
+                                  className={`h-4 w-4 ${
+                                    item.status === "COMPLETED"
+                                      ? "text-primary"
+                                      : "text-muted-foreground"
+                                  }`}
+                                />
+                                <span
+                                  className={`font-medium ${
+                                    item.status === "COMPLETED"
+                                      ? "text-foreground"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {item.expectedQuantity} ml
                                 </span>
-                                {item.bloodType && item.status === 'COMPLETED' && (
+                                {item.bloodGroupId && (
                                   <Badge variant="outline" className="ml-2">
-                                    {item.bloodType}
+                                    {item.bloodGroupId.name}
                                   </Badge>
                                 )}
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex items-center gap-2">
+                                {item.code}
                               </div>
                             </td>
                           </tr>
@@ -232,11 +295,11 @@ const BloodDonationHistory: React.FC = () => {
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between px-6 py-4 border-t bg-accent/50">
-                  <div className="text-sm text-muted-foreground">
+                  {/* <div className="text-sm text-muted-foreground">
                     Hiển thị {(currentPage - 1) * limit + 1} đến{" "}
                     {Math.min(currentPage * limit, totalItems)} trong số{" "}
                     {totalItems} lần hiến máu
-                  </div>
+                  </div> */}
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
