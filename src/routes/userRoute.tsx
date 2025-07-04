@@ -17,6 +17,8 @@ import MatchBlood from "@/pages/location/matchBlood/matchBlood";
 import BloodRequestHistory from "@/pages/Profile/BloodRequestHistory/BloodRequestHistory";
 import BloodRequestDetail from "@/pages/Profile/BloodRequestHistory/BloodRequestHIstoryDetail";
 import BloodDonationDetail from "@/pages/Profile/BloodDonationHistory/BloodDonationHistoryDetail";
+import FacilityDetail from "@/pages/home/components/facilityDetail";
+import Facility from "@/pages/location/facility/Facility";
 
 const userRoutes = [
   {
@@ -47,10 +49,10 @@ const userRoutes = [
     path: "/blog/:id",
     element: <BlogDetails />,
   },
-  {
-    path: "/bloodInfo",
-    element: <BloodInfo />,
-  },
+  // {
+  //   path: "/bloodInfo",
+  //   element: <BloodInfo />,
+  // },
   {
     path: "/search",
     element: <SearchPage />,
@@ -106,6 +108,14 @@ const userRoutes = [
   {
     path: "/events/:id",
     element: <EventDetail />,
+  },
+  {
+    path: "/facility/:id",
+    element: <FacilityDetail />,
+  },
+  {
+    path: "locations",
+    element: <Facility />,
   },
 ];
 

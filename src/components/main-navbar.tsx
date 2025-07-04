@@ -54,11 +54,11 @@ const resourcesItems = [
     href: "/blog",
     description: "Đọc các bài viết và câu chuyện về hiến máu",
   },
-  {
-    title: "Thông tin nhóm máu",
-    href: "/bloodInfo",
-    description: "Tìm hiểu về các nhóm máu và tính tương thích",
-  },
+  // {
+  //   title: "Thông tin nhóm máu",
+  //   href: "/bloodInfo",
+  //   description: "Tìm hiểu về các nhóm máu và tính tương thích",
+  // },
   {
     title: "Quy trình hiến máu",
     href: "/process",
