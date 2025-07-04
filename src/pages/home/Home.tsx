@@ -16,6 +16,7 @@ import { BloodTypeInfo } from "@/pages/home/components/blood-type-info";
 // import { UrgentRequests } from "@/pages/home/components/urgent-requests";
 import { Stats } from "@/pages/home/components/stats";
 import { EventSection } from "./components/event-section";
+import CarouselFacility from "@/pages/home/components/carousel-facility";
 
 export default function Home() {
   return (
@@ -72,8 +73,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p>
-                  Liên hệ với chúng tôi trực tiếp hoặc gửi yêu cầu cần máu
-                  và được hỗ trợ tại cơ sở y tế.
+                  Liên hệ với chúng tôi trực tiếp hoặc gửi yêu cầu cần máu và
+                  được hỗ trợ tại cơ sở y tế.
                 </p>
               </CardContent>
               <CardFooter>
@@ -111,6 +112,7 @@ export default function Home() {
 
       <EventSection />
       <BlogSection />
+      <CarouselFacility />
     </div>
   );
 }
