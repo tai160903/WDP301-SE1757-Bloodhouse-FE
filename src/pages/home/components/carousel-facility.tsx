@@ -60,12 +60,12 @@ const CarouselFacility: React.FC<any> = () => {
         <Carousel
           items={facilities.map((facility: any) => (
             <FacilityCard
-              key={facility._id}
-              _id={facility._id}
-              address={facility.address}
-              name={facility.name}
-              image={facility.mainImage.url}
-              avgRating={facility.avgRating}
+              key={facility?._id}
+              _id={facility?._id}
+              address={facility?.address}
+              name={facility?.name}
+              image={facility?.mainImage?.url}
+              avgRating={facility?.avgRating}
             />
           ))}
         />

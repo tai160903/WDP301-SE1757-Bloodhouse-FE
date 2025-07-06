@@ -143,6 +143,7 @@ export const createBloodRequest = async (
     address: string;
     reason: string;
     preferredDate: Date;
+    facilityId: string;
     componentId?: string;
     isUrgent?: boolean;
     latitude?: number;
@@ -154,6 +155,7 @@ export const createBloodRequest = async (
   try {
     const formData = new FormData();
     formData.append("groupId", formValues.groupId);
+    formData.append("facilityId", formValues.facilityId);
     formData.append("quantity", String(formValues.quantity));
     formData.append("address", formValues.address);
     formData.append("reason", formValues.reason);
