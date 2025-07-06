@@ -1,4 +1,3 @@
-import axiosInstance from "@/utils/axiosInstance";
 import { instance } from "../instance";
 
 const getBloodDonationRegis = async (): Promise<any> => {

@@ -472,19 +472,6 @@ function DonationManagement() {
               </div>
             </div>
           )}
-
-          <DialogFooter>
-            <Button
-              onClick={() => {
-                if (selectedDonation) {
-                  navigate(`/manager/donations/${selectedDonation._id}`);
-                }
-              }}
-              className="w-full"
-            >
-              Xem chi tiết đầy đủ
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

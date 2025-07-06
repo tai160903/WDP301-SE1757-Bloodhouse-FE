@@ -42,17 +42,7 @@ import {
 import { format, isSameDay } from "date-fns";
 import { vi } from "date-fns/locale";
 import { getAllBloodDonation } from "@/services/bloodDonation";
-
-interface BloodDonation {
-  id: string;
-  donorName: string;
-  phone: string;
-  bloodType: string;
-  date: Date;
-  time: string;
-  status: "scheduled" | "completed" | "missed";
-  notes?: string;
-}
+import { instance } from "@/services/instance";
 
 export default function BloodDonationCalendar() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
@@ -60,84 +50,58 @@ export default function BloodDonationCalendar() {
   );
   const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [showCheckInModal, setShowCheckInModal] = useState(false);
-  const [selectedDonation, setSelectedDonation] =
-    useState<BloodDonation | null>(null);
+  const [selectedDonation, setSelectedDonation] = useState<any>(null);
 
   useEffect(() => {
     fetchDonations();
   }, []);
 
   const fetchDonations = async () => {
-    const response = await getAllBloodDonation("registered");
-    console.log("Fetched donations:", response);
+    const response = await instance.get<any>(
+      `/blood-donation-registration/facility/all?status=registered&limit=1000`
+    );
+    console.log("Fetched donations:", response.data.data.data);
+    setDonations(response.data.data.data);
   };
 
   // Dữ liệu mẫu các lịch hiến máu
-  const [donations, setDonations] = useState<BloodDonation[]>([
-    {
-      id: "1",
-      donorName: "Nguyễn Văn An",
-      phone: "0901234567",
-      bloodType: "O+",
-      date: new Date(2025, 0, 28),
-      time: "09:00",
-      status: "scheduled",
-      notes: "Lần đầu hiến máu",
-    },
-    {
-      id: "2",
-      donorName: "Trần Thị Bình",
-      phone: "0912345678",
-      bloodType: "A+",
-      date: new Date(2025, 0, 28),
-      time: "10:30",
-      status: "scheduled",
-    },
-    {
-      id: "3",
-      donorName: "Lê Minh Cường",
-      phone: "0923456789",
-      bloodType: "B+",
-      date: new Date(2025, 0, 30),
-      time: "14:00",
-      status: "completed",
-    },
-  ]);
+  const [donations, setDonations] = useState<any[]>([]);
 
   // Form data cho đăng ký mới
   const [formData, setFormData] = useState({
     donorName: "",
     phone: "",
     bloodType: "",
-    date: "",
+    preferredDate: "",
     time: "",
     notes: "",
   });
 
   // Lấy các ngày có lịch hẹn
   const getDonationsForDate = (date: Date) => {
-    return donations.filter((donation) => isSameDay(donation.date, date));
+    // Sửa lỗi so sánh ngày: chuyển preferredDate (string) thành Date trước khi so sánh
+    return donations.filter((donation) =>
+      isSameDay(
+        typeof donation.preferredDate === "string"
+          ? new Date(donation.preferredDate)
+          : donation.preferredDate,
+        date
+      )
+    );
   };
 
-  // Xử lý click vào ngày trên lịch
   const handleDateClick = (date: Date) => {
-    const dayDonations = getDonationsForDate(date);
-    if (dayDonations.length > 0) {
-      setSelectedDate(date);
-      setSelectedDonation(dayDonations[0]); // Hiển thị donation đầu tiên
-      setShowCheckInModal(true);
-    }
+    setSelectedDate(date);
   };
 
-  // Xử lý đăng ký hiến máu mới
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
-    const newDonation: BloodDonation = {
+    const newDonation: any = {
       id: Date.now().toString(),
       donorName: formData.donorName,
       phone: formData.phone,
       bloodType: formData.bloodType,
-      date: new Date(formData.date),
+      date: new Date(formData?.preferredDate),
       time: formData.time,
       status: "scheduled",
       notes: formData.notes,
@@ -148,7 +112,7 @@ export default function BloodDonationCalendar() {
       donorName: "",
       phone: "",
       bloodType: "",
-      date: "",
+      preferredDate: "",
       time: "",
       notes: "",
     });
@@ -307,9 +271,12 @@ export default function BloodDonationCalendar() {
                         <Input
                           id="date"
                           type="date"
-                          value={formData.date}
+                          value={formData.preferredDate}
                           onChange={(e) =>
-                            setFormData({ ...formData, date: e.target.value })
+                            setFormData({
+                              ...formData,
+                              preferredDate: e.target.value,
+                            })
                           }
                           required
                         />
@@ -357,35 +324,31 @@ export default function BloodDonationCalendar() {
                   <div className="space-y-3">
                     {getDonationsForDate(selectedDate).map((donation) => (
                       <div
-                        key={donation.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        key={donation.id || donation._id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-red-100 transition"
+                        onClick={() => {
+                          setSelectedDonation(donation);
+                          setShowCheckInModal(true);
+                        }}
                       >
                         <div className="flex items-center gap-3">
                           <User className="h-4 w-4 text-gray-500" />
                           <div>
                             <p className="font-medium text-sm">
-                              {donation.donorName}
+                              {donation.userId?.fullName || donation.donorName}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {donation.time}
+                              {format(
+                                typeof donation.preferredDate === "string"
+                                  ? new Date(donation.preferredDate)
+                                  : donation.preferredDate,
+                                "dd/MM/yyyy HH:mm"
+                              )}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
-                              donation.bloodType.includes("+")
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {donation.bloodType}
-                          </Badge>
-                          {donation.status === "completed" ? (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Clock className="h-4 w-4 text-orange-500" />
-                          )}
+                          {donation.bloodGroupId?.name || donation.bloodType}
                         </div>
                       </div>
                     ))}
@@ -438,7 +401,8 @@ export default function BloodDonationCalendar() {
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Người hiến:</span>
                     <span className="font-medium">
-                      {selectedDonation.donorName}
+                      {selectedDonation.userId?.fullName ||
+                        selectedDonation.donorName}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -446,19 +410,23 @@ export default function BloodDonationCalendar() {
                       Số điện thoại:
                     </span>
                     <span className="font-medium">
-                      {selectedDonation.phone}
+                      {selectedDonation.userId?.phone || selectedDonation.phone}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Nhóm máu:</span>
-                    <Badge>{selectedDonation.bloodType}</Badge>
+                    <Badge>{selectedDonation.bloodGroupId?.name}</Badge>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Ngày giờ:</span>
                     <span className="font-medium">
-                      {format(selectedDonation.date, "dd/MM/yyyy", {
-                        locale: vi,
-                      })}{" "}
+                      {format(
+                        typeof selectedDonation.preferredDate === "string"
+                          ? new Date(selectedDonation.preferredDate)
+                          : selectedDonation.preferredDate,
+                        "dd/MM/yyyy",
+                        { locale: vi }
+                      )}{" "}
                       - {selectedDonation.time}
                     </span>
                   </div>
@@ -474,7 +442,7 @@ export default function BloodDonationCalendar() {
                     <span className="text-sm text-gray-600">Trạng thái:</span>
                     <Badge
                       variant={
-                        selectedDonation.status === "completed"
+                        selectedDonation.status === "registered"
                           ? "default"
                           : "secondary"
                       }
@@ -485,12 +453,10 @@ export default function BloodDonationCalendar() {
                     </Badge>
                   </div>
                 </div>
-                {selectedDonation.status === "scheduled" && (
-                  <Button onClick={handleCheckIn} className="w-full">
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Xác nhận Check-in
-                  </Button>
-                )}
+                <Button onClick={handleCheckIn} className="w-full">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Xác nhận Check-in
+                </Button>
               </div>
             )}
           </DialogContent>
