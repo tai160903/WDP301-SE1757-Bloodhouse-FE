@@ -143,6 +143,7 @@ export const createBloodRequest = async (
     address: string;
     reason: string;
     preferredDate: Date;
+    facilityId: string;
     componentId?: string;
     isUrgent?: boolean;
     latitude?: number;
@@ -154,6 +155,7 @@ export const createBloodRequest = async (
   try {
     const formData = new FormData();
     formData.append("groupId", formValues.groupId);
+    formData.append("facilityId", formValues.facilityId);
     formData.append("quantity", String(formValues.quantity));
     formData.append("address", formValues.address);
     formData.append("reason", formValues.reason);
@@ -185,3 +187,21 @@ export const createBloodRequest = async (
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
 };
+
+export const getBloodRequestHistory = async (): Promise<any> => {
+  try {
+    const response = await instance.get("/blood-request/user");
+    return response;
+  } catch (err) {
+    console.log("Error:",err);
+  }
+}
+
+export const getBloodRequestHistoryDetail = async (id: string): Promise<any> => {
+  try {
+    const response = await instance.get(`/blood-request/user/${id}`);
+    return response;
+  } catch (err) {
+    console.log("Error:",err);
+  }
+}

@@ -42,10 +42,10 @@ const mainNavItems = [
     title: "Yêu cầu máu",
     href: "/request",
   },
-  {
-    title: "Tìm kiếm",
-    href: "/search",
-  },
+  // {
+  //   title: "Tìm kiếm",
+  //   href: "/search",
+  // },
 ];
 
 const resourcesItems = [
@@ -54,11 +54,11 @@ const resourcesItems = [
     href: "/blog",
     description: "Đọc các bài viết và câu chuyện về hiến máu",
   },
-  {
-    title: "Thông tin nhóm máu",
-    href: "/bloodInfo",
-    description: "Tìm hiểu về các nhóm máu và tính tương thích",
-  },
+  // {
+  //   title: "Thông tin nhóm máu",
+  //   href: "/bloodInfo",
+  //   description: "Tìm hiểu về các nhóm máu và tính tương thích",
+  // },
   {
     title: "Quy trình hiến máu",
     href: "/process",
@@ -97,7 +97,15 @@ interface ListItemProps {
 }
 
 export function MainNavbar() {
-  const { user, isAuthenticated, signOut, loading, userRole, isAdmin, isManager } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    signOut,
+    loading,
+    userRole,
+    isAdmin,
+    isManager,
+  } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
 
   const handleLogoutClick = () => {
@@ -109,7 +117,7 @@ export function MainNavbar() {
       await signOut();
       setShowLogoutModal(false);
     } catch (error) {
-      console.error('Logout thất bại:', error);
+      console.error("Logout thất bại:", error);
       // Vẫn đóng modal ngay cả khi logout API thất bại
       setShowLogoutModal(false);
     }
@@ -146,7 +154,10 @@ export function MainNavbar() {
                         "hover:text-red-600 hover:bg-red-50 focus:text-red-600 transition-colors duration-200"
                       )}
                     >
-                      <Link to={item.href} data-testid={`nav-link-${item.title}`}>
+                      <Link
+                        to={item.href}
+                        data-testid={`nav-link-${item.title}`}
+                      >
                         {item.title}
                       </Link>
                     </NavigationMenuLink>
@@ -196,17 +207,17 @@ export function MainNavbar() {
             </NavigationMenu>
           </div>
           <div className="flex items-center gap-3">
-            <Button
+            {/* <Button
               variant="outline"
               size="icon"
               className="text-foreground hover:bg-red-50 transition-colors duration-200"
               data-testid="search-button"
             >
               <Search className="h-4 w-4" />
-            </Button>
+            </Button> */}
             {isAuthenticated ? (
               <>
-                <DropdownMenu>
+                {/* <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
@@ -264,7 +275,7 @@ export function MainNavbar() {
                       <Link to="/notifications">Xem tất cả thông báo</Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
-                </DropdownMenu>
+                </DropdownMenu> */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -274,9 +285,14 @@ export function MainNavbar() {
                       data-testid="user-button"
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.avatar} alt={user?.fullName || "User"} />
+                        <AvatarImage
+                          src={user?.avatar}
+                          alt={user?.fullName || "User"}
+                        />
                         <AvatarFallback className="bg-red-50 text-red-600 font-semibold">
-                          {user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                          {user?.fullName
+                            ? user.fullName.charAt(0).toUpperCase()
+                            : "U"}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -285,7 +301,7 @@ export function MainNavbar() {
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-semibold tracking-tight">
-                          {user?.fullName || 'Người dùng'}
+                          {user?.fullName || "Người dùng"}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {user?.email}
@@ -298,7 +314,7 @@ export function MainNavbar() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    
+
                     {/* Admin Dashboard Link */}
                     {isAdmin && (
                       <>
@@ -315,7 +331,7 @@ export function MainNavbar() {
                         </DropdownMenuItem>
                       </>
                     )}
-                    
+
                     {/* Manager Dashboard Link */}
                     {isManager && (
                       <>
@@ -332,34 +348,34 @@ export function MainNavbar() {
                         </DropdownMenuItem>
                       </>
                     )}
-                    
+
                     {/* Separator if admin or manager */}
                     {(isAdmin || isManager) && <DropdownMenuSeparator />}
-                    
+
                     <DropdownMenuItem
                       asChild
-                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
                     >
                       <Link to="/profile">Hồ sơ</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
                     >
-                      <Link to="/appointments">Lịch hẹn</Link>
+                      <Link to="/request-history">Lịch sử nhận máu</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       asChild
-                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
                     >
                       <Link to="/donation-history">Lịch sử hiến máu</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem
+                    {/* <DropdownMenuItem
                       asChild
-                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600"
+                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
                     >
                       <Link to="/settings">Cài đặt</Link>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-sm font-semibold text-red-500 hover:text-red-600 hover:bg-red-50 focus:bg-red-50 focus:text-red-600 cursor-pointer"
@@ -415,7 +431,7 @@ export function MainNavbar() {
               disabled={loading}
               className="flex-1 bg-red-600 hover:bg-red-700 text-white"
             >
-              {loading ? 'Đang đăng xuất...' : 'Đăng xuất'}
+              {loading ? "Đang đăng xuất..." : "Đăng xuất"}
             </Button>
           </DialogFooter>
         </DialogContent>

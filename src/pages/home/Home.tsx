@@ -16,6 +16,7 @@ import { BloodTypeInfo } from "@/pages/home/components/blood-type-info";
 // import { UrgentRequests } from "@/pages/home/components/urgent-requests";
 import { Stats } from "@/pages/home/components/stats";
 import { EventSection } from "./components/event-section";
+import CarouselFacility from "@/pages/home/components/carousel-facility";
 
 export default function Home() {
   return (
@@ -67,18 +68,18 @@ export default function Home() {
                 <div className="bg-accent w-12 h-12 rounded-full flex items-center justify-center mb-2">
                   <Calendar className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle>Lịch hẹn</CardTitle>
-                <CardDescription>Đặt lịch hẹn hiến máu</CardDescription>
+                <CardTitle>Yêu cầu máu</CardTitle>
+                <CardDescription>Đăng kí yêu cầu máu</CardDescription>
               </CardHeader>
               <CardContent>
                 <p>
-                  Chọn thời gian và địa điểm thuận tiện để hiến máu dựa trên
-                  lịch trình của bạn.
+                  Liên hệ với chúng tôi trực tiếp hoặc gửi yêu cầu cần máu và
+                  được hỗ trợ tại cơ sở y tế.
                 </p>
               </CardContent>
               <CardFooter>
                 <Button variant="outline" asChild>
-                  <Link to="/schedule">Đặt lịch ngay</Link>
+                  <Link to="/request">Liên hệ ngay</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -101,7 +102,7 @@ export default function Home() {
               </CardContent>
               <CardFooter>
                 <Button variant="outline" asChild>
-                  <Link to="/learn-more">Tìm hiểu thêm</Link>
+                  <Link to="/donation-registration">Tìm hiểu thêm</Link>
                 </Button>
               </CardFooter>
             </Card>
@@ -109,48 +110,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-accent py-16 section-pattern">
-        <div className="container space-y-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold tracking-tight text-red-600">
-              Tìm Nhóm Máu Tương Thích
-            </h2>
-            <p className="text-muted-foreground mt-2">
-              Sử dụng công cụ tương thích của chúng tôi để tìm người hiến máu
-              hoặc người nhận phù hợp dựa trên nhóm máu
-            </p>
-          </div>
-
-          <Tabs defaultValue="whole-blood" className="max-w-3xl mx-auto">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="whole-blood">Máu toàn phần</TabsTrigger>
-              <TabsTrigger value="red-cells">Hồng cầu</TabsTrigger>
-              <TabsTrigger value="plasma">Huyết tương & Tiểu cầu</TabsTrigger>
-            </TabsList>
-            <TabsContent value="whole-blood">
-              <BloodTypeInfo type="whole-blood" />
-            </TabsContent>
-            <TabsContent value="red-cells">
-              <BloodTypeInfo type="red-cells" />
-            </TabsContent>
-            <TabsContent value="plasma">
-              <BloodTypeInfo type="plasma" />
-            </TabsContent>
-          </Tabs>
-
-          <div className="flex justify-center mt-8">
-            <Button asChild>
-              <Link to="/bloodInfo">
-                <Search className="mr-2 h-4 w-4" />
-                Tìm kiếm nhóm máu tương thích
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
       <EventSection />
       <BlogSection />
+      <CarouselFacility />
     </div>
   );
 }

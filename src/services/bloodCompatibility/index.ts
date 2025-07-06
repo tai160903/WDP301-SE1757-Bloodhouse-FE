@@ -16,9 +16,39 @@ export interface BloodCompabilityResponse extends IResponse.Response {
 }
 
 
-export const getBloodCompabilities = async (  bloodGroupId : string,  componentId: string ): Promise<BloodCompability[]> => {
+export const getBloodCompabilities = async (
+  bloodGroupId: string,
+  componentId: string
+): Promise<BloodCompability[]> => {
   try {
-    const { data } = await instance.get<BloodCompabilityResponse>(`/blood-compability/${bloodGroupId}/${componentId}`);
+    const { data } = await instance.get<BloodCompabilityResponse>(
+      `/blood-compatibility`,
+      {
+        params: {
+          bloodGroupId,
+          componentId,
+        },
+      }
+    );
+    return data.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
+
+
+export const getBloodGroups = async ()  => {
+  try {
+    const { data } = await instance.get<any>(`blood-group`);
+    return data.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
+
+export const getBloodComponents = async ()  => {
+  try {
+    const { data } = await instance.get<any>(`blood-component`);
     return data.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");

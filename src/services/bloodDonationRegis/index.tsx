@@ -53,4 +53,31 @@ export const bloodDonationRegisDetail = async (id): Promise<any> => {
   }
 };
 
-export { getBloodDonationRegis, createBloodDonationRegis };
+const bloodDonationRegisHistory = async (): Promise<any> => {
+  try {
+    const { data } = await instance.get<any & { data: any[] }>(
+      "/blood-donation-registration/user"
+    );
+    return data;
+  } catch (err) {
+    console.log("Have some error when call api:", err);
+  }
+};
+
+const getBloodDonationDetail = async (id: string): Promise<any> => {
+  try {
+    const { data } = await instance.get<any & { data: any[] }>(
+      `/blood-donation-registration/${id}`
+    );
+    return data;
+  } catch (err) {
+    console.log("Have some error when call api:", err);
+  }
+};
+
+export {
+  getBloodDonationRegis,
+  createBloodDonationRegis,
+  bloodDonationRegisHistory,
+  getBloodDonationDetail,
+};
