@@ -40,6 +40,7 @@ const BloodRequestDetail: React.FC = () => {
     setLoading(true);
     try {
       const response = await getBloodRequestHistoryDetail(id);
+      console.log(response);
       if (response.status === 200) {
         setRequestDetail(response.data.data);
       }
