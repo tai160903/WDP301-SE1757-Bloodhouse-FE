@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { forgotPassword } from '@/services/auth';
 
 interface ForgotPasswordFormData {
   email: string;
@@ -12,6 +13,8 @@ const inputClass =
 const ForgotPassword: React.FC = () => {
   const [formData, setFormData] = useState<ForgotPasswordFormData>({ email: '' });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [message, setMessage] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
@@ -23,26 +26,32 @@ const ForgotPassword: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors({});
+    setMessage(null);
+    setErrorMsg(null);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length === 0) {
-      try {
-        console.log('Gửi liên kết đặt lại mật khẩu tới:', formData.email);
-        alert('Liên kết đặt lại mật khẩu đã được gửi!');
-      } catch (error: any) {
-        setErrors({ email: error.message || 'Gửi yêu cầu thất bại' });
-      }
-    } else {
+    if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      return;
+    }
+
+    try {
+      await forgotPassword(formData.email);
+      setMessage('✅ Liên kết đặt lại mật khẩu đã được gửi đến email của bạn!');
+      setErrorMsg(null);
+    } catch (error: any) {
+      setErrorMsg(error.message || '❌ Gửi yêu cầu thất bại');
+      setMessage(null);
     }
   };
 
   return (
-    <div className="min-h-screen bg-red-50 flex flex-col items-center justify-center px-4 py-6">
-      <nav className="w-full max-w-3xl flex justify-between items-center mb-4 px-4 text-gray-800 hover:text-red-600">
+    <div className="min-h-screen bg-red-50 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-6">
+      <nav className="w-full max-w-2xl flex justify-between items-center mb-4 px-4 text-gray-800 hover:text-red-600">
         <span className="font-semibold text-base">Chào mừng đến với BloodHouse</span>
         <div className="space-x-4">
           <a href="/" className="text-gray-800 hover:text-red-600 transition-colors duration-200 text-sm">
@@ -54,7 +63,7 @@ const ForgotPassword: React.FC = () => {
         </div>
       </nav>
 
-      <div className="w-full max-w-3xl bg-white shadow-md rounded-xl p-4">
+      <div className="w-full max-w-2xl bg-white shadow-md rounded-xl p-6">
         <h2 className="text-2xl font-semibold text-center text-red-600 mb-4">Quên mật khẩu</h2>
         <p className="text-center text-sm text-gray-600 mb-4">
           Nhập email của bạn để nhận liên kết đặt lại mật khẩu.
@@ -82,12 +91,17 @@ const ForgotPassword: React.FC = () => {
             </button>
           </div>
 
-          <p className="text-center text-xs text-gray-600 mt-3">
-            Đã có tài khoản?{' '}
-            <a href="/auth/login" className="text-red-600 hover:underline">
-              Đăng nhập
-            </a>
-          </p>
+          {message && (
+            <div className="mt-4 bg-green-100 text-green-800 px-4 py-2 rounded-md text-sm text-center font-medium">
+              {message}
+            </div>
+          )}
+
+          {errorMsg && (
+            <div className="mt-4 bg-red-100 text-red-800 px-4 py-2 rounded-md text-sm text-center font-medium">
+              {errorMsg}
+            </div>
+          )}
         </form>
       </div>
     </div>
