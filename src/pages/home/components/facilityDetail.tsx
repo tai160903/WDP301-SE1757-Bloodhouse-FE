@@ -81,6 +81,7 @@ const FacilityDetail: React.FC = () => {
   const { id } = useParams();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     fetchFacilityDetail();
   }, [id]);
 

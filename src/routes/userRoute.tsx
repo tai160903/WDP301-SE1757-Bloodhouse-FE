@@ -19,11 +19,16 @@ import BloodRequestDetail from "@/pages/Profile/BloodRequestHistory/BloodRequest
 import BloodDonationDetail from "@/pages/Profile/BloodDonationHistory/BloodDonationHistoryDetail";
 import FacilityDetail from "@/pages/home/components/facilityDetail";
 import Facility from "@/pages/location/facility/Facility";
+import React from "react";
 
 const userRoutes = [
   {
     path: "/",
-    element: <Home />,
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <Home />
+      </React.Suspense>
+    ),
   },
   {
     path: "/request",

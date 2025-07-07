@@ -27,7 +27,7 @@ export function HeroSection() {
               className="bg-white text-primary hover:bg-white/90"
               asChild
             >
-              <Link to="/register">
+              <Link to="/auth/register">
                 Trở thành người hiến máu <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>

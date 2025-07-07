@@ -33,6 +33,7 @@ const BloodRequestDetail: React.FC = () => {
   const { id } = useParams();
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     fetchRequestDetail();
   }, [id]);
 

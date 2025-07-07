@@ -24,6 +24,7 @@ const Blog: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const fetchBlogs = async () => {
       try {
         const response = await getBlogs({ page: currentPage, limit: 10 });

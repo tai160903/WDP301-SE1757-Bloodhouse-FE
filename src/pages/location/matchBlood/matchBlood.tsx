@@ -7,8 +7,12 @@ import {
 } from "../../../services/bloodCompatibility/index";
 
 export default function BloodCompatibility() {
-  const [bloodGroups, setBloodGroups] = useState<{ _id: string; name: string }[]>([]);
-  const [bloodComponents, setBloodComponents] = useState<{ _id: string; name: string }[]>([]);
+  const [bloodGroups, setBloodGroups] = useState<
+    { _id: string; name: string }[]
+  >([]);
+  const [bloodComponents, setBloodComponents] = useState<
+    { _id: string; name: string }[]
+  >([]);
   const [selectedBloodGroup, setSelectedBloodGroup] = useState<string>("");
   const [selectedComponent, setSelectedComponent] = useState<string>("");
   const [result, setResult] = useState<BloodCompability | null>(null);
@@ -16,6 +20,7 @@ export default function BloodCompatibility() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     async function fetchData() {
       try {
         const groups = await getBloodGroups();
@@ -38,7 +43,10 @@ export default function BloodCompatibility() {
     setResult(null);
 
     try {
-      const compability = await getBloodCompabilities(selectedBloodGroup, selectedComponent);
+      const compability = await getBloodCompabilities(
+        selectedBloodGroup,
+        selectedComponent
+      );
       setResult(compability);
     } catch (err: any) {
       setError(err.message || "Lỗi khi kiểm tra tương thích");
@@ -180,7 +188,9 @@ export default function BloodCompatibility() {
           disabled={!selectedBloodGroup || !selectedComponent || loading}
           onClick={handleCheckCompatibility}
           className={`btn-check-compatibility ${
-            !selectedBloodGroup || !selectedComponent || loading ? "disabled" : ""
+            !selectedBloodGroup || !selectedComponent || loading
+              ? "disabled"
+              : ""
           }`}
         >
           {loading ? "Đang kiểm tra..." : "Kiểm tra tương thích"}
