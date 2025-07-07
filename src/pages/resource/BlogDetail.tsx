@@ -8,6 +8,7 @@ const BlogDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const fetchBlogDetail = async () => {
       if (!id) return;
       try {

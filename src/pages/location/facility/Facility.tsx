@@ -10,6 +10,7 @@ const Facility: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     const fetchFacilities = async () => {
       try {
         const response = await getAllFacilities();

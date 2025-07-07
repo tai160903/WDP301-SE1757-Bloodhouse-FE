@@ -17,8 +17,12 @@ import { BloodTypeInfo } from "@/pages/home/components/blood-type-info";
 import { Stats } from "@/pages/home/components/stats";
 import { EventSection } from "./components/event-section";
 import CarouselFacility from "@/pages/home/components/carousel-facility";
+import { useEffect } from "react";
 
 export default function Home() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   return (
     <div className="flex flex-col w-full">
       <HeroSection />
