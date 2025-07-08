@@ -20,6 +20,9 @@ import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { instance } from "@/services/instance"
+import useAuth from "@/hooks/useAuth"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 // Schema
 const formSchema = z.object({
@@ -49,6 +52,17 @@ export function BloodDonationRegistrationForm({
   const [bloodComponents, setBloodComponents] = useState<{ id: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [errorLoading, setErrorLoading] = useState("")
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  
+    const navigate = useNavigate();
+  
+    useEffect(() => {
+      if (!authLoading && !isAuthenticated) {
+        navigate("/auth/login");
+        toast.error("Vui lớng đăng nhập trước khi sử dụng tính năng này");
+      }
+      window.scrollTo(0, 0);
+    }, [isAuthenticated, authLoading, navigate]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
