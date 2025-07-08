@@ -22,7 +22,6 @@ import Facility from "@/pages/location/facility/Facility";
 import ChangePassword from "@/pages/auth/change-password/ChangePassword";
 import React from "react";
 
-
 const userRoutes = [
   {
     path: "/",
