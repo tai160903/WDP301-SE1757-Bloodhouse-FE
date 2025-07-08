@@ -21,10 +21,15 @@ import FacilityDetail from "@/pages/home/components/facilityDetail";
 import Facility from "@/pages/location/facility/Facility";
 import ChangePassword from "@/pages/auth/change-password/ChangePassword";
 
+
 const userRoutes = [
   {
     path: "/",
-    element: <Home />,
+    element: (
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <Home />
+      </React.Suspense>
+    ),
   },
   {
     path: "/request",

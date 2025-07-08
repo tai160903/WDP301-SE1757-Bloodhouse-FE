@@ -80,6 +80,7 @@ const BloodDonationHistory: React.FC = () => {
   };
 
   React.useEffect(() => {
+    window.scrollTo(0, 0);
     fetchDonationHistory();
   }, [currentPage]);
 

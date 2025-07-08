@@ -135,6 +135,7 @@ const ProfilePage: React.FC = () => {
     if (!authLoading && !isAuthenticated) {
       navigate("/auth/login");
     }
+    window.scrollTo(0, 0);
   }, [isAuthenticated, authLoading, navigate]);
 
   // Fetch user profile

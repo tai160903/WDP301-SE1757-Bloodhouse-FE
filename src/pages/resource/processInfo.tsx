@@ -1,8 +1,14 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Heart,
   User,
@@ -15,15 +21,20 @@ import {
   ArrowRight,
   Star,
   Users,
-} from "lucide-react"
+} from "lucide-react";
+import { useEffect } from "react";
 
 export default function processInfo() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   const processSteps = [
     {
       id: 1,
       title: "Thông Tin Cá Nhân",
       icon: User,
-      description: "Cung cấp thông tin cá nhân cơ bản bao gồm họ tên, ngày sinh, giới tính và các chỉ số cơ thể.",
+      description:
+        "Cung cấp thông tin cá nhân cơ bản bao gồm họ tên, ngày sinh, giới tính và các chỉ số cơ thể.",
       requirements: [
         "Họ và tên đầy đủ",
         "Ngày sinh (phải từ 18 tuổi trở lên)",
@@ -59,7 +70,8 @@ export default function processInfo() {
       id: 3,
       title: "Tiền Sử Bệnh Án",
       icon: FileText,
-      description: "Cung cấp thông tin về tình trạng sức khỏe, thuốc đang sử dụng và lịch sử hiến máu trước đây.",
+      description:
+        "Cung cấp thông tin về tình trạng sức khỏe, thuốc đang sử dụng và lịch sử hiến máu trước đây.",
       requirements: [
         "Thuốc đang sử dụng",
         "Dị ứng đã biết",
@@ -77,7 +89,8 @@ export default function processInfo() {
       id: 4,
       title: "Liên Hệ Khẩn Cấp",
       icon: Heart,
-      description: "Chỉ định người mà chúng tôi có thể liên hệ trong trường hợp khẩn cấp trong hoặc sau khi hiến máu.",
+      description:
+        "Chỉ định người mà chúng tôi có thể liên hệ trong trường hợp khẩn cấp trong hoặc sau khi hiến máu.",
       requirements: [
         "Tên người liên hệ khẩn cấp",
         "Số điện thoại",
@@ -94,7 +107,8 @@ export default function processInfo() {
       id: 5,
       title: "Đồng Ý & Điều Khoản",
       icon: Shield,
-      description: "Xem xét và đồng ý với các điều khoản, chính sách bảo mật và mẫu đồng ý hiến máu của chúng tôi.",
+      description:
+        "Xem xét và đồng ý với các điều khoản, chính sách bảo mật và mẫu đồng ý hiến máu của chúng tôi.",
       requirements: [
         "Đọc các yêu cầu đủ điều kiện",
         "Hiểu quy trình hiến máu",
@@ -107,7 +121,7 @@ export default function processInfo() {
       iconBg: "bg-orange-100",
       iconColor: "text-orange-600",
     },
-  ]
+  ];
 
   const eligibilityRequirements = [
     "Từ 18 tuổi trở lên",
@@ -116,20 +130,20 @@ export default function processInfo() {
     "Chưa hiến máu trong 56 ngày qua",
     "Chưa xăm hình hoặc xỏ khuyên trong 4 tháng qua",
     "Chưa đi du lịch đến một số quốc gia gần đây",
-  ]
+  ];
 
   const whatToBring = [
     "Giấy tờ tùy thân có ảnh do chính phủ cấp",
     "Danh sách thuốc đang sử dụng",
     "Thông tin tiền sử bệnh án",
     "Thông tin liên hệ khẩn cấp",
-  ]
+  ];
 
   const stats = [
     { number: "3", label: "Mạng người được cứu", icon: Heart },
     { number: "56", label: "Ngày giữa các lần hiến", icon: Clock },
     { number: "10,000+", label: "Người hiến máu hàng năm", icon: Users },
-  ]
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-pink-50 to-red-50">
@@ -149,26 +163,31 @@ export default function processInfo() {
                 Quy Trình Đăng Ký
               </h1>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Hiến Máu Cứu Người</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">
+              Hiến Máu Cứu Người
+            </h2>
             <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8 leading-relaxed">
-              Tham gia cùng chúng tôi trong hành trình cứu sống với quy trình đăng ký đơn giản 5 bước. Mỗi lần hiến máu
-              của bạn có thể cứu được tới 3 mạng người! ❤️
+              Tham gia cùng chúng tôi trong hành trình cứu sống với quy trình
+              đăng ký đơn giản 5 bước. Mỗi lần hiến máu của bạn có thể cứu được
+              tới 3 mạng người! ❤️
             </p>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto mb-12">
               {stats.map((stat, index) => {
-                const Icon = stat.icon
+                const Icon = stat.icon;
                 return (
                   <div
                     key={index}
                     className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/20"
                   >
                     <Icon className="w-8 h-8 text-red-500 mx-auto mb-3" />
-                    <div className="text-3xl font-bold text-gray-900 mb-1">{stat.number}</div>
+                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                      {stat.number}
+                    </div>
                     <div className="text-sm text-gray-600">{stat.label}</div>
                   </div>
-                )
+                );
               })}
             </div>
 
@@ -185,21 +204,32 @@ export default function processInfo() {
         {/* Process Steps */}
         <div className="mb-20">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Các Bước Đăng Ký</h2>
-            <p className="text-xl text-gray-600">Quy trình đơn giản và thân thiện</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Các Bước Đăng Ký
+            </h2>
+            <p className="text-xl text-gray-600">
+              Quy trình đơn giản và thân thiện
+            </p>
           </div>
 
           <div className="space-y-8">
             {processSteps.map((step, index) => {
-              const Icon = step.icon
-              const isEven = index % 2 === 0
+              const Icon = step.icon;
+              const isEven = index % 2 === 0;
 
               return (
-                <div key={step.id} className={`flex items-center gap-8 ${!isEven ? "flex-row-reverse" : ""}`}>
+                <div
+                  key={step.id}
+                  className={`flex items-center gap-8 ${
+                    !isEven ? "flex-row-reverse" : ""
+                  }`}
+                >
                   {/* Content */}
                   <div className="flex-1">
                     <Card className="group hover:shadow-2xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
-                      <div className={`h-2 bg-gradient-to-r ${step.color}`}></div>
+                      <div
+                        className={`h-2 bg-gradient-to-r ${step.color}`}
+                      ></div>
                       <CardHeader className="pb-4">
                         <div className="flex items-start gap-4">
                           <div
@@ -209,15 +239,23 @@ export default function processInfo() {
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
-                              <Badge variant="outline" className={`${step.iconColor} border-current text-lg px-3 py-1`}>
+                              <Badge
+                                variant="outline"
+                                className={`${step.iconColor} border-current text-lg px-3 py-1`}
+                              >
                                 Bước {step.id}
                               </Badge>
-                              <Badge variant="secondary" className="text-gray-600 bg-gray-100">
+                              <Badge
+                                variant="secondary"
+                                className="text-gray-600 bg-gray-100"
+                              >
                                 <Clock className="w-4 h-4 mr-1" />
                                 {step.duration}
                               </Badge>
                             </div>
-                            <CardTitle className="text-2xl mb-3 text-gray-900">{step.title}</CardTitle>
+                            <CardTitle className="text-2xl mb-3 text-gray-900">
+                              {step.title}
+                            </CardTitle>
                             <CardDescription className="text-lg text-gray-600 leading-relaxed">
                               {step.description}
                             </CardDescription>
@@ -226,7 +264,9 @@ export default function processInfo() {
                       </CardHeader>
                       <CardContent className="pt-0">
                         <div className="ml-20">
-                          <h4 className="font-semibold mb-4 text-gray-900 text-lg">Những gì bạn cần cung cấp:</h4>
+                          <h4 className="font-semibold mb-4 text-gray-900 text-lg">
+                            Những gì bạn cần cung cấp:
+                          </h4>
                           <div className="grid gap-3">
                             {step.requirements.map((req, reqIndex) => (
                               <div
@@ -248,11 +288,13 @@ export default function processInfo() {
                     <div
                       className={`w-24 h-24 rounded-full bg-gradient-to-r ${step.color} flex items-center justify-center shadow-lg`}
                     >
-                      <span className="text-3xl font-bold text-white">{step.id}</span>
+                      <span className="text-3xl font-bold text-white">
+                        {step.id}
+                      </span>
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         </div>
@@ -268,7 +310,9 @@ export default function processInfo() {
                   <AlertCircle className="w-8 h-8 text-amber-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl text-gray-900">Yêu Cầu Đủ Điều Kiện</CardTitle>
+                  <CardTitle className="text-2xl text-gray-900">
+                    Yêu Cầu Đủ Điều Kiện
+                  </CardTitle>
                   <CardDescription className="text-lg text-gray-600 mt-2">
                     Đảm bảo bạn đáp ứng các yêu cầu cơ bản này
                   </CardDescription>
@@ -299,7 +343,9 @@ export default function processInfo() {
                   <FileText className="w-8 h-8 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl text-gray-900">Những Gì Cần Mang Theo</CardTitle>
+                  <CardTitle className="text-2xl text-gray-900">
+                    Những Gì Cần Mang Theo
+                  </CardTitle>
                   <CardDescription className="text-lg text-gray-600 mt-2">
                     Chuẩn bị sẵn để đăng ký suôn sẻ
                   </CardDescription>
@@ -331,7 +377,9 @@ export default function processInfo() {
                 <AlertCircle className="w-8 h-8 text-purple-600" />
               </div>
               <div>
-                <CardTitle className="text-2xl text-purple-900">Lưu Ý Quan Trọng</CardTitle>
+                <CardTitle className="text-2xl text-purple-900">
+                  Lưu Ý Quan Trọng
+                </CardTitle>
                 <CardDescription className="text-lg text-purple-700 mt-2">
                   Hướng dẫn chuẩn bị trước và sau đăng ký
                 </CardDescription>
@@ -341,7 +389,9 @@ export default function processInfo() {
           <CardContent className="p-8">
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <h4 className="font-bold text-xl text-gray-900 mb-4">Trước Khi Đăng Ký:</h4>
+                <h4 className="font-bold text-xl text-gray-900 mb-4">
+                  Trước Khi Đăng Ký:
+                </h4>
                 <div className="space-y-3">
                   {[
                     "Ăn một bữa ăn lành mạnh 2-3 giờ trước",
@@ -349,7 +399,10 @@ export default function processInfo() {
                     "Ngủ đủ giấc",
                     "Tránh rượu bia 24 giờ trước",
                   ].map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-green-50 rounded-xl"
+                    >
                       <CheckCircle className="w-5 h-5 text-green-500" />
                       <span className="text-gray-700">{item}</span>
                     </div>
@@ -357,7 +410,9 @@ export default function processInfo() {
                 </div>
               </div>
               <div className="space-y-4">
-                <h4 className="font-bold text-xl text-gray-900 mb-4">Sau Khi Đăng Ký:</h4>
+                <h4 className="font-bold text-xl text-gray-900 mb-4">
+                  Sau Khi Đăng Ký:
+                </h4>
                 <div className="space-y-3">
                   {[
                     "Bạn sẽ nhận được email xác nhận",
@@ -365,7 +420,10 @@ export default function processInfo() {
                     "Bạn có thể theo dõi lịch sử hiến máu",
                     "Nhận cập nhật về các chiến dịch hiến máu",
                   ].map((item, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl"
+                    >
                       <CheckCircle className="w-5 h-5 text-blue-500" />
                       <span className="text-gray-700">{item}</span>
                     </div>
@@ -388,7 +446,8 @@ export default function processInfo() {
                 </div>
                 <h3 className="text-4xl font-bold">Sẵn Sàng Cứu Sống?</h3>
                 <p className="text-xl text-red-100 max-w-lg mx-auto leading-relaxed">
-                  Bắt đầu đăng ký hiến máu ngay bây giờ và tham gia cùng hàng nghìn anh hùng tạo nên sự khác biệt.
+                  Bắt đầu đăng ký hiến máu ngay bây giờ và tham gia cùng hàng
+                  nghìn anh hùng tạo nên sự khác biệt.
                 </p>
                 <Button
                   size="lg"
@@ -403,5 +462,5 @@ export default function processInfo() {
         </div>
       </div>
     </div>
-  )
+  );
 }

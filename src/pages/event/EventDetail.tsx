@@ -4,10 +4,14 @@ import { useParams, Link } from "react-router-dom";
 
 function getStatusColor(status) {
   switch (status) {
-    case "scheduled": return { bg: "#FFEBEE", color: "#FF6B6B" };
-    case "ongoing": return { bg: "#E3FCEC", color: "#27AE60" };
-    case "completed": return { bg: "#ECEFF1", color: "#95A5A6" };
-    default: return { bg: "#ECEFF1", color: "#95A5A6" };
+    case "scheduled":
+      return { bg: "#FFEBEE", color: "#FF6B6B" };
+    case "ongoing":
+      return { bg: "#E3FCEC", color: "#27AE60" };
+    case "completed":
+      return { bg: "#ECEFF1", color: "#95A5A6" };
+    default:
+      return { bg: "#ECEFF1", color: "#95A5A6" };
   }
 }
 
@@ -26,6 +30,7 @@ const EventDetail: React.FC = () => {
   const [registering, setRegistering] = useState(false);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     getEventById(id || "")
       .then((res) => setEvent(res.data))
       .finally(() => setLoading(false));
@@ -70,39 +75,95 @@ const EventDetail: React.FC = () => {
         />
         <div style={{ padding: 24 }}>
           {/* Status + Participants */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ background: statusColor.bg, color: statusColor.color, borderRadius: 12, padding: '2px 10px', fontSize: 12, fontWeight: 600, marginRight: 8 }}>{event.status?.toUpperCase()}</span>
-            <span style={{ color: '#4A60E8', fontWeight: 600, fontSize: 13 }}>
+          <div
+            style={{ display: "flex", alignItems: "center", marginBottom: 12 }}
+          >
+            <span
+              style={{
+                background: statusColor.bg,
+                color: statusColor.color,
+                borderRadius: 12,
+                padding: "2px 10px",
+                fontSize: 12,
+                fontWeight: 600,
+                marginRight: 8,
+              }}
+            >
+              {event.status?.toUpperCase()}
+            </span>
+            <span style={{ color: "#4A60E8", fontWeight: 600, fontSize: 13 }}>
               {event.registeredParticipants || 0}/{event.expectedParticipants}
             </span>
             {/* Share button */}
-            <button onClick={handleShare} style={{ marginLeft: 'auto', background: '#F8F9FA', border: 'none', borderRadius: 8, padding: '4px 12px', cursor: 'pointer', color: '#4A60E8', fontWeight: 500 }}>Chia sẻ</button>
+            <button
+              onClick={handleShare}
+              style={{
+                marginLeft: "auto",
+                background: "#F8F9FA",
+                border: "none",
+                borderRadius: 8,
+                padding: "4px 12px",
+                cursor: "pointer",
+                color: "#4A60E8",
+                fontWeight: 500,
+              }}
+            >
+              Chia sẻ
+            </button>
           </div>
           {/* Avatars participants (demo) */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
+          <div
+            style={{ display: "flex", alignItems: "center", marginBottom: 16 }}
+          >
             {mockParticipants.map((p, idx) => (
               <img
                 key={idx}
                 src={p.avatar}
                 alt={p.name}
-                style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid #fff', marginLeft: idx === 0 ? 0 : -12 }}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "50%",
+                  border: "2px solid #fff",
+                  marginLeft: idx === 0 ? 0 : -12,
+                }}
               />
             ))}
-            <span style={{ marginLeft: 12, color: '#4A60E8', fontWeight: 600 }}>
+            <span style={{ marginLeft: 12, color: "#4A60E8", fontWeight: 600 }}>
               +{event.registeredParticipants || 0} Going
             </span>
           </div>
           <h2 style={{ fontSize: 28, marginBottom: 8 }}>{event.title}</h2>
-          <p style={{ color: "#888", fontSize: 15, margin: 0, marginBottom: 12 }}>
+          <p
+            style={{ color: "#888", fontSize: 15, margin: 0, marginBottom: 12 }}
+          >
             {new Date(event.startTime).toLocaleString()} - {event.address}
           </p>
           {/* Contact */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
             {event.contactPhone && (
-              <a href={`tel:${event.contactPhone}`} style={{ color: '#00B074', textDecoration: 'none', fontWeight: 500 }}>Gọi điện</a>
+              <a
+                href={`tel:${event.contactPhone}`}
+                style={{
+                  color: "#00B074",
+                  textDecoration: "none",
+                  fontWeight: 500,
+                }}
+              >
+                Gọi điện
+              </a>
             )}
             {event.contactEmail && (
-              <a href={`mailto:${event.contactEmail}`} style={{ color: '#4A60E8', textDecoration: 'none', fontWeight: 500 }}>Email</a>
+              <a
+                href={`mailto:${event.contactEmail}`}
+                style={{
+                  color: "#4A60E8",
+                  textDecoration: "none",
+                  fontWeight: 500,
+                }}
+              >
+                Email
+              </a>
             )}
           </div>
           <div style={{ margin: "16px 0" }}>
@@ -125,23 +186,34 @@ const EventDetail: React.FC = () => {
             </div>
           </div>
           {/* Đăng ký tham gia */}
-          <div style={{ marginTop: 32, display: 'flex', gap: 16, alignItems: 'center' }}>
+          <div
+            style={{
+              marginTop: 32,
+              display: "flex",
+              gap: 16,
+              alignItems: "center",
+            }}
+          >
             <button
               onClick={handleRegister}
               disabled={isRegistered || registering}
               style={{
-                background: isRegistered ? '#4CAF50' : '#FF6B6B',
-                color: '#fff',
-                border: 'none',
+                background: isRegistered ? "#4CAF50" : "#FF6B6B",
+                color: "#fff",
+                border: "none",
                 borderRadius: 12,
-                padding: '12px 32px',
+                padding: "12px 32px",
                 fontWeight: 600,
                 fontSize: 16,
-                cursor: isRegistered || registering ? 'not-allowed' : 'pointer',
+                cursor: isRegistered || registering ? "not-allowed" : "pointer",
                 opacity: isRegistered || registering ? 0.7 : 1,
               }}
             >
-              {registering ? 'Đang đăng ký...' : isRegistered ? 'Đã đăng ký' : 'Đăng ký tham gia'}
+              {registering
+                ? "Đang đăng ký..."
+                : isRegistered
+                ? "Đã đăng ký"
+                : "Đăng ký tham gia"}
             </button>
             <Link
               to="/events"
