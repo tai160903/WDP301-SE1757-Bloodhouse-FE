@@ -27,6 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { instance } from "@/services/instance"
+import toast, { Toaster } from "react-hot-toast"
 
 // Enhanced Schema with time validation
 const formSchema = z
@@ -98,6 +99,8 @@ export function BloodDonationRegistrationForm({
   const [bloodComponents, setBloodComponents] = useState<{ id: string; name: string; description?: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [errorLoading, setErrorLoading] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [formKey, setFormKey] = useState(0) // Added to force form re-render
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -386,6 +389,7 @@ export function BloodDonationRegistrationForm({
                             <SelectItem key={bc.id} value={bc.id}>
                               <div className="flex flex-col">
                                 <span className="font-medium">{bc.name}</span>
+                                <span className="text-sm text-gray-500">{bc.description || "Không có mô tả"}</span>
                               </div>
                             </SelectItem>
                           ))}
@@ -413,11 +417,13 @@ export function BloodDonationRegistrationForm({
                           <SelectItem value="Tự nguyện">
                             <div className="flex flex-col">
                               <span className="font-medium">Tự nguyện</span>
+                              <span className="text-sm text-gray-500">Hiến máu tình nguyện</span>
                             </div>
                           </SelectItem>
                           <SelectItem value="Yêu cầu">
                             <div className="flex flex-col">
                               <span className="font-medium">Theo yêu cầu</span>
+                              <span className="text-sm text-gray-500">Hiến máu theo yêu cầu cụ thể</span>
                             </div>
                           </SelectItem>
                         </SelectContent>
@@ -564,6 +570,35 @@ export function BloodDonationRegistrationForm({
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                form.setValue("facilityId", "")
+                form.setValue("bloodGroupId", "")
+                form.setValue("bloodComponentId", "")
+                form.setValue("source", "Tự nguyện")
+                form.setValue("time", "")
+                form.setValue("notes", "")
+                form.setValue("date", undefined)
+                form.reset({
+                  facilityId: "",
+                  bloodGroupId: "",
+                  bloodComponentId: "",
+                  source: "Tự nguyện",
+                  notes: "",
+                  time: "",
+                  date: undefined,
+                })
+                toast.dismiss()
+                setFormStatus(null)
+                setFormKey((prev) => prev + 1) // Force form re-render
+              }}
+              className="flex-1 h-12 hover:bg-red-50 hover:text-red-600 border-red-200"
+              disabled={submitting}
+            >
+              Đặt lại form
+            </Button>
             <Button
               type="submit"
               className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
