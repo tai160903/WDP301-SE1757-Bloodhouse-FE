@@ -18,7 +18,7 @@ export function BlogSection() {
 
   const fetchBlogPosts = async () => {
     const response: any = await getAll();
-    console.log("Fetched blog posts:", response.data.data);
+    // console.log("Fetched blog posts:", response.data.data);
     setBlog(response.data.data || []);
   };
 
@@ -92,7 +92,9 @@ export function BlogSection() {
                 {formatDate(post?.createdAt, "dd/MM/yyyy HH:mm")}
               </div>
               <CardTitle className="line-clamp-1">{post?.title}</CardTitle>
-              <CardDescription>Tác giả: {post?.authorId?.fullName}</CardDescription>
+              <CardDescription>
+                Tác giả: {post?.authorId?.fullName}
+              </CardDescription>
             </CardHeader>
 
             <CardFooter>

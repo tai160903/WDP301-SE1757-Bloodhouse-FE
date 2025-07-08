@@ -39,6 +39,9 @@ import { getFacilities } from "@/services/location/facility";
 import { getBloodGroups } from "@/services/bloodGroup/blood-group";
 import { getBloodComponents } from "@/services/bloodComponent/blood-component";
 import { createBloodRequest } from "@/services/bloodRequest";
+import { toast } from "sonner";
+import useAuth from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const FormInput = forwardRef<HTMLInputElement, any>((props, ref) => (
   <Input {...props} ref={ref} />
@@ -143,6 +146,17 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
   const [bloodGroups, setBloodGroups] = useState<any[]>([]);
   const [bloodComponents, setBloodComponents] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
+  const { isAuthenticated, loading: authLoading } = useAuth();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate("/auth/login");
+      toast.error("Vui lớng đăng nhập trước khi sử dụng tính năng này");
+    }
+    window.scrollTo(0, 0);
+  }, [isAuthenticated, authLoading, navigate]);
 
   useEffect(() => {
     const fetchBloodGroups = async () => {
@@ -219,7 +233,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
     const totalFiles = [...currentFiles, ...newFiles];
 
     if (totalFiles.length > 5) {
-      alert("Tối đa 5 tài liệu y tế được phép");
+      toast.error("Tối đa 5 tài liệu y tế được phép");
       return;
     }
 
@@ -251,13 +265,11 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
         values.medicalDocuments
       );
 
-      console.log(values);
-
-      alert("Yêu cầu đã được gửi thành công!");
+      toast.success("Yêu cầu máu đã được gửi");
       form.reset();
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Có lỗi xảy ra khi gửi yêu cầu");
+      toast.error("Có lỗi xảy ra khi gửi yêu cầu");
     } finally {
       setIsSubmitting(false);
     }

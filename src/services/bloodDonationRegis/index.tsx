@@ -5,8 +5,7 @@ const getBloodDonationRegis = async (): Promise<any> => {
     const { data } = await instance.get<any & { data: any[] }>(
       "/blood-donation-registration/facility/all"
     );
-    console.log(data.data.data);
-    return data.data.data;
+    return data.data;
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
@@ -46,7 +45,6 @@ export const bloodDonationRegisDetail = async (id): Promise<any> => {
     const { data } = await instance.get<any & { data: any[] }>(
       `/blood-donation-registration/${id}`
     );
-    console.log(data);
     return data.data;
   } catch (err) {
     console.log("Have some error when call api:", err);
