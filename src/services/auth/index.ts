@@ -25,6 +25,9 @@ interface RegisterResponse extends IResponse.Response {
   };
 }
 
+// Đổi tên interface để không trùng với hàm
+interface ForgotPasswordResponse extends IResponse.Response<null> {}
+
 const login = async (
   emailOrPhone: string,
   password: string
@@ -35,9 +38,9 @@ const login = async (
       { emailOrPhone, password },
       { withCredentials: true }
     );
-    return data;  
+    return data;
   } catch (error: any) {
-    throw new Error(error?.response?.message || "Login failed");
+    throw new Error(error?.response?.data?.message || "Login failed");
   }
 };
 
@@ -51,9 +54,17 @@ const register = async (
     );
     return responseData;
   } catch (error: any) {
-    throw new Error(error.response?.data?.message || "Registration failed");
+    throw new Error(error?.response?.data?.message || "Registration failed");
   }
 };
 
+const forgotPassword = async (email: string): Promise<ForgotPasswordResponse> => {
+  try {
+    const { data } = await instance.post("/user/forgot-password", { email });
+    return data;
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Gửi yêu cầu thất bại");
+  }
+};
 
-export { login, register };
+export { login, register, forgotPassword };

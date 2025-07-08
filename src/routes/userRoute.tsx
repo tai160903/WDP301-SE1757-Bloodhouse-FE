@@ -19,7 +19,8 @@ import BloodRequestDetail from "@/pages/Profile/BloodRequestHistory/BloodRequest
 import BloodDonationDetail from "@/pages/Profile/BloodDonationHistory/BloodDonationHistoryDetail";
 import FacilityDetail from "@/pages/home/components/facilityDetail";
 import Facility from "@/pages/location/facility/Facility";
-import React from "react";
+import ChangePassword from "@/pages/auth/change-password/ChangePassword";
+
 
 const userRoutes = [
   {
@@ -122,6 +123,10 @@ const userRoutes = [
     path: "locations",
     element: <Facility />,
   },
+  {
+    path: "/reset-password",
+    element: <ChangePassword />,
+  }
 ];
 
 export default userRoutes;

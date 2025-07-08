@@ -10,6 +10,6 @@ console.log("🌍 Environment:", {
   BASE_WS,
   DEV: import.meta.env.DEV,
   PROD: import.meta.env.PROD
-});
+}); 
 
 export { BASE_URL, BASE_WS, MODE };
