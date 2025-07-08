@@ -27,7 +27,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
 import { instance } from "@/services/instance"
-import toast, { Toaster } from "react-hot-toast"
 
 // Enhanced Schema with time validation
 const formSchema = z
@@ -99,8 +98,6 @@ export function BloodDonationRegistrationForm({
   const [bloodComponents, setBloodComponents] = useState<{ id: string; name: string; description?: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [errorLoading, setErrorLoading] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [formKey, setFormKey] = useState(0) // Added to force form re-render
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

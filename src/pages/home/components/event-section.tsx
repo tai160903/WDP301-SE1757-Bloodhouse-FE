@@ -17,7 +17,7 @@ export function EventSection() {
 
   const fetchBlogPosts = async () => {
     const response: any = await getAllEvents();
-    console.log("Fetched blog posts:", response.data.data);
+    // console.log("Fetched blog posts:", response.data.data);
     setEvent(response.data.data || []);
   };
 

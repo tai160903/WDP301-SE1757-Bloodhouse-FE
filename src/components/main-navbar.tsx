@@ -281,7 +281,7 @@ export function MainNavbar() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="relative h-8 w-8 rounded-full hidden md:flex hover:bg-red-50 transition-colors duration-200"
+                      className="px-3 py-1 rounded-full hidden md:flex items-center gap-2 hover:bg-transparent transition-none"
                       data-testid="user-button"
                     >
                       <Avatar className="h-8 w-8">
@@ -295,6 +295,7 @@ export function MainNavbar() {
                             : "U"}
                         </AvatarFallback>
                       </Avatar>
+                      <a>Xin chào, {user?.fullName || ""}</a>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
