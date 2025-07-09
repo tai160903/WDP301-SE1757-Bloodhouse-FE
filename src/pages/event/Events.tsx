@@ -1,8 +1,6 @@
-import useAuth from "@/hooks/useAuth";
 import { getAllEvents } from "@/services/event";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 const EVENT_CATEGORIES = [
   { id: "all", name: "Tất cả" },
@@ -29,17 +27,6 @@ const Events: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [filteredEvents, setFilteredEvents] = useState<any[]>([]);
-  const { isAuthenticated, loading: authLoading } = useAuth();
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate("/auth/login");
-      toast.error("Vui lớng đăng nhập trước khi sử dụng tính năng này");
-    }
-    window.scrollTo(0, 0);
-  }, [isAuthenticated, authLoading, navigate]);
 
   useEffect(() => {
     window.scrollTo(0, 0);

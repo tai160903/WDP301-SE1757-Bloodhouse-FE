@@ -15,8 +15,12 @@ import { BloodDonationRegistrationForm } from "./components/BloodDonationRegistr
 import { BloodDonationProcess } from "./components/BloodDonationProcess";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, CheckCircle2, AlertCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+import useAuth from "@/hooks/useAuth";
 
 export default function BloodDonationRegistrationPage() {
+  const { isAuthenticated } = useAuth();
+
   const [formStatus, setFormStatus] = useState<{
     type: "success" | "error";
     message: string;
@@ -69,9 +73,30 @@ export default function BloodDonationRegistrationPage() {
         <Info className="h-4 w-4" />
         <AlertTitle>Thông tin quan trọng</AlertTitle>
         <AlertDescription>
-          Vui lòng đảm bảo bạn đáp ứng các tiêu chí trước khi đăng ký. Bạn phải
-          ít nhất 18 tuổi, nặng ít nhất 50kg, và có sức khỏe tốt. Bạn không nên
-          hiến máu nếu đã hiến trong vòng 56 ngày qua.
+          <p>
+            Vui lòng đảm bảo bạn đáp ứng các tiêu chí trước khi đăng ký. Bạn
+            phải ít nhất 18 tuổi, nặng ít nhất 50kg, và có sức khỏe tốt. Bạn
+            không nên hiến máu nếu đã hiến trong vòng 56 ngày qua.
+          </p>
+
+          {!isAuthenticated && (
+            <>
+              <p>
+                Ngoài ra bạn cần phải đăng nhập để đảm bảo việc đăng ký hiến máu
+                diễn ra suôn sẻ.{" "}
+                <Link to="/auth/login" className="font-bold text-red-500">
+                  Nhấn vào đây
+                </Link>{" "}
+                để đăng nhập.
+              </p>
+              <p>
+                Đăng ký tài khoản đơn giản và miễn phí{" "}
+                <Link to="/auth/register" className="font-bold text-red-500">
+                  tại đây.
+                </Link>
+              </p>
+            </>
+          )}
         </AlertDescription>
       </Alert>
 
