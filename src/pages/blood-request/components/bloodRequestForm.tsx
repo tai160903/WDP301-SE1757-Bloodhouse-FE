@@ -41,7 +41,6 @@ import { getBloodComponents } from "@/services/bloodComponent/blood-component";
 import { createBloodRequest } from "@/services/bloodRequest";
 import { toast } from "sonner";
 import useAuth from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
 
 const FormInput = forwardRef<HTMLInputElement, any>((props, ref) => (
   <Input {...props} ref={ref} />
@@ -146,17 +145,7 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
   const [bloodGroups, setBloodGroups] = useState<any[]>([]);
   const [bloodComponents, setBloodComponents] = useState<any[]>([]);
   const [facilities, setFacilities] = useState<any[]>([]);
-  const { isAuthenticated, loading: authLoading } = useAuth();
-
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      navigate("/auth/login");
-      toast.error("Vui lớng đăng nhập trước khi sử dụng tính năng này");
-    }
-    window.scrollTo(0, 0);
-  }, [isAuthenticated, authLoading, navigate]);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchBloodGroups = async () => {
@@ -719,62 +708,126 @@ export function BloodRequestForm({ isUrgent }: BloodRequestFormProps) {
         </Card>
 
         {/* Consent */}
-        <Card>
-          <CardContent className="p-6">
-            <FormField
-              control={form.control}
-              name="consent"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel className="text-sm font-medium">
-                      Tôi xác nhận tất cả thông tin được cung cấp là chính xác
-                      và đầy đủ *
-                    </FormLabel>
-                    <FormDescription className="text-xs">
-                      Bằng cách đánh dấu vào ô này, bạn đồng ý với việc xử lý
-                      yêu cầu này và chia sẻ thông tin liên quan với người hiến
-                      máu tiềm năng.
-                    </FormDescription>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
+        {!isAuthenticated ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="opacity-50 pointer-events-none">
+                <FormField
+                  control={form.control}
+                  name="consent"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-medium">
+                          Tôi xác nhận tất cả thông tin được cung cấp là chính
+                          xác và đầy đủ *
+                        </FormLabel>
+                        <FormDescription className="text-xs">
+                          Bằng cách đánh dấu vào ô này, bạn đồng ý với việc xử
+                          lý yêu cầu này và chia sẻ thông tin liên quan với
+                          người hiến máu tiềm năng.
+                        </FormDescription>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="p-6">
+              <FormField
+                control={form.control}
+                name="consent"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-medium">
+                        Tôi xác nhận tất cả thông tin được cung cấp là chính xác
+                        và đầy đủ *
+                      </FormLabel>
+                      <FormDescription className="text-xs">
+                        Bằng cách đánh dấu vào ô này, bạn đồng ý với việc xử lý
+                        yêu cầu này và chia sẻ thông tin liên quan với người
+                        hiến máu tiềm năng.
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Submit Buttons */}
-        <div className="flex justify-end gap-4">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={() => form.reset()}
-            disabled={isSubmitting}
-          >
-            Hủy bỏ
-          </Button>
-          <Button
-            type="submit"
-            className={cn(
-              "min-w-[150px]",
-              isUrgent && "bg-red-600 hover:bg-red-700"
-            )}
-            disabled={isSubmitting}
-          >
-            {isSubmitting
-              ? "Đang gửi..."
-              : isUrgent
-              ? "Gửi yêu cầu khẩn cấp"
-              : "Gửi yêu cầu"}
-          </Button>
-        </div>
+        {!isAuthenticated ? (
+          <>
+            <div className="flex justify-end gap-4">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => form.reset()}
+                disabled={!isAuthenticated}
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                type="submit"
+                className={cn(
+                  "min-w-[150px]",
+                  isUrgent && "bg-red-600 hover:bg-red-700"
+                )}
+                disabled={!isAuthenticated}
+              >
+                Gửi yêu cầu
+              </Button>
+            </div>
+            <div className="text-sm text-muted-foreground flex align-middle">
+              <span className="text-red-600">*</span>
+              Vui lòng để đăng nhập để yêu cầu máu
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-end gap-4">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => form.reset()}
+              disabled={isSubmitting}
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              type="submit"
+              className={cn(
+                "min-w-[150px]",
+                isUrgent && "bg-red-600 hover:bg-red-700"
+              )}
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Đang gửi..."
+                : isUrgent
+                ? "Gửi yêu cầu khẩn cấp"
+                : "Gửi yêu cầu"}
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );
