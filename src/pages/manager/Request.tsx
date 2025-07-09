@@ -132,12 +132,17 @@ export default function Requests() {
   const staffId = user?._id;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
   const fetchDonationRequests = async () => {
     setLoading(true);
     try {
-      const data = await getBloodDonationRegis();
-      console.log(data);
+      const data = await getBloodDonationRegis({
+        page: currentPage,
+        limit: limit,
+      });
+      
+      const {data: items, metadata} = data;
 
       const urgencyPriority: Record<string, number> = {
         Emergency: 1,
@@ -145,23 +150,36 @@ export default function Requests() {
         Routine: 3,
       };
 
-      const mapped = data.data.sort((a, b) => {
-        const isAWaiting =
-          a.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
-            ? 0
-            : 1;
-        const isBWaiting =
-          b.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
-            ? 0
-            : 1;
-        if (isAWaiting !== isBWaiting) return isAWaiting - isBWaiting;
+      // const mapped = data.data.sort((a, b) => {
+      //   const isAWaiting =
+      //     a.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+      //       ? 0
+      //       : 1;
+      //   const isBWaiting =
+      //     b.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+      //       ? 0
+      //       : 1;
+      //   if (isAWaiting !== isBWaiting) return isAWaiting - isBWaiting;
 
-        const priorityA = urgencyPriority[a.urgency] ?? 99;
-        const priorityB = urgencyPriority[b.urgency] ?? 99;
-        return priorityA - priorityB;
-      });
+      //   const priorityA = urgencyPriority[a.urgency] ?? 99;
+      //   const priorityB = urgencyPriority[b.urgency] ?? 99;
+      //   return priorityA - priorityB;
+      // });
+
+      const mapped = items.sort((a, b) => {
+      const isAWaiting =
+        a.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL ? 0 : 1;
+      const isBWaiting =
+        b.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL ? 0 : 1;
+      if (isAWaiting !== isBWaiting) return isAWaiting - isBWaiting;
+
+      const priorityA = urgencyPriority[a.urgency] ?? 99;
+      const priorityB = urgencyPriority[b.urgency] ?? 99;
+      return priorityA - priorityB;
+    });
 
       setDonationRequests(mapped);
+      setTotalPages(metadata.totalPages);
     } catch {
       setFormStatus({
         type: "error",
@@ -174,7 +192,7 @@ export default function Requests() {
 
   useEffect(() => {
     fetchDonationRequests();
-  }, []);
+  }, [currentPage]);
 
   const handleUpdateStatus = async (
     requestId: string,

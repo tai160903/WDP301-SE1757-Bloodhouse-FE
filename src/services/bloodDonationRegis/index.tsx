@@ -1,9 +1,22 @@
 import { instance } from "../instance";
 
-const getBloodDonationRegis = async (): Promise<any> => {
+const getBloodDonationRegis = async (params: any): Promise<any> => {
   try {
     const { data } = await instance.get<any & { data: any[] }>(
-      "/blood-donation-registration/facility/all"
+      "/blood-donation-registration/facility/all",
+      {
+        params: {
+          page: params.page ?? 1,
+          limit: params.limit ?? 10,
+          status: params.status,
+          search: params.search,
+          startDate: params.startDate,
+          endDate: params.endDate,
+          bloodGroupId: params.bloodGroupId,
+          staffId: params.staffId,
+          includeStats: params.includeStats ?? false,
+        },
+      }
     );
     return data.data;
   } catch (error: any) {

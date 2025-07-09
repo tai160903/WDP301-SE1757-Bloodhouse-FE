@@ -104,6 +104,9 @@ function DonationManagement() {
   const [selectedDonation, setSelectedDonation] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [totalDonations, setTotalDonations] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 10;
 
   console.log(statusFilter);
   useEffect(() => {
@@ -111,12 +114,17 @@ function DonationManagement() {
       try {
         setLoading(true);
         const status = statusFilter === "all" ? "" : statusFilter;
-        const response = await getAllBloodDonation(status);
+        const response = await getAllBloodDonation({
+          status: status,
+          limit: limit,
+          page: currentPage,
+        });
         setTimeout(() => {
           setDonations(response.data);
           setTotalDonations(response.metadata.total);
           setLoading(false);
         }, 1000);
+        setTotalPages(response.metadata.totalPages);
       } catch (error) {
         console.error("Lỗi khi tải dữ liệu hiến máu:", error);
         setLoading(false);
@@ -124,7 +132,7 @@ function DonationManagement() {
     };
 
     fetchDonations();
-  }, [statusFilter, facilityId]);
+  }, [statusFilter, facilityId, currentPage]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("vi-VN", {
@@ -364,6 +372,27 @@ function DonationManagement() {
                   </TableBody>
                 </Table>
               )}
+              <div className="flex justify-between items-center mt-6">
+                <Button
+                  variant="outline"
+                  disabled={currentPage === 1}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                >
+                  Trang trước
+                </Button>
+                <span className="text-gray-600">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Trang sau
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
