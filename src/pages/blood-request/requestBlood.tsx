@@ -10,8 +10,12 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
 import { BloodRequestForm } from "./components/bloodRequestForm";
 import { useEffect } from "react";
+import useAuth from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 export default function RequestPage() {
+  const { isAuthenticated } = useAuth();
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -27,9 +31,30 @@ export default function RequestPage() {
         <Info className="h-4 w-4" />
         <AlertTitle>Thông Tin Quan Trọng</AlertTitle>
         <AlertDescription>
-          Đối với các tình huống khẩn cấp cần truyền máu ngay lập tức, vui lòng
-          liên hệ với dịch vụ cấp cứu trực tiếp theo số 115 hoặc liên hệ với
-          bệnh viện gần nhất. Biểu mẫu này dành cho nhu cầu máu theo lịch.
+          <p>
+            Đối với các tình huống khẩn cấp cần truyền máu ngay lập tức, vui
+            lòng liên hệ với dịch vụ cấp cứu trực tiếp theo số 115 hoặc liên hệ
+            với bệnh viện gần nhất. Biểu mẫu này dành cho nhu cầu máu theo lịch.
+          </p>
+
+          {!isAuthenticated && (
+            <>
+              <p>
+                Ngoài ra bạn cần phải đăng nhập để đảm bảo việc đăng ký hiến máu
+                diễn ra suôn sẻ.{" "}
+                <Link to="/auth/login" className="font-bold text-red-500">
+                  Nhấn vào đây
+                </Link>{" "}
+                để đăng nhập.
+              </p>
+              <p>
+                Đăng ký tài khoản đơn giản và miễn phí{" "}
+                <Link to="/auth/register" className="font-bold text-red-500">
+                  tại đây.
+                </Link>
+              </p>
+            </>
+          )}
         </AlertDescription>
       </Alert>
 

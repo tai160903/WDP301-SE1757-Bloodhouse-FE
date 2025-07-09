@@ -1,3 +1,4 @@
+import useAuth from "@/hooks/useAuth";
 import { getEventById } from "@/services/event";
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
@@ -28,6 +29,7 @@ const EventDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -186,46 +188,93 @@ const EventDetail: React.FC = () => {
             </div>
           </div>
           {/* Đăng ký tham gia */}
-          <div
-            style={{
-              marginTop: 32,
-              display: "flex",
-              gap: 16,
-              alignItems: "center",
-            }}
-          >
-            <button
-              onClick={handleRegister}
-              disabled={isRegistered || registering}
+          {!isAuthenticated ? (
+            <>
+              <div
+                style={{
+                  marginTop: 32,
+                  display: "flex",
+                  gap: 16,
+                  alignItems: "center",
+                }}
+              >
+                <button
+                  onClick={handleRegister}
+                  disabled={!isAuthenticated}
+                  style={{
+                    background: isRegistered ? "#4CAF50" : "#FF6B6B",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 12,
+                    padding: "12px 32px",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    cursor:
+                      isRegistered || registering ? "not-allowed" : "pointer",
+                    opacity: isRegistered || registering ? 0.7 : 1,
+                  }}
+                >
+                  Đăng ký tham gia
+                </button>
+                <Link
+                  to="/events"
+                  style={{
+                    color: "#1976d2",
+                    textDecoration: "underline",
+                    fontWeight: 500,
+                  }}
+                >
+                  ← Quay lại danh sách
+                </Link>
+              </div>
+              <div className="text-sm text-muted-foreground flex align-middle">
+                <span className="text-red-600">*</span>
+                Vui lòng đăng nhập để đăng ký sự kiện
+              </div>
+            </>
+          ) : (
+            <div
               style={{
-                background: isRegistered ? "#4CAF50" : "#FF6B6B",
-                color: "#fff",
-                border: "none",
-                borderRadius: 12,
-                padding: "12px 32px",
-                fontWeight: 600,
-                fontSize: 16,
-                cursor: isRegistered || registering ? "not-allowed" : "pointer",
-                opacity: isRegistered || registering ? 0.7 : 1,
+                marginTop: 32,
+                display: "flex",
+                gap: 16,
+                alignItems: "center",
               }}
             >
-              {registering
-                ? "Đang đăng ký..."
-                : isRegistered
-                ? "Đã đăng ký"
-                : "Đăng ký tham gia"}
-            </button>
-            <Link
-              to="/events"
-              style={{
-                color: "#1976d2",
-                textDecoration: "underline",
-                fontWeight: 500,
-              }}
-            >
-              ← Quay lại danh sách
-            </Link>
-          </div>
+              <button
+                onClick={handleRegister}
+                disabled={isRegistered || registering}
+                style={{
+                  background: isRegistered ? "#4CAF50" : "#FF6B6B",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 12,
+                  padding: "12px 32px",
+                  fontWeight: 600,
+                  fontSize: 16,
+                  cursor:
+                    isRegistered || registering ? "not-allowed" : "pointer",
+                  opacity: isRegistered || registering ? 0.7 : 1,
+                }}
+              >
+                {registering
+                  ? "Đang đăng ký..."
+                  : isRegistered
+                  ? "Đã đăng ký"
+                  : "Đăng ký tham gia"}
+              </button>
+              <Link
+                to="/events"
+                style={{
+                  color: "#1976d2",
+                  textDecoration: "underline",
+                  fontWeight: 500,
+                }}
+              >
+                ← Quay lại danh sách
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>
