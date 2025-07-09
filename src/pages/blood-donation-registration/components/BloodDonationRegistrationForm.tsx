@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -53,12 +54,23 @@ import { instance } from "@/services/instance";
 import toast, { Toaster } from "react-hot-toast";
 import useAuth from "@/hooks/useAuth";
 
-// Enhanced Schema with time validation
+// Enhanced Schema with time and expected quantity validation
 const formSchema = z
   .object({
     facilityId: z.string().min(1, "Vui lòng chọn trung tâm hiến máu"),
+    source: z.enum(["Tự nguyện", "Yêu cầu"], {
+      required_error: "Vui lòng chọn hình thức hiến máu",
+    }),
     bloodGroupId: z.string().min(1, "Vui lòng chọn nhóm máu"),
-    bloodComponentId: z.string().min(1, "Vui lòng chọn thành phần máu"),
+    expectedQuantity: z
+      .number({
+        required_error: "Vui lòng nhập lượng máu",
+        invalid_type_error: "Lượng máu phải là một số",
+      })
+      .nonnegative("Lượng máu không được là số âm")
+      .min(100, "Lượng máu phải ít nhất 100 mL")
+      .max(500, "Lượng máu không được vượt quá 500 mL")
+      .optional(),
     date: z
       .date({
         required_error: "Vui lòng chọn ngày hiến máu",
@@ -67,14 +79,11 @@ const formSchema = z
         message: "Ngày hiến máu không thể là ngày trong quá khứ",
       }),
     time: z.string().min(1, "Vui lòng chọn giờ hiến máu"),
-    source: z.enum(["Tự nguyện", "Yêu cầu"], {
-      required_error: "Vui lòng chọn nguồn hiến máu",
-    }),
     notes: z.string().optional(),
   })
   .refine(
     ({ date, time }) => {
-      if (!date || !time || !isSameDay(date, new Date())) return true; // Allow any time for future dates
+      if (!date || !time || !isSameDay(date, new Date())) return true;
       const [hours, minutes] = time.split(":").map(Number);
       const selectedTime = new Date().setHours(hours, minutes, 0, 0);
       const now = new Date();
@@ -124,13 +133,10 @@ export function BloodDonationRegistrationForm({
   const [bloodGroups, setBloodGroups] = useState<
     { id: string; name: string }[]
   >([]);
-  const [bloodComponents, setBloodComponents] = useState<
-    { id: string; name: string; description?: string }[]
-  >([]);
   const [loading, setLoading] = useState(true);
   const [errorLoading, setErrorLoading] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [formKey, setFormKey] = useState(0); // Added to force form re-render
+  const [formKey, setFormKey] = useState(0);
 
   const { isAuthenticated } = useAuth();
 
@@ -138,30 +144,29 @@ export function BloodDonationRegistrationForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       facilityId: "",
-      bloodGroupId: "",
-      bloodComponentId: "",
       source: "Tự nguyện",
-      notes: "",
+      bloodGroupId: "",
+      expectedQuantity: undefined,
+      date: undefined,
       time: "",
+      notes: "",
     },
   });
 
-  const selectedDate = form.watch("date"); // Watch the date field to filter time slots
+  const selectedDate = form.watch("date");
 
-  // Reset time field when date changes to today
   useEffect(() => {
     if (selectedDate && isSameDay(selectedDate, new Date())) {
-      form.setValue("time", ""); // Clear time if today is selected
+      form.setValue("time", "");
     }
   }, [selectedDate, form]);
 
   useEffect(() => {
     const fetchAll = async () => {
       try {
-        const [fRes, bgRes, bcRes] = await Promise.all([
+        const [fRes, bgRes] = await Promise.all([
           instance.get("/facility"),
           instance.get("/blood-group"),
-          instance.get("/blood-component"),
         ]);
 
         setFacilities(
@@ -177,13 +182,6 @@ export function BloodDonationRegistrationForm({
             name: bg.name,
           }))
         );
-        setBloodComponents(
-          bcRes.data.data.map((bc: any) => ({
-            id: bc._id,
-            name: bc.name,
-            description: bc.description || "",
-          }))
-        );
       } catch (err) {
         console.error("Lỗi fetch dropdown:", err);
         setErrorLoading("Không thể tải dữ liệu, thử tải lại trang.");
@@ -195,7 +193,6 @@ export function BloodDonationRegistrationForm({
     fetchAll();
   }, []);
 
-  // Filter time slots based on selected date and current time
   const filteredTimeSlots =
     selectedDate && isSameDay(selectedDate, new Date())
       ? timeSlots.filter((time) => {
@@ -221,10 +218,10 @@ export function BloodDonationRegistrationForm({
 
       const payload = {
         facilityId: values.facilityId,
-        bloodGroupId: values.bloodGroupId,
-        bloodComponentId: values.bloodComponentId,
-        preferredDate,
         source: values.source,
+        bloodGroupId: values.bloodGroupId,
+        expectedQuantity: values.expectedQuantity ?? 0,
+        preferredDate,
         notes: values.notes,
       };
 
@@ -234,48 +231,52 @@ export function BloodDonationRegistrationForm({
         payload
       );
 
-      // Show success toast
       toast.success(
         data.message ||
           "Đăng ký hiến máu thành công! Chúng tôi sẽ liên hệ với bạn để xác nhận lịch hẹn.",
         { duration: 3000 }
       );
 
-      // Explicitly reset all fields
       form.setValue("facilityId", "");
-      form.setValue("bloodGroupId", "");
-      form.setValue("bloodComponentId", "");
       form.setValue("source", "Tự nguyện");
+      form.setValue("bloodGroupId", "");
+      form.setValue("expectedQuantity", undefined);
       form.setValue("time", "");
       form.setValue("notes", "");
       form.setValue("date", undefined);
 
-      // Reset form state and force re-render
       form.reset({
         facilityId: "",
-        bloodGroupId: "",
-        bloodComponentId: "",
         source: "Tự nguyện",
-        notes: "",
+        bloodGroupId: "",
+        expectedQuantity: undefined,
         time: "",
+        notes: "",
         date: undefined,
       });
-      setFormKey((prev) => prev + 1); // Force form re-render
-      console.log("Form state after reset:", form.getValues()); // Debug form state
+      setFormKey((prev) => prev + 1);
+      console.log("Form state after reset:", form.getValues());
 
-      // Clear toasts and formStatus after 3 seconds
       setTimeout(() => {
         toast.dismiss();
         setFormStatus(null);
       }, 3000);
       onSuccess?.(data);
     } catch (error: any) {
+      console.error("Submission error:", {
+        status: error.response?.status,
+        data: error.response?.data,
+        url: error.config?.url,
+        message: error.message,
+      });
       toast.error(
-        error?.response?.data?.message ||
-          "Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại sau.",
+        error?.response?.status === 404
+          ? "Không tìm thấy endpoint. Vui lòng kiểm tra backend hoặc gateway."
+          : error?.response?.data?.message ||
+              "Có lỗi xảy ra trong quá trình đăng ký. Vui lòng thử lại sau.",
         { duration: 8000 }
       );
-      setFormStatus({ type: "error", message: "" }); // Set empty formStatus to avoid Alert
+      setFormStatus({ type: "error", message: "" });
       onError?.(error);
     } finally {
       setSubmitting(false);
@@ -353,8 +354,8 @@ export function BloodDonationRegistrationForm({
                   control={form.control}
                   name="facilityId"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
+                    <FormItem className="flex flex-col flex-1 min-h-[100px]">
+                      <FormLabel className="flex items-center gap-2 mb-2">
                         <MapPin className="h-4 w-4 text-red-500" />
                         Trung tâm hiến máu
                       </FormLabel>
@@ -382,20 +383,48 @@ export function BloodDonationRegistrationForm({
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
+                      <FormMessage className="mt-2" />
                     </FormItem>
                   )}
                 />
-
-                {/* Nhóm máu */}
+                {/* Nguồn hiến máu */}
+                <FormField
+                  control={form.control}
+                  name="source"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col flex-1 min-h-[100px]">
+                      <FormLabel className="flex items-center gap-2 mb-2">
+                        <Heart className="h-4 w-4 text-red-500" />
+                        Hình thức hiến máu
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-12 w-full">
+                            <SelectValue placeholder="Chọn hình thức hiến máu" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Tự nguyện">Tự nguyện</SelectItem>
+                          <SelectItem value="Yêu cầu">Theo yêu cầu</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage className="mt-2" />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="bloodGroupId"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
+                    <FormItem className="flex flex-col flex-1 min-h-[100px]">
+                      <FormLabel className="flex items-center gap-2 mb-2">
                         <Droplets className="h-4 w-4 text-red-500" />
-                        Nhóm máu của bạn
+                        Nhóm máu
                       </FormLabel>
                       <Select
                         onValueChange={field.onChange}
@@ -419,75 +448,34 @@ export function BloodDonationRegistrationForm({
                           ))}
                         </SelectContent>
                       </Select>
-                      <FormMessage />
+                      <FormMessage className="mt-2" />
                     </FormItem>
                   )}
                 />
-
-                {/* Thành phần máu */}
                 <FormField
                   control={form.control}
-                  name="bloodComponentId"
+                  name="expectedQuantity"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        <Heart className="h-4 w-4 text-red-500" />
-                        Thành phần máu hiến
+                    <FormItem className="flex flex-col flex-1 min-h-[100px]">
+                      <FormLabel className="flex items-center gap-2 mb-2">
+                        <Droplets className="h-4 w-4 text-red-500" />
+                        Lượng máu dự kiến (mL)
                       </FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 w-full">
-                            <SelectValue placeholder="Chọn thành phần máu" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {bloodComponents.map((bc) => (
-                            <SelectItem key={bc.id} value={bc.id}>
-                              <div className="flex flex-col">
-                                <span className="font-medium">{bc.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Nguồn hiến máu */}
-                <FormField
-                  control={form.control}
-                  name="source"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Hình thức hiến máu</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-12 w-full">
-                            <SelectValue placeholder="Chọn hình thức" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Tự nguyện">
-                            <div className="flex flex-col">
-                              <span className="font-medium">Tự nguyện</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Yêu cầu">
-                            <div className="flex flex-col">
-                              <span className="font-medium">Theo yêu cầu</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Nhập lượng máu (mL)"
+                          className="h-9 w-full"
+                          min="0"
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? Number(e.target.value) : undefined
+                            )
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage className="mt-2" />
                     </FormItem>
                   )}
                 />
@@ -513,15 +501,18 @@ export function BloodDonationRegistrationForm({
                   control={form.control}
                   name="date"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Ngày hiến máu</FormLabel>
+                    <FormItem className="flex flex-col flex-1 min-h-[100px]">
+                      <FormLabel className="flex items-center gap-2 mb-2">
+                        <CalendarIcon className="h-4 w-4 text-red-500" />
+                        Ngày hiến máu
+                      </FormLabel>
                       <Popover>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
                               variant="outline"
                               className={cn(
-                                "h-12 pl-3 text-left font-normal hover:bg-red-50 hover:text-red-600",
+                                "h-9 w-full pl-3 text-left font-normal hover:bg-red-50 hover:text-red-600",
                                 !field.value && "text-muted-foreground"
                               )}
                             >
@@ -541,7 +532,7 @@ export function BloodDonationRegistrationForm({
                             onSelect={(date) => {
                               field.onChange(date);
                               if (date && isSameDay(date, new Date())) {
-                                form.setValue("time", ""); // Reset time if today is selected
+                                form.setValue("time", "");
                               }
                             }}
                             disabled={(date) =>
@@ -552,7 +543,7 @@ export function BloodDonationRegistrationForm({
                           />
                         </PopoverContent>
                       </Popover>
-                      <FormMessage />
+                      <FormMessage className="mt-2" />
                     </FormItem>
                   )}
                 />
@@ -562,8 +553,8 @@ export function BloodDonationRegistrationForm({
                   control={form.control}
                   name="time"
                   render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
+                    <FormItem className="flex flex-col flex-1 min-h-[100px]">
+                      <FormLabel className="flex items-center gap-2 mb-2">
                         <Clock className="h-4 w-4 text-red-500" />
                         Giờ hiến máu
                       </FormLabel>
@@ -605,7 +596,7 @@ export function BloodDonationRegistrationForm({
                           </AlertDescription>
                         </Alert>
                       )}
-                      <FormMessage />
+                      <FormMessage className="mt-2" />
                     </FormItem>
                   )}
                 />
@@ -637,7 +628,7 @@ export function BloodDonationRegistrationForm({
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="mt-2" />
                   </FormItem>
                 )}
               />
@@ -653,15 +644,13 @@ export function BloodDonationRegistrationForm({
                   className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                   disabled={!isAuthenticated}
                 >
-                  <>
-                    <Heart className="mr-2 h-4 w-4" />
-                    Đăng ký hiến máu
-                  </>
+                  <Heart className="mr-2 h-4 w-4" />
+                  Đăng ký hiến máu
                 </Button>
               </div>
-              <div className="text-sm text-muted-foreground flex align-middle">
-                <span className="text-red-600">*</span>
-                Vui lòng để đăng nhập để đăng ký hiến máu
+              <div className="text-sm text-muted-foreground flex items-center">
+                <span className="text-red-600 mr-1">*</span>
+                Vui lòng đăng nhập để đăng ký hiến máu
               </div>
             </>
           ) : (
