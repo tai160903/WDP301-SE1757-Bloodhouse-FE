@@ -150,6 +150,7 @@ export const create = async (
   role: string
 ): Promise<BlogResponse> => {
   try {
+    console.log("Creating blog with role:", role);
     if (role === "ADMIN") {
       const response = await instance.post<BlogResponse>(
         "/content/admin",

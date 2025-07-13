@@ -28,7 +28,18 @@ interface FormErrors {
 
 const Login = () => {
   const navigate = useNavigate();
-  const { signIn, loading, error, clearError, isAuthenticated } = useAuth();
+  const {
+    signIn,
+    loading,
+    error,
+    clearError,
+    isAuthenticated,
+    isAdmin,
+    isManager,
+    isDoctor,
+    isNurse,
+    isStaff,
+  } = useAuth();
 
   const [formData, setFormData] = useState<LoginFormData>({
     emailOrPhone: "",
@@ -41,9 +52,15 @@ const Login = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/", { replace: true });
+      if (isAdmin) {
+        navigate("/admin", { replace: true });
+      } else if (isManager || isNurse || isDoctor || isStaff) {
+        navigate("/manager", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, isAdmin, isManager]);
 
   // Clear auth errors when component unmounts
   useEffect(() => {
@@ -106,7 +123,6 @@ const Login = () => {
           emailOrPhone: formData.emailOrPhone.trim(),
           password: formData.password,
         });
-        // Navigation will be handled by useEffect when isAuthenticated becomes true
       } catch (err) {
         console.error("Đăng nhập thất bại:", err);
         // Error is handled by Redux and will show in the error state

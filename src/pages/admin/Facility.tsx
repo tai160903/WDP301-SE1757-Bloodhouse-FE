@@ -116,7 +116,7 @@ function FacilityManagement() {
           Object.values(counts).reduce((sum, count) => sum + count, 0)
         );
       } catch (error) {
-        console.error("Error fetching total staff:", error);
+        console.error("Lỗi truy vấn nhân viên", error);
       }
     };
     if (facilities.length > 0) {
@@ -129,7 +129,7 @@ function FacilityManagement() {
       const response = await getFacilities();
       setFacilities(response?.data?.result || []);
     } catch (error) {
-      console.error("Error fetching facilities:", error);
+      console.error("Lỗi truy vấn cơ sở", error);
     }
   };
 
@@ -138,7 +138,7 @@ function FacilityManagement() {
       const response = await getBloodInventory();
       setBloodInventory(response?.data || []);
     } catch (error) {
-      console.error("Error fetching blood inventory:", error);
+      console.error("Lỗi truy vấn kho máu", error);
     }
   };
 
@@ -214,10 +214,10 @@ function FacilityManagement() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Facility Management
+                Quản lý cơ sở hiến máu
               </h1>
               <p className="text-gray-600 mt-1">
-                Monitor and manage blood donation facilities
+                Theo dõi và quản lý các cơ sở hiến máu
               </p>
             </div>
           </div>
@@ -226,7 +226,7 @@ function FacilityManagement() {
             onClick={() => setIsCreateModalOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add New Facility
+            Thêm cơ sở mới
           </Button>
         </div>
 
@@ -237,7 +237,7 @@ function FacilityManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Facilities
+                    Tổng số cơ sở
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {facilities.length}
@@ -253,7 +253,7 @@ function FacilityManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Active Facilities
+                    Cơ sở đang hoạt động
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {facilities.filter((facility) => facility.isActive).length}
@@ -269,14 +269,14 @@ function FacilityManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Capacity
+                    Tổng số lượng máu
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {bloodInventory
                       .reduce((total, item) => total + item.totalQuantity, 0)
                       .toLocaleString()}
                   </p>
-                  <p className="text-xs text-gray-500">units</p>
+                  <p className="text-xs text-gray-500">đơn vị</p>
                 </div>
                 <Warehouse className="h-8 w-8 text-blue-500" />
               </div>
@@ -288,7 +288,7 @@ function FacilityManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Staff
+                    Tổng số nhân viên
                   </p>
                   <p className="text-2xl font-bold text-gray-900">
                     {totalStaff.toLocaleString()}
@@ -305,7 +305,7 @@ function FacilityManagement() {
           <CardHeader className="bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-t-lg">
             <CardTitle className="text-xl font-semibold flex items-center gap-2 py-4">
               <Building2 className="h-5 w-5" />
-              Facility Directory
+              Danh sách cơ sở
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -314,7 +314,7 @@ function FacilityManagement() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search facilities by name, location, or phone..."
+                placeholder="Tìm kiếm cơ sở theo tên, địa chỉ hoặc số điện thoại..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 h-12 text-base border-2 focus:border-slate-300"
@@ -327,19 +327,19 @@ function FacilityManagement() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="font-semibold text-gray-700">
-                      Facility Information
+                      Thông tin cơ sở
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Location & Contact
+                      Địa chỉ & Liên hệ
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Operations
+                      Hoạt động
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Status
+                      Trạng thái
                     </TableHead>
                     <TableHead className="font-semibold text-gray-700">
-                      Actions
+                      Thao tác
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -378,16 +378,13 @@ function FacilityManagement() {
                                 {facility.schedules &&
                                 facility.schedules.length > 0
                                   ? `${facility.schedules[0].openTime} - ${facility.schedules[0].closeTime}`
-                                  : "No schedule"}
+                                  : "Không có lịch hoạt động"}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                               <Users className="h-3 w-3" />
                               <span>
-                                {staffCounts[facility._id] ?? 0}{" "}
-                                {(staffCounts[facility._id] ?? 0) === 1
-                                  ? "staff member"
-                                  : "staff members"}
+                                {staffCounts[facility._id] ?? 0} nhân viên
                               </span>
                             </div>
                           </div>
@@ -432,11 +429,11 @@ function FacilityManagement() {
               <div className="text-center py-12">
                 <Building2 className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No facilities found
+                  Không tìm thấy cơ sở nào
                 </h3>
                 <p className="text-gray-500">
-                  No facilities match your search criteria. Try adjusting your
-                  search terms.
+                  Không có cơ sở nào phù hợp với tiêu chí tìm kiếm. Vui lòng thử
+                  lại với từ khóa khác.
                 </p>
               </div>
             )}

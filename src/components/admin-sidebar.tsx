@@ -27,10 +27,9 @@ import useAuth from "@/hooks/useAuth";
 import * as React from "react";
 
 const sidebarItems = [
-  { name: "Thống kê", path: "/admin/", icon: faChartLine },
-  { name: "Người dùng", path: "/admin/users", icon: faUsers },
+  { name: "Người dùng", path: "/admin", icon: faUsers },
   { name: "Nhân viên", path: "/admin/staffs", icon: faUserTie },
-  { name: "Đơn vị", path: "/admin/facilities", icon: faHospital },
+  { name: "Cơ sở", path: "/admin/facilities", icon: faHospital },
   { name: "Bài viết", path: "/admin/blogs", icon: faNewspaper },
   { name: "Nhóm máu", path: "/admin/blood-groups", icon: faDroplet },
   { name: "Thành phần máu", path: "/admin/blood-components", icon: faFlask },
@@ -88,7 +87,7 @@ function AdminSidebar() {
           {sidebarItems.map((item) => {
             const isActive =
               location.pathname === item.path ||
-              (item.path !== "/admin/" &&
+              (item.path !== "/admin" &&
                 location.pathname.startsWith(item.path));
 
             return (

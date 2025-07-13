@@ -26,6 +26,7 @@ import {
   Blog,
   Category,
 } from "../services/blog";
+import useAuth from "@/hooks/useAuth";
 
 const quillModules = {
   toolbar: [
@@ -57,8 +58,12 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
   const { id } = useParams();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const role: string | null = params.get("role");
-
+  const { isAdmin, isManager, isDoctor, isNurse, isStaff } = useAuth();
+  const role = isAdmin
+    ? "ADMIN"
+    : isManager || isDoctor || isNurse || isStaff
+    ? "MANAGER"
+    : undefined;
   const [formData, setFormData] = useState<BlogFormData>({
     title: "",
     summary: "",
@@ -84,7 +89,10 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoryResponse, userResponse] = await Promise.all([getCategories(), getAuthors()]);
+        const [categoryResponse, userResponse] = await Promise.all([
+          getCategories(),
+          getAuthors(),
+        ]);
         const categoryData = categoryResponse.data;
         const userData = userResponse.data;
 
@@ -95,16 +103,25 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
         }));
 
         if (categoryData.length === 0) {
-          setFeedback({ type: "error", message: "Không có danh mục nào được tìm thấy." });
+          setFeedback({
+            type: "error",
+            message: "Không có danh mục nào được tìm thấy.",
+          });
           console.warn("No categories found"); // Debug log
         }
-        if (!userData._id ) {
-          setFeedback({ type: "error", message: "Không thể xác định tác giả hiện tại." });
+        if (!userData._id) {
+          setFeedback({
+            type: "error",
+            message: "Không thể xác định tác giả hiện tại.",
+          });
           console.warn("Invalid user data:", userData); // Debug log
         }
       } catch (error) {
         console.error("Error fetching data:", error); // Error log
-        setFeedback({ type: "error", message: "Không thể tải danh mục hoặc thông tin tác giả." });
+        setFeedback({
+          type: "error",
+          message: "Không thể tải danh mục hoặc thông tin tác giả.",
+        });
       }
     };
     fetchData();
@@ -115,7 +132,6 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
       const fetchBlog = async () => {
         try {
           const response = await getById(id);
-          console.log("Blog response:", response); 
           const blog: Blog = response.data;
           setFormData({
             title: blog.title || "",
@@ -123,12 +139,15 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
             content: blog.content || "",
             type: blog.type || "blog",
             categoryId: blog.categoryId?._id || "",
-            authorId: blog.authorId._id  ,
+            authorId: blog.authorId._id,
             image: blog.image || "",
           });
         } catch (error) {
           console.error("Error fetching blog:", error); // Error log
-          setFeedback({ type: "error", message: "Không thể tải dữ liệu bài viết." });
+          setFeedback({
+            type: "error",
+            message: "Không thể tải dữ liệu bài viết.",
+          });
         }
       };
       fetchBlog();
@@ -194,8 +213,11 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
         setTimeout(() => navigate("/manager/blogs"), 1500);
       }
     } catch (error) {
-      console.error("Error saving blog:", error); // Error log
-      setFeedback({ type: "error", message: `Không thể ${isEditing ? "cập nhật" : "tạo"} bài viết.` });
+      console.error("Error saving blog:", error);
+      setFeedback({
+        type: "error",
+        message: `Không thể ${isEditing ? "cập nhật" : "tạo"} bài viết.`,
+      });
     } finally {
       setActionLoading(false);
     }
@@ -260,21 +282,38 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
             {/* Title */}
             <div className="col-span-2">
               <Label htmlFor="title">Tiêu đề</Label>
-              <Input id="title" name="title" value={formData.title} onChange={handleInputChange} />
-              {errors.title && <p className="text-red-600 text-sm">{errors.title}</p>}
+              <Input
+                id="title"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+              />
+              {errors.title && (
+                <p className="text-red-600 text-sm">{errors.title}</p>
+              )}
             </div>
 
             {/* Summary */}
             <div>
               <Label htmlFor="summary">Tóm tắt</Label>
-              <Input id="summary" name="summary" value={formData.summary} onChange={handleInputChange} />
-              {errors.summary && <p className="text-red-600 text-sm">{errors.summary}</p>}
+              <Input
+                id="summary"
+                name="summary"
+                value={formData.summary}
+                onChange={handleInputChange}
+              />
+              {errors.summary && (
+                <p className="text-red-600 text-sm">{errors.summary}</p>
+              )}
             </div>
 
             {/* Type */}
             <div>
               <Label>Loại nội dung</Label>
-              <Select value={formData.type} onValueChange={(value) => handleSelectChange("type", value)}>
+              <Select
+                value={formData.type}
+                onValueChange={(value) => handleSelectChange("type", value)}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn loại" />
                 </SelectTrigger>
@@ -284,7 +323,9 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
                   <SelectItem value="document">Tài liệu</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.type && <p className="text-red-600 text-sm">{errors.type}</p>}
+              {errors.type && (
+                <p className="text-red-600 text-sm">{errors.type}</p>
+              )}
             </div>
 
             {/* Category */}
@@ -307,7 +348,9 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
                   src={formData.image}
                   alt="Xem trước hình ảnh"
                   className="mt-2 h-32 w-auto rounded"
-                  onError={(e) => (e.currentTarget.src = "/placeholder-image.jpg")}
+                  onError={(e) =>
+                    (e.currentTarget.src = "/placeholder-image.jpg")
+                  }
                 />
               )}
               {errors.image && (
@@ -324,7 +367,9 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
               </Label>
               <Select
                 value={formData.categoryId}
-                onValueChange={(value) => handleSelectChange("categoryId", value)}
+                onValueChange={(value) =>
+                  handleSelectChange("categoryId", value)
+                }
                 aria-label="Chọn danh mục"
                 disabled={categories.length === 0}
               >
@@ -340,7 +385,9 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
                 </SelectContent>
               </Select>
               {categories.length === 0 && (
-                <p className="text-red-600 text-sm mt-1">Không có danh mục nào được tìm thấy.</p>
+                <p className="text-red-600 text-sm mt-1">
+                  Không có danh mục nào được tìm thấy.
+                </p>
               )}
               {errors.categoryId && (
                 <p id="category-error" className="text-red-600 text-sm mt-1">
@@ -348,7 +395,22 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
                 </p>
               )}
             </div>
+          </div>
 
+          {/* Content Editor */}
+          <div>
+            <Label>Nội dung</Label>
+            <div className="border rounded-md overflow-hidden">
+              <ReactQuill
+                value={formData.content}
+                onChange={handleContentChange}
+                modules={quillModules}
+                className="min-h-[300px]"
+              />
+            </div>
+            {errors.content && (
+              <p className="text-red-600 text-sm">{errors.content}</p>
+            )}
           </div>
 
           <div className="flex justify-end gap-4">
@@ -360,7 +422,11 @@ function BlogForm({ isEditing = false }: BlogFormProps) {
             >
               Hủy
             </Button>
-            <Button onClick={handleSubmit} className="bg-orange-600 hover:bg-orange-700 text-white" disabled={actionLoading}>
+            <Button
+              onClick={handleSubmit}
+              className="bg-orange-600 hover:bg-orange-700 text-white"
+              disabled={actionLoading}
+            >
               {actionLoading ? "Đang xử lý..." : isEditing ? "Cập nhật" : "Tạo"}
             </Button>
           </div>
