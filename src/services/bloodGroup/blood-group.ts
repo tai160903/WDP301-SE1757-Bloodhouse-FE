@@ -43,3 +43,13 @@ export const updateBloodGroup = async (id: string, data: BloodGroupInput): Promi
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
 };
+
+export const updateBloodGroupProfile = async (payload: { bloodId: string }): Promise<BloodGroup> => {
+  try {
+    const response = await instance.patch<BloodGroupResponse>("/user/blood-group", payload);
+    console.log(response)
+    return response.data.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};

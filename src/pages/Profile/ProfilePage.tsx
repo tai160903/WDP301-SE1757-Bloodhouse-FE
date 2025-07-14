@@ -56,6 +56,10 @@ import {
 import { cn } from "@/lib/utils";
 import useAuth from "@/hooks/useAuth";
 import VerifyLevel2Page from "./VerifyLevel2Page";
+import {
+  getBloodGroups,
+  updateBloodGroupProfile,
+} from "@/services/bloodGroup/blood-group";
 
 const formSchema = z.object({
   fullName: z.string().min(2, {
@@ -66,6 +70,9 @@ const formSchema = z.object({
   }),
   sex: z.enum(["Nam", "Nữ"], {
     required_error: "Vui lòng chọn giới tính",
+  }),
+  bloodId: z.string().nonempty({
+    message: "Vui lòng chọn nhóm máu",
   }),
   address: z.string().min(5, {
     message: "Địa chỉ phải có ít nhất 5 ký tự",
@@ -118,6 +125,7 @@ const ProfilePage: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const [bloodGroups, setBloodGroups] = useState<any[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -125,6 +133,7 @@ const ProfilePage: React.FC = () => {
       fullName: "",
       phone: "",
       sex: "Nam",
+      bloodId: "",
       address: "",
       yob: "",
     },
@@ -152,6 +161,7 @@ const ProfilePage: React.FC = () => {
         fullName: profileData.fullName || "",
         phone: profileData.phone || "",
         sex: profileData.sex || "Nam",
+        bloodId: profileData.bloodId?._id || "",
         address: profileData.address || "",
         yob: profileData.yob || "",
       });
@@ -165,9 +175,22 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const fetchBloodGroups = async () => {
+    setLoading(true);
+    try {
+      const res = await getBloodGroups();
+      setBloodGroups(res);
+    } catch (err: any) {
+      console.log(err.message || "Không thể tải danh sách nhóm máu");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchProfile();
+      fetchBloodGroups();
     }
   }, [isAuthenticated]);
 
@@ -177,10 +200,22 @@ const ProfilePage: React.FC = () => {
       setError(null);
       setSuccess(null);
 
-      const response = await userAPI.patch("/profile", values);
+      // Update profile information (excluding bloodId)
+      const profilePayload = { ...values };
+      delete profilePayload.bloodId; // Remove bloodId from profile payload
+      const response = await userAPI.patch("/profile", profilePayload);
       const updatedProfile = (response.data as APIResponse<UserProfile>).data;
 
-      setProfile((prev) => ({ ...prev, ...updatedProfile }));
+      // Update blood group if changed
+      if (values.bloodId && values.bloodId !== profile?.bloodId?._id) {
+        await updateBloodGroupProfile({ bloodId: values.bloodId });
+      }
+
+      setProfile((prev) => ({
+        ...prev,
+        ...updatedProfile,
+        bloodId: bloodGroups.find((group) => group._id === values.bloodId),
+      }));
       setSuccess("Cập nhật thông tin thành công!");
       setIsEditing(false);
 
@@ -377,7 +412,7 @@ const ProfilePage: React.FC = () => {
                         Giới tính
                       </label>
                       <p className="font-medium text-foreground">
-                        {getSexText(profile.sex)}
+                        {profile.sex}
                       </p>
                     </div>
                   </div>
@@ -519,6 +554,30 @@ const ProfilePage: React.FC = () => {
               />
               <FormField
                 control={form.control}
+                name="bloodId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nhóm máu</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Chọn nhóm máu" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {bloodGroups.map((group) => (
+                          <SelectItem key={group._id} value={group._id}>
+                            {group.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="yob"
                 render={({ field }) => (
                   <FormItem>
@@ -555,7 +614,7 @@ const ProfilePage: React.FC = () => {
                 >
                   Hủy
                 </Button>
-                <Button type="submit" disabled={updating}>
+                <Button type="submit" disabled={updating} className="ml-4">
                   {updating ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
