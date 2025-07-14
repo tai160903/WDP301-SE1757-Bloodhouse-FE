@@ -50,6 +50,7 @@ import {
   BloodGroup,
   BloodGroupInput,
 } from "../../services/bloodGroup/blood-group";
+import { DialogPortal } from "@radix-ui/react-dialog";
 
 // Custom CSS để đảm bảo overlay có màu mong muốn
 const customStyles = `
@@ -601,142 +602,138 @@ function BloodGroupManagement() {
                                 Cập Nhật
                               </Button>
                             </DialogTrigger>
-                            <DialogOverlay className="custom-overlay" />
-                            <DialogContent className="bg-white rounded-lg shadow-xl border border-red-100">
-                              <DialogHeader>
-                                <DialogTitle className="text-xl font-semibold text-gray-900">
-                                  Cập Nhật Nhóm Máu
-                                </DialogTitle>
-                                <DialogDescription className="text-sm text-gray-500">
-                                  Cập nhật thông tin của một nhóm máu hiện có.
-                                </DialogDescription>
-                                <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70">
-                                  <X className="h-4 w-4" />
-                                  <span className="sr-only">Đóng</span>
-                                </DialogClose>
-                              </DialogHeader>
-                              <div className="grid gap-4 py-4">
-                                {formError && (
-                                  <Alert className="border-red-200 bg-red-50">
-                                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                                    <AlertDescription className="text-red-800">
-                                      {formError}
-                                    </AlertDescription>
-                                  </Alert>
-                                )}
-                                <div className="grid gap-2">
-                                  <Label
-                                    htmlFor="name"
-                                    className="text-gray-700"
-                                  >
-                                    Nhóm Máu
-                                  </Label>
-                                  <Input
-                                    id="name"
-                                    value={formData.name}
-                                    onChange={(e) =>
-                                      setFormData({
-                                        ...formData,
-                                        name: e.target.value.toUpperCase(),
-                                      })
-                                    }
-                                    placeholder="Ví dụ: A+, O-"
-                                    className="border-red-200 focus:border-red-400 focus:ring-red-400"
-                                  />
-                                </div>
-                                <div className="grid gap-2">
-                                  <Label
-                                    htmlFor="note"
-                                    className="text-gray-700"
-                                  >
-                                    Ghi Chú
-                                  </Label>
-                                  <Input
-                                    id="note"
-                                    value={formData.note}
-                                    onChange={(e) =>
-                                      setFormData({
-                                        ...formData,
-                                        note: e.target.value,
-                                      })
-                                    }
-                                    placeholder="Nhập ghi chú"
-                                    className="border-red-200 focus:border-red-400 focus:ring-red-400"
-                                  />
-                                </div>
-                                <div className="grid gap-2">
-                                  <Label
-                                    htmlFor="characteristics"
-                                    className="text-gray-700"
-                                  >
-                                    Đặc Điểm
-                                  </Label>
-                                  <Input
-                                    id="characteristics"
-                                    value={formData.characteristics.join(", ")}
-                                    onChange={(e) =>
-                                      setFormData({
-                                        ...formData,
-                                        characteristics: e.target.value
-                                          .split(",")
-                                          .map((item) => item.trim()),
-                                      })
-                                    }
-                                    placeholder="Ví dụ: Người hiến máu toàn cầu, Tương thích với AB+"
-                                    className="border-red-200 focus:border-red-400 focus:ring-red-400"
-                                  />
-                                </div>
-                                <div className="grid gap-2">
-                                  <Label
-                                    htmlFor="populationRate"
-                                    className="text-gray-700"
-                                  >
-                                    Tỷ Lệ Dân Số (%)
-                                  </Label>
-                                  <Input
-                                    id="populationRate"
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={formData.populationRate}
-                                    onChange={(e) =>
-                                      setFormData({
-                                        ...formData,
-                                        populationRate: Number(e.target.value),
-                                      })
-                                    }
-                                    placeholder="Ví dụ: 30"
-                                    className="border-red-200 focus:border-red-400 focus:ring-red-400"
-                                  />
-                                </div>
-                              </div>
-                              <DialogFooter>
-                                <DialogClose asChild>
-                                  <Button
-                                    variant="outline"
-                                    className="border-gray-300"
-                                  >
-                                    Hủy
-                                  </Button>
-                                </DialogClose>
-                                <Button
-                                  className="bg-red-600 hover:bg-red-700 text-white"
-                                  onClick={handleUpdateBloodGroup}
-                                  disabled={isSubmitting}
-                                >
-                                  {isSubmitting ? (
-                                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                                  ) : null}
-                                  Cập Nhật
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
                           </Dialog>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+
+                <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+                  <DialogPortal>
+                    <DialogOverlay className="custom-overlay" />
+                    <DialogContent className="bg-white rounded-lg shadow-xl border border-red-100">
+                      <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-gray-900">
+                          Cập Nhật Nhóm Máu
+                        </DialogTitle>
+                        <DialogDescription className="text-sm text-gray-500">
+                          Cập nhật thông tin của một nhóm máu hiện có.
+                        </DialogDescription>
+                        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70">
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Đóng</span>
+                        </DialogClose>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        {formError && (
+                          <Alert className="border-red-200 bg-red-50">
+                            <AlertTriangle className="h-4 w-4 text-red-600" />
+                            <AlertDescription className="text-red-800">
+                              {formError}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        <div className="grid gap-2">
+                          <Label htmlFor="name" className="text-gray-700">
+                            Nhóm Máu
+                          </Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                name: e.target.value.toUpperCase(),
+                              })
+                            }
+                            placeholder="Ví dụ: A+, O-"
+                            className="border-red-200 focus:border-red-400 focus:ring-red-400"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="note" className="text-gray-700">
+                            Ghi Chú
+                          </Label>
+                          <Input
+                            id="note"
+                            value={formData.note}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                note: e.target.value,
+                              })
+                            }
+                            placeholder="Nhập ghi chú"
+                            className="border-red-200 focus:border-red-400 focus:ring-red-400"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label
+                            htmlFor="characteristics"
+                            className="text-gray-700"
+                          >
+                            Đặc Điểm
+                          </Label>
+                          <Input
+                            id="characteristics"
+                            value={formData.characteristics.join(", ")}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                characteristics: e.target.value
+                                  .split(",")
+                                  .map((item) => item.trim()),
+                              })
+                            }
+                            placeholder="Ví dụ: Người hiến máu toàn cầu, Tương thích với AB+"
+                            className="border-red-200 focus:border-red-400 focus:ring-red-400"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label
+                            htmlFor="populationRate"
+                            className="text-gray-700"
+                          >
+                            Tỷ Lệ Dân Số (%)
+                          </Label>
+                          <Input
+                            id="populationRate"
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={formData.populationRate}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                populationRate: Number(e.target.value),
+                              })
+                            }
+                            placeholder="Ví dụ: 30"
+                            className="border-red-200 focus:border-red-400 focus:ring-red-400"
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="outline" className="border-gray-300">
+                            Hủy
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                          onClick={handleUpdateBloodGroup}
+                          disabled={isSubmitting}
+                        >
+                          {isSubmitting ? (
+                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          ) : null}
+                          Cập Nhật
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </DialogPortal>
+                </Dialog>
               </div>
 
               {filteredBloodGroups.length === 0 && (

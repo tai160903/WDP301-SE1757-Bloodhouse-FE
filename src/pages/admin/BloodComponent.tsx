@@ -355,9 +355,9 @@ function BloodComponentManagement() {
                     <TableHead className="font-semibold text-gray-700">
                       Cập nhật Gần nhất
                     </TableHead>
-                    <TableHead className="font-semibold text-gray-700">
+                    {/* <TableHead className="font-semibold text-gray-700">
                       Trạng thái
-                    </TableHead>
+                    </TableHead> */}
                     <TableHead className="font-semibold text-gray-700">
                       Hành động
                     </TableHead>
@@ -391,11 +391,11 @@ function BloodComponentManagement() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           <span className={`font-medium ${status.color}`}>
                             {status.text}
                           </span>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Button
