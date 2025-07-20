@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { useManagerContext } from "@/components/ManagerLayout";
@@ -309,7 +307,7 @@ export default function BloodRequests() {
 
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Yêu Cầu Máu</h1>
-          <p className="text-gray-600 mt-2">Quản lý và phản hồi các yêu cầu hiến máu từ các cơ sở y tế</p>
+          <p className="text-gray-600 mt-2">Các yêu cầu hiến máu từ các cơ sở y tế</p>
         </div>
 
         {/* Tóm tắt thống kê */}
@@ -342,7 +340,7 @@ export default function BloodRequests() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
                   type="text"
-                  placeholder="Tìm kiếm theo mã yêu cầu, bệnh viện, nhóm máu, hoặc trạng thái..."
+                  placeholder="Tìm kiếm theo nhóm máu"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -354,7 +352,7 @@ export default function BloodRequests() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mã Yêu Cầu</TableHead>
+                  <TableHead>Người cần máu</TableHead>
                   <TableHead>Bệnh Viện</TableHead>
                   <TableHead>Nhóm Máu</TableHead>
                   <TableHead>Số Lượng</TableHead>
@@ -369,15 +367,8 @@ export default function BloodRequests() {
                   <TableRow key={request.requestId} className="hover:bg-gray-50">
                     <TableCell className="font-medium truncate max-w-xs">
                       <div className="flex items-center space-x-2">
-                        <span>{request.requestId}</span>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" onClick={() => copyRequestId(request.requestId)}>
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Sao chép</TooltipContent>
-                        </Tooltip>
+                        <span>{request.contactPerson}</span>
+                        
                       </div>
                     </TableCell>
                     <TableCell>{request.fromHospital}</TableCell>

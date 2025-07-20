@@ -159,17 +159,17 @@ export default function BloodInventory() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kho máu</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Đơn vị máu</h1>
           <p className="text-muted-foreground">
             Quản lý đơn vị máu và theo dõi mức dự trữ
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            {/* <Button>
               <Plus className="w-4 h-4 mr-2" />
               Thêm đơn vị máu
-            </Button>
+            </Button> */}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -273,7 +273,7 @@ export default function BloodInventory() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      {/* <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Tổng đơn vị</CardTitle>
@@ -308,23 +308,23 @@ export default function BloodInventory() {
             <div className="text-2xl font-bold text-red-600">1</div>
           </CardContent>
         </Card>
-      </div>
+      </div> */}
 
       {/* Inventory Table */}
       {!loading && (
         <Card>
-          <CardHeader>
-            <CardTitle style={{ fontSize: "2rem" }}>Kho máu</CardTitle>
+          {/* <CardHeader>
+            <CardTitle style={{ fontSize: "2rem" }}>Đơn vị máu</CardTitle>
             <CardDescription>
               Mức độ và tình trạng dự trữ máu hiện tại
             </CardDescription>
-          </CardHeader>
+          </CardHeader> */}
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Thành phần máu</TableHead>
-                  <TableHead>Nhhóm máu</TableHead>
+                  <TableHead>Nhóm máu</TableHead>
                   <TableHead>Số lượng</TableHead>
                   <TableHead>Chi nhánh</TableHead>
                   {/* <TableHead>Trạng thái</TableHead> */}

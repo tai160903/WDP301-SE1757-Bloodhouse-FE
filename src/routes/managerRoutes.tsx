@@ -14,10 +14,10 @@ import RequestDetail from "@/pages/manager/RequestDetail";
 import Staff from "@/pages/manager/Staff";
 
 const managerRoutes = [
-  {
-    path: "",
-    element: <Dashboard />,
-  },
+  // {
+  //   path: "",
+  //   element: <Dashboard />,
+  // },
   {
     path: "schedule",
     element: <BloodDonationCalendar />,

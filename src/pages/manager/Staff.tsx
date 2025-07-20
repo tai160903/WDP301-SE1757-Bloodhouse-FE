@@ -149,9 +149,9 @@ export default function Staff() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Quản Lý Nhân Viên</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Danh sách nhân viên</h1>
         <p className="text-muted-foreground">
-          Thông tin về bác sĩ, y tá và các nhân viên khác
+          Thông tin về nhân viên tại cơ sở
         </p>
       </div>
 

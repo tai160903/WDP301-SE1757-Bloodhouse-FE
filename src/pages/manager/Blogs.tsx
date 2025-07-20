@@ -43,6 +43,7 @@ import { deleteBlog, getByFacilityId } from "@/services/blog";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
+import { formatDate } from "date-fns";
 
 export default function Blogs() {
   const { facilityId } = useManagerContext();
@@ -97,9 +98,9 @@ export default function Blogs() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Blog Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản lý bài viết</h1>
           <p className="text-muted-foreground">
-            Create and manage blog posts for the facility website
+            Quản lý bài viết cho trang web của cơ sở y tế
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -110,24 +111,24 @@ export default function Blogs() {
               }
             >
               <Plus className="w-4 h-4 mr-2" />
-              New Blog Post
+              Thêm bài viết
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Create New Blog Post</DialogTitle>
+              <DialogTitle>Thêm bài viết</DialogTitle>
               <DialogDescription>
-                Create a new blog post for the facility website
+                Thêm bài viết cho trang web của cơ sở y tế
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">Tiêu đề</Label>
                 <Input id="title" placeholder="Enter blog post title" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="author">Author</Label>
+                  <Label htmlFor="author">Tác giả</Label>
                   <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="Select author" />
@@ -249,21 +250,21 @@ export default function Blogs() {
 
       {/* Blog Posts Table */}
       <Card>
-        <CardHeader>
-          <CardTitle>Blog Posts</CardTitle>
+        {/* <CardHeader>
+          <CardTitle>Blog</CardTitle>
           <CardDescription>Manage blog posts and articles</CardDescription>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Author</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Publish Date</TableHead>
+                <TableHead>Tiêu đề</TableHead>
+                <TableHead>Tác giả</TableHead>
+                <TableHead>Danh mục</TableHead>
+                <TableHead>Trạng thái</TableHead>
+                <TableHead>Ngày đăng</TableHead>
                 {/* <TableHead>Views</TableHead> */}
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -277,7 +278,7 @@ export default function Blogs() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{post.author || "Unknown"}</TableCell>
+                  <TableCell>{post.authorId.fullName || "Unknown"}</TableCell>
                   <TableCell>
                     {post.type.charAt(0).toUpperCase() + post.type.slice(1)}
                   </TableCell>
@@ -293,10 +294,10 @@ export default function Blogs() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {post.publishDate ? (
+                    {post.createdAt ? (
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {post.publishDate}
+                        {formatDate(post.createdAt, "dd/MM/yyyy")}
                       </div>
                     ) : (
                       <span className="text-muted-foreground">

@@ -195,10 +195,10 @@ export default function BloodInventoryDetail() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Chi tiết kho máu
+              Chi tiết đơn vị máu
             </h1>
             <p className="text-muted-foreground">
-              Thông tin chi tiết về đơn vị máu và thống kê
+              Thông tin chi tiết về đơn vị máu
             </p>
           </div>
         </div>
@@ -357,14 +357,14 @@ export default function BloodInventoryDetail() {
                       "Đang tải"}
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                {/* <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">
                       Nhiệt độ bảo quản
                     </Label>
                     <p className="text-sm">2-6°C</p>
                   </div>
-                </div>
+                </div> */}
               </>
             )}
           </CardContent>
