@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 // Định nghĩa enum trạng thái
 enum BLOOD_REQUEST_STATUS {
@@ -75,7 +76,7 @@ export default function BloodRequests() {
   const [searchQuery, setSearchQuery] = useState("");
   const { facilityId, facilityName } = useManagerContext();
   const pageSize = 10;
-
+  const navigate = useNavigate();
   // Lấy staffId từ localStorage (giả định)
   const getStaffId = (): string | undefined => {
     return localStorage.getItem("usserId") || undefined; // Thay bằng cách lấy staffId thực tế
@@ -202,7 +203,8 @@ export default function BloodRequests() {
 
   // Xử lý xem chi tiết
   const handleViewRequest = useCallback((request: TableRequest) => {
-    window.location.href = `/manager/received/${request.requestId}`;
+    // window.location.href = `/manager/received/${request.requestId}`;
+    navigate(`/manager/received/${request.requestId}`);
   }, []);
 
   // Xử lý phản hồi

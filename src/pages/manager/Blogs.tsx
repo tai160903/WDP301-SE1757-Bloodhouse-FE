@@ -114,7 +114,7 @@ export default function Blogs() {
               Thêm bài viết
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          {/* <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Thêm bài viết</DialogTitle>
               <DialogDescription>
@@ -206,7 +206,7 @@ export default function Blogs() {
                 Create Blog Post
               </Button>
             </DialogFooter>
-          </DialogContent>
+          </DialogContent> */}
         </Dialog>
       </div>
 
@@ -214,7 +214,7 @@ export default function Blogs() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Posts</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng số bài viết</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{blogs.length || 0}</div>
@@ -222,7 +222,7 @@ export default function Blogs() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Published</CardTitle>
+            <CardTitle className="text-sm font-medium">Đã đăng</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
@@ -230,7 +230,7 @@ export default function Blogs() {
             </div>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Drafts</CardTitle>
           </CardHeader>
@@ -245,7 +245,7 @@ export default function Blogs() {
           <CardContent>
             <div className="text-2xl font-bold">15,247</div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Blog Posts Table */}

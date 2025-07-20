@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Progress } from "@/components/ui/progress";
 import { getBloodRequestId } from "../../services/bloodRequest/index";
 import { useManagerContext } from "@/components/ManagerLayout";
+import { useNavigate } from "react-router-dom";
 
 // Định nghĩa enum trạng thái
 enum BLOOD_REQUEST_STATUS {
@@ -54,7 +55,7 @@ export default function BloodRequestDetail() {
   const [progress, setProgress] = useState(0);
   const [notification, setNotification] = useState<string | null>(null);
   const { facilityId } = useManagerContext();
-
+  const navigate = useNavigate();
   // Lấy requestId từ href
   const getRequestIdFromHref = () => {
     const pathname = window.location.pathname; // VD: /received/684086750e8a33e8a86295a9
@@ -195,7 +196,8 @@ export default function BloodRequestDetail() {
 
   // Quay lại danh sách
   const handleBack = () => {
-    window.location.href = "/manager/received";
+    // window.location.href = "/manager/received";
+    navigate("/manager/received");
   };
 
   if (loading) {
