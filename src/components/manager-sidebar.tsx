@@ -41,7 +41,7 @@ const navigation = [
   { name: "Quản lý quà tặng", path: "/manager/gifts", icon: Gift },
   { name: "Danh sách nhân viên", path: "/manager/staff", icon: Users },
   { name: "Quản lý bài viết", path: "/manager/blogs", icon: FileText },
-  // { name: "Quản lý sự kiện", path: "/manager/events", icon: MapPin },
+  { name: "Quản lý sự kiện", path: "/manager/events", icon: MapPin },
 ];
 
 export function ManagerSidebar() {
@@ -75,7 +75,7 @@ export function ManagerSidebar() {
         <div className="flex items-center justify-center h-16 px-4 bg-red-600">
           <Heart className="w-8 h-8 text-white mr-2" />
           <h1 className="text-xl font-bold text-white">
-            Quản Lý Ngân Hàng Máu
+            Bloodhouse
           </h1>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">

@@ -1,5 +1,6 @@
 import { register } from '@/services/auth';
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface RegisterFormData {
   email: string;
@@ -20,6 +21,7 @@ const Register: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
+  const navigate = useNavigate();
 
   const validateForm = (): FormErrors => {
     const newErrors: FormErrors = {};
@@ -47,7 +49,8 @@ const Register: React.FC = () => {
           password: formData.password,
         });
         console.log('Đăng ký thành công:', response);
-        window.location.href = '/auth/login';
+        // window.location.href = '/auth/login';
+        navigate('/auth/login');
       } catch (error: any) {
         setErrors({ password: error.message || 'Đăng ký thất bại' });
       }
