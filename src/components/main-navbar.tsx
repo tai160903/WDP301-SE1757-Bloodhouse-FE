@@ -340,7 +340,7 @@ export function MainNavbar() {
                           asChild
                           className="text-sm font-semibold hover:bg-green-50 hover:text-green-600 focus:bg-green-50 focus:text-green-600"
                         >
-                          <Link to="/manager">
+                          <Link to="/manager/requests">
                             <div className="flex items-center gap-2">
                               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                               Dashboard Manager

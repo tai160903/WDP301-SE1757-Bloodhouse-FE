@@ -27,9 +27,8 @@ import useAuth from "@/hooks/useAuth";
 import * as React from "react";
 
 const navigation = [
-  { name: "Tổng quan", path: "/manager", icon: LayoutDashboard },
-  { name: "Lịch hiến máu", path: "/manager/schedule", icon: Clock },
-  { name: "Kho máu", path: "/manager/inventory", icon: Droplets },
+  // { name: "Tổng quan", path: "/manager", icon: LayoutDashboard },
+  // { name: "Lịch hiến máu", path: "/manager/schedule", icon: Clock },
   { name: "Yêu cầu hiến máu", path: "/manager/requests", icon: Calendar },
   {
     name: "Thông tin hiến máu",
@@ -37,10 +36,12 @@ const navigation = [
     icon: Calendar,
   },
   { name: "Yêu cầu nhận máu", path: "/manager/received", icon: Inbox },
+  { name: "Đơn vị máu", path: "/manager/inventory", icon: Droplets },
+
   { name: "Quản lý quà tặng", path: "/manager/gifts", icon: Gift },
-  { name: "Quản lý nhân viên", path: "/manager/staff", icon: Users },
+  { name: "Danh sách nhân viên", path: "/manager/staff", icon: Users },
   { name: "Quản lý bài viết", path: "/manager/blogs", icon: FileText },
-  { name: "Quản lý sự kiện", path: "/manager/events", icon: MapPin },
+  // { name: "Quản lý sự kiện", path: "/manager/events", icon: MapPin },
 ];
 
 export function ManagerSidebar() {

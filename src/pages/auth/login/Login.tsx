@@ -55,7 +55,7 @@ const Login = () => {
       if (isAdmin) {
         navigate("/admin", { replace: true });
       } else if (isManager || isNurse || isDoctor || isStaff) {
-        navigate("/manager", { replace: true });
+        navigate("/manager/requests", { replace: true });
       } else {
         navigate("/", { replace: true });
       }
