@@ -44,6 +44,7 @@ import {
 } from "@/services/bloodDonationRegis";
 import { useNavigate } from "react-router-dom";
 import useAuth from "@/hooks/useAuth";
+import { stat } from "fs";
 
 const BLOOD_DONATION_REGISTRATION_STATUS = {
   PENDING_APPROVAL: "pending_approval",
@@ -132,6 +133,9 @@ export default function Requests() {
   const staffId = user?._id;
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedStatus, setSelectedStatus] = useState<string>(
+    BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+  );
   const limit = 10;
 
   const fetchDonationRequests = async () => {
@@ -140,9 +144,10 @@ export default function Requests() {
       const data = await getBloodDonationRegis({
         page: currentPage,
         limit: limit,
+        status: [selectedStatus],
       });
-      
-      const {data: items, metadata} = data;
+
+      const { data: items, metadata } = data;
 
       const urgencyPriority: Record<string, number> = {
         Emergency: 1,
@@ -167,16 +172,20 @@ export default function Requests() {
       // });
 
       const mapped = items.sort((a, b) => {
-      const isAWaiting =
-        a.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL ? 0 : 1;
-      const isBWaiting =
-        b.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL ? 0 : 1;
-      if (isAWaiting !== isBWaiting) return isAWaiting - isBWaiting;
+        const isAWaiting =
+          a.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+            ? 0
+            : 1;
+        const isBWaiting =
+          b.status === BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+            ? 0
+            : 1;
+        if (isAWaiting !== isBWaiting) return isAWaiting - isBWaiting;
 
-      const priorityA = urgencyPriority[a.urgency] ?? 99;
-      const priorityB = urgencyPriority[b.urgency] ?? 99;
-      return priorityA - priorityB;
-    });
+        const priorityA = urgencyPriority[a.urgency] ?? 99;
+        const priorityB = urgencyPriority[b.urgency] ?? 99;
+        return priorityA - priorityB;
+      });
 
       setDonationRequests(mapped);
       setTotalPages(metadata.totalPages);
@@ -192,7 +201,7 @@ export default function Requests() {
 
   useEffect(() => {
     fetchDonationRequests();
-  }, [currentPage]);
+  }, [currentPage, selectedStatus]);
 
   const handleUpdateStatus = async (
     requestId: string,
@@ -412,6 +421,66 @@ export default function Requests() {
         <CardHeader>
           <CardTitle>Yêu cầu hiến máu</CardTitle>
           <CardDescription>Danh sách các yêu cầu đang xử lý</CardDescription>
+
+          {/* Status Filter Buttons */}
+          <div className="flex items-center gap-4 pt-4">
+            <span className="text-sm font-medium text-gray-700">
+              Lọc theo trạng thái:
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant={
+                  selectedStatus ===
+                  BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => {
+                  setSelectedStatus(
+                    BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+                  );
+                  setCurrentPage(1);
+                }}
+              >
+                Chờ duyệt
+              </Button>
+              <Button
+                variant={
+                  selectedStatus ===
+                  BLOOD_DONATION_REGISTRATION_STATUS.COMPLETED
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => {
+                  setSelectedStatus(
+                    BLOOD_DONATION_REGISTRATION_STATUS.COMPLETED
+                  );
+                  setCurrentPage(1);
+                }}
+              >
+                Hoàn tất
+              </Button>
+              <Button
+                variant={
+                  selectedStatus ===
+                  BLOOD_DONATION_REGISTRATION_STATUS.REJECTED_REGISTRATION
+                    ? "default"
+                    : "outline"
+                }
+                size="sm"
+                onClick={() => {
+                  setSelectedStatus(
+                    BLOOD_DONATION_REGISTRATION_STATUS.REJECTED_REGISTRATION
+                  );
+                  setCurrentPage(1);
+                }}
+              >
+                Đã từ chối
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -420,7 +489,6 @@ export default function Requests() {
                 <TableHead>Người yêu cầu</TableHead>
                 <TableHead>Nhóm máu</TableHead>
                 <TableHead>Đơn vị</TableHead>
-                <TableHead>Bệnh viện</TableHead>
                 <TableHead>Trạng thái</TableHead>
                 <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
@@ -435,9 +503,8 @@ export default function Requests() {
                   <TableCell>{request.userId?.fullName || "N/A"}</TableCell>
                   <TableCell>{request.bloodGroupId?.name || "N/A"}</TableCell>
                   <TableCell>
-                    {request.expectedQuantity?.toLocaleString() || 0}
+                    {`${request.expectedQuantity?.toLocaleString() || 0} ml`}
                   </TableCell>
-                  <TableCell>{request.facilityId?.name || "N/A"}</TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(request.status)}>
                       {getStatusLabel(request.status)}
