@@ -107,6 +107,7 @@ export function MainNavbar() {
     isManager,
   } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+  console.log("userRole:", userRole);
 
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
@@ -359,18 +360,22 @@ export function MainNavbar() {
                     >
                       <Link to="/profile">Hồ sơ</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
-                    >
-                      <Link to="/request-history">Lịch sử nhận máu</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      asChild
-                      className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
-                    >
-                      <Link to="/donation-history">Lịch sử hiến máu</Link>
-                    </DropdownMenuItem>
+                    {userRole === "MEMBER" && (
+                      <>
+                        <DropdownMenuItem
+                          asChild
+                          className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
+                        >
+                          <Link to="/request-history">Lịch sử nhận máu</Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          asChild
+                          className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
+                        >
+                          <Link to="/donation-history">Lịch sử hiến máu</Link>
+                        </DropdownMenuItem>
+                      </>
+                    )}
                     {/* <DropdownMenuItem
                       asChild
                       className="text-sm font-semibold hover:bg-red-50 hover:text-red-600 focus:bg-red-50 focus:text-red-600 cursor-pointer"
