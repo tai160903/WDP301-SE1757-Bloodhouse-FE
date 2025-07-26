@@ -27,3 +27,17 @@ export const getHealthCheck = async (id: string): Promise<any> => {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
 };
+
+export const getBloodUnit = async (id: string, page = 1, limit = 10): Promise<any> => {
+  try {
+    const response = await instance.get<any>(`/blood-unit/donation/${id}`, {
+      params: {
+        page,
+        limit
+      }
+    });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
