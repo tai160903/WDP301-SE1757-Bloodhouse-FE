@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -60,6 +67,7 @@ import {
   getBloodGroups,
   updateBloodGroupProfile,
 } from "@/services/bloodGroup/blood-group";
+import { Calendar } from "@/components/ui/calendar";
 
 const formSchema = z.object({
   fullName: z.string().min(2, {
@@ -580,11 +588,46 @@ const ProfilePage: React.FC = () => {
                 control={form.control}
                 name="yob"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Năm sinh</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nhập năm sinh (YYYY)" {...field} />
-                    </FormControl>
+                  <FormItem className="flex flex-col">
+                    <FormLabel className="mb-1">Năm sinh</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <button
+                            type="button"
+                            className={cn(
+                              "w-full px-3 py-2 text-left rounded-md border",
+                              "bg-white hover:bg-gray-50",
+                              "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? format(new Date(field.value), "dd/MM/yyyy")
+                              : "Chọn ngày sinh"}
+                          </button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 mt-2 rounded-md shadow-lg border">
+                        <Calendar
+                          mode="single"
+                          selected={
+                            field.value ? new Date(field.value) : undefined
+                          }
+                          onSelect={(date) => {
+                            const today = new Date();
+                            if (date && date <= today) {
+                              field.onChange(date.toISOString());
+                            }
+                          }}
+                          initialFocus
+                          captionLayout="dropdown"
+                          fromYear={1900}
+                          toYear={new Date().getFullYear()}
+                          toDate={new Date()}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
