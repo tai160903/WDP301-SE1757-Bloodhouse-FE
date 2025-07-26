@@ -27,7 +27,7 @@ interface ProfileSidebarProps {
 
 const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
   const navigate = useNavigate();
-  const { signOut, loading } = useAuth();
+  const { signOut, loading, userRole } = useAuth();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogoutClick = () => {
@@ -61,14 +61,24 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
       label: "Lịch sử hiến máu",
       icon: History,
       onClick: () => navigate("/donation-history"),
+      role: "MEMBER",
     },
     {
       id: "requests",
       label: "Lịch sử nhận máu",
       icon: HandHeart,
       onClick: () => navigate("/request-history"),
+      role: "MEMBER",
     },
   ];
+
+  // Filter menu items based on user role
+  const filteredMenuItems = menuItems.filter((item) => {
+    // If item has no role restriction, show it to everyone
+    if (!item.role) return true;
+    // If item has role restriction, only show if user role matches
+    return item.role === userRole;
+  });
 
   return (
     <>
@@ -79,7 +89,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <button
               key={item.id}
               onClick={item.onClick}
@@ -115,7 +125,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ activeTab }) => {
             <button
               onClick={handleLogoutClick}
               disabled={loading}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors text-red-600"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors text-red-600 hover:bg-red-50"
             >
               <div className="p-2 rounded-full bg-red-100">
                 {loading ? (
