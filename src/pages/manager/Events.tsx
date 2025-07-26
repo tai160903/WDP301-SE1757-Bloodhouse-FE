@@ -52,7 +52,7 @@ import { createEvent, getAllEventsByFacilityId } from "@/services/event";
 import useAuth from "@/hooks/useAuth";
 import { format } from "date-fns";
 
-// Fix Leaflet default marker icon issue
+// Sửa lỗi biểu tượng mặc định của Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -66,27 +66,27 @@ L.Icon.Default.mergeOptions({
 const sampleEvents = [
   {
     id: 1,
-    title: "Community Blood Drive",
-    description: "Join us for our monthly community blood drive event",
-    status: "DRAFT",
+    title: "Ngày Hiến Máu Cộng Đồng",
+    description: "Tham gia sự kiện hiến máu cộng đồng hàng tháng của chúng tôi",
+    status: "BẢN NHÁP",
     startTime: "2024-03-15T09:00",
     endTime: "2024-03-15T17:00",
-    address: "123 Main St, City",
+    address: "123 Đường Chính, Thành phố",
     expectedParticipants: 100,
     registeredParticipants: 45,
     contactPhone: "(555) 123-4567",
-    contactEmail: "blooddrive@example.com",
+    contactEmail: "hienmau@example.com",
     isPublic: true,
   },
 ];
 
-// Default center coordinates (Ho Chi Minh City)
+// Tọa độ trung tâm mặc định (Thành phố Hồ Chí Minh)
 const defaultCenter = {
   lat: 10.8231,
   lng: 106.6297,
 };
 
-// Map click handler component
+// Thành phần xử lý nhấp chuột trên bản đồ
 function LocationMarker({
   onLocationSelect,
 }: {
@@ -100,7 +100,7 @@ function LocationMarker({
   return null;
 }
 
-// Add MapUpdater component to handle map updates
+// Thêm thành phần MapUpdater để xử lý cập nhật bản đồ
 function MapUpdater({ center }: { center: L.LatLng }) {
   const map = useMap();
 
@@ -111,7 +111,7 @@ function MapUpdater({ center }: { center: L.LatLng }) {
   return null;
 }
 
-// Add type for Nominatim response
+// Thêm kiểu cho phản hồi Nominatim
 interface NominatimResponse {
   lat: string;
   lon: string;
@@ -151,17 +151,17 @@ export default function Events() {
     reset,
   } = useForm<EventFormData>();
 
-  // Watch start and end time values
+  // Theo dõi giá trị thời gian bắt đầu và kết thúc
   const startTime = watch("startTime");
   const endTime = watch("endTime");
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "PUBLISHED":
+      case "ĐÃ ĐĂNG":
         return "bg-green-100 text-green-800";
-      case "DRAFT":
+      case "BẢN NHÁP":
         return "bg-yellow-100 text-yellow-800";
-      case "CANCELLED":
+      case "ĐÃ HỦY":
         return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -186,7 +186,7 @@ export default function Events() {
             limit: 1,
           },
           headers: {
-            "User-Agent": "BloodHouse_App/1.0",
+            "User-Agent": "Ứng_dụng_BloodHouse/1.0",
           },
         }
       );
@@ -196,13 +196,13 @@ export default function Events() {
         setSelectedLocation(L.latLng(parseFloat(lat), parseFloat(lon)));
       }
     } catch (error) {
-      console.error("Error geocoding address:", error);
+      console.error("Lỗi khi mã hóa địa chỉ:", error);
     } finally {
       setIsSearching(false);
     }
   };
 
-  // Handle image preview
+  // Xử lý xem trước hình ảnh
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -216,13 +216,13 @@ export default function Events() {
     }
   };
 
-  // Get current date-time in ISO format for min attribute
+  // Lấy ngày giờ hiện tại theo định dạng ISO cho thuộc tính min
   const getCurrentDateTime = () => {
     const now = new Date();
     return format(now, "yyyy-MM-dd'T'HH:mm");
   };
 
-  // Reset form and preview
+  // Đặt lại biểu mẫu và xem trước
   const resetForm = () => {
     reset();
     setSelectedLocation(null);
@@ -232,7 +232,7 @@ export default function Events() {
 
   const onSubmit = async (data: EventFormData) => {
     if (!selectedLocation) {
-      toast.error("Please select a location on the map");
+      toast.error("Vui lòng chọn một vị trí trên bản đồ");
       return;
     }
 
@@ -262,7 +262,7 @@ export default function Events() {
       const response = await createEvent(formData);
 
       if (response.status === 201) {
-        toast.success("Event draft created successfully");
+        toast.success("Bản nháp sự kiện đã được tạo thành công");
       }
 
       setIsAddDialogOpen(false);
@@ -270,8 +270,8 @@ export default function Events() {
       setSelectedLocation(null);
       setAddress("");
     } catch (error) {
-      console.error("Error creating event:", error);
-      toast.error("Failed to create event draft");
+      console.error("Lỗi khi tạo sự kiện:", error);
+      toast.error("Không thể tạo bản nháp sự kiện");
     } finally {
       setIsSubmitting(false);
     }
@@ -297,10 +297,10 @@ export default function Events() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Events Management
+            Quản Lý Sự Kiện
           </h1>
           <p className="text-muted-foreground">
-            Create and manage blood donation events
+            Tạo và quản lý các sự kiện hiến máu
           </p>
         </div>
         <Dialog
@@ -315,24 +315,24 @@ export default function Events() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-2" />
-              New Event
+              Sự Kiện Mới
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-full">
             <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader>
-                <DialogTitle>Create New Blood Donation Event</DialogTitle>
+                <DialogTitle>Tạo Sự Kiện Hiến Máu Mới</DialogTitle>
                 <DialogDescription>
-                  Create a new blood donation event and set its location
+                  Tạo một sự kiện hiến máu mới và thiết lập vị trí của nó
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="title">Event Title</Label>
+                  <Label htmlFor="title">Tiêu Đề Sự Kiện</Label>
                   <Input
                     id="title"
-                    placeholder="Enter event title"
-                    {...register("title", { required: "Title is required" })}
+                    placeholder="Nhập tiêu đề sự kiện"
+                    {...register("title", { required: "Tiêu đề là bắt buộc" })}
                   />
                   {errors.title && (
                     <p className="text-sm text-red-500">
@@ -342,12 +342,12 @@ export default function Events() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Mô Tả</Label>
                   <Textarea
                     id="description"
-                    placeholder="Enter event description..."
+                    placeholder="Nhập mô tả sự kiện..."
                     {...register("description", {
-                      required: "Description is required",
+                      required: "Mô tả là bắt buộc",
                     })}
                   />
                   {errors.description && (
@@ -359,17 +359,17 @@ export default function Events() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="startTime">Start Time</Label>
+                    <Label htmlFor="startTime">Thời Gian Bắt Đầu</Label>
                     <Input
                       id="startTime"
                       type="datetime-local"
                       min={getCurrentDateTime()}
                       {...register("startTime", {
-                        required: "Start time is required",
+                        required: "Thời gian bắt đầu là bắt buộc",
                         validate: (value) => {
                           const now = new Date();
                           const selectedDate = new Date(value);
-                          return selectedDate > now || "Start time must be in the future";
+                          return selectedDate > now || "Thời gian bắt đầu phải ở tương lai";
                         }
                       })}
                     />
@@ -380,18 +380,18 @@ export default function Events() {
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="endTime">End Time</Label>
+                    <Label htmlFor="endTime">Thời Gian Kết Thúc</Label>
                     <Input
                       id="endTime"
                       type="datetime-local"
                       min={startTime || getCurrentDateTime()}
                       {...register("endTime", {
-                        required: "End time is required",
+                        required: "Thời gian kết thúc là bắt buộc",
                         validate: (value) => {
                           if (!startTime) return true;
                           const endDate = new Date(value);
                           const startDate = new Date(startTime);
-                          return endDate > startDate || "End time must be after start time";
+                          return endDate > startDate || "Thời gian kết thúc phải sau thời gian bắt đầu";
                         }
                       })}
                     />
@@ -404,7 +404,7 @@ export default function Events() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="file">Banner Image</Label>
+                  <Label htmlFor="file">Hình Ảnh Banner</Label>
                   <Input
                     id="file"
                     type="file"
@@ -419,7 +419,7 @@ export default function Events() {
                     <div className="mt-2">
                       <img
                         src={imagePreview}
-                        alt="Preview"
+                        alt="Xem trước"
                         className="max-h-40 rounded-md object-contain"
                       />
                     </div>
@@ -427,11 +427,11 @@ export default function Events() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">Địa Chỉ</Label>
                   <div className="flex gap-2">
                     <Input
                       id="address"
-                      placeholder="Enter event address"
+                      placeholder="Nhập địa chỉ sự kiện"
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       onKeyDown={(e) =>
@@ -443,13 +443,13 @@ export default function Events() {
                       onClick={handleAddressSearch}
                       disabled={isSearching}
                     >
-                      {isSearching ? "Searching..." : "Search"}
+                      {isSearching ? "Đang tìm kiếm..." : "Tìm kiếm"}
                     </Button>
                   </div>
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>Location Map</Label>
+                  <Label>Bản Đồ Vị Trí</Label>
                   <div
                     className="border rounded-md overflow-hidden"
                     style={{ height: "400px" }}
@@ -480,13 +480,13 @@ export default function Events() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <Label htmlFor="contactPhone">Số Điện Thoại Liên Hệ</Label>
                     <Input
                       id="contactPhone"
                       type="tel"
-                      placeholder="Enter contact phone"
+                      placeholder="Nhập số điện thoại liên hệ"
                       {...register("contactPhone", {
-                        required: "Contact phone is required",
+                        required: "Số điện thoại liên hệ là bắt buộc",
                       })}
                     />
                     {errors.contactPhone && (
@@ -496,13 +496,13 @@ export default function Events() {
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Label htmlFor="contactEmail">Email Liên Hệ</Label>
                     <Input
                       id="contactEmail"
                       type="email"
-                      placeholder="Enter contact email"
+                      placeholder="Nhập email liên hệ"
                       {...register("contactEmail", {
-                        required: "Contact email is required",
+                        required: "Email liên hệ là bắt buộc",
                       })}
                     />
                     {errors.contactEmail && (
@@ -516,15 +516,15 @@ export default function Events() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="expectedParticipants">
-                      Expected Participants
+                      Số Người Tham Gia Dự Kiến
                     </Label>
                     <Input
                       id="expectedParticipants"
                       type="number"
                       min="1"
                       {...register("expectedParticipants", {
-                        required: "Expected participants is required",
-                        min: { value: 1, message: "Must be at least 1" },
+                        required: "Số người tham gia dự kiến là bắt buộc",
+                        min: { value: 1, message: "Phải ít nhất là 1" },
                       })}
                     />
                     {errors.expectedParticipants && (
@@ -534,18 +534,18 @@ export default function Events() {
                     )}
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="isPublic">Visibility</Label>
+                    <Label htmlFor="isPublic">Tính Công Khai</Label>
                     <Select
                       onValueChange={(value) =>
                         setValue("isPublic", value === "true")
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select visibility" />
+                        <SelectValue placeholder="Chọn tính công khai" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="true">Public</SelectItem>
-                        <SelectItem value="false">Private</SelectItem>
+                        <SelectItem value="true">Công khai</SelectItem>
+                        <SelectItem value="false">Riêng tư</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -553,7 +553,7 @@ export default function Events() {
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create Event"}
+                  {isSubmitting ? "Đang tạo..." : "Tạo Sự Kiện"}
                 </Button>
               </DialogFooter>
             </form>
@@ -561,12 +561,12 @@ export default function Events() {
         </Dialog>
       </div>
 
-      {/* Rest of the component remains the same */}
-      {/* Summary Cards */}
+      {/* Phần còn lại của thành phần giữ nguyên */}
+      {/* Thẻ Tóm tắt */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+            <CardTitle className="text-sm font-medium">Tổng Số Sự Kiện</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">12</div>
@@ -574,7 +574,7 @@ export default function Events() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Active Events</CardTitle>
+            <CardTitle className="text-sm font-medium">Sự Kiện Đang Hoạt Động</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">5</div>
@@ -583,7 +583,7 @@ export default function Events() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Participants
+              Tổng Số Người Tham Gia
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -592,7 +592,7 @@ export default function Events() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Tỷ Lệ Thành Công</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">92%</div>
@@ -600,24 +600,24 @@ export default function Events() {
         </Card>
       </div>
 
-      {/* Events Table */}
+      {/* Bảng Sự Kiện */}
       <Card>
         <CardHeader>
-          <CardTitle>Blood Donation Events</CardTitle>
+          <CardTitle>Các Sự Kiện Hiến Máu</CardTitle>
           <CardDescription>
-            Manage upcoming and past blood donation events
+            Quản lý các sự kiện hiến máu sắp tới và đã qua
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Event Details</TableHead>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Participants</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Chi Tiết Sự Kiện</TableHead>
+                <TableHead>Ngày & Giờ</TableHead>
+                <TableHead>Vị Trí</TableHead>
+                <TableHead>Trạng Thái</TableHead>
+                <TableHead>Người Tham Gia</TableHead>
+                <TableHead className="text-right">Hành Động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -630,7 +630,7 @@ export default function Events() {
                         {event.description}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        Contact: {event.contactPhone}
+                        Liên hệ: {event.contactPhone}
                       </div>
                     </div>
                   </TableCell>

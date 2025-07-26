@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@radix-ui/react-tabs";
 import {
   Select,
   SelectContent,
@@ -31,31 +31,44 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Calendar,
-  Clock,
+  ChevronDown,
+  ChevronUp,
   Droplets,
   Eye,
   Filter,
-  Gift,
   Loader2,
   Phone,
-  Search,
   UserCheck,
-  X,
 } from "lucide-react";
 import { useManagerContext } from "@/components/ManagerLayout";
 import { useNavigate } from "react-router-dom";
-import { get } from "axios";
-import { getAllBloodDonation, getHealthCheck } from "@/services/bloodDonation";
-import { s } from "node_modules/framer-motion/dist/types.d-CtuPurYT";
+import { getAllBloodDonation, getHealthCheck, getBloodUnit } from "@/services/bloodDonation";
+import { format } from "date-fns";
 
-// Định nghĩa các trạng thái hiến máu
+const BLOOD_UNIT_STATUS = {
+  AVAILABLE: "available",
+  RESERVED: "reserved",
+  USED: "used",
+  EXPIRED: "expired",
+  TESTING: "testing",
+  REJECTED: "rejected",
+};
+
+const BLOOD_UNIT_VI: Record<string, string> = {
+  available: "Có sẵn",
+  reserved: "Đã đặt trước",
+  used: "Đã sử dụng",
+  expired: "Hết hạn",
+  testing: "Đang kiểm tra",
+  rejected: "Bị từ chối",
+};
+
 export const BLOOD_DONATION_STATUS = {
   PENDING_APPROVAL: "pending_approval",
   REJECTED_REGISTRATION: "rejected_registration",
@@ -72,21 +85,52 @@ export const BLOOD_DONATION_STATUS = {
   CANCELLED: "cancelled",
 };
 
-// Bản dịch tiếng Việt cho trạng thái
 const BLOOD_DONATION_STATUS_VI: Record<string, string> = {
-  completed: "Hoàn tất",
+  pending_approval: "Chờ duyệt",
+  rejected_registration: "Đăng ký bị từ chối",
+  registered: "Đã đăng ký",
+  checked_in: "Chờ hiến máu",
+  in_consult: "Đang tư vấn",
+  rejected: "Bị từ chối",
+  waiting_donation: "Đã hiến",
+  donating: "Đang hiến máu",
+  donated: "Đã hiến máu",
+  resting: "Đang nghỉ ngơi",
+  post_rest_check: "Kiểm tra sau nghỉ",
+  completed: "Hoàn thành",
   cancelled: "Đã hủy",
 };
 
-// Định nghĩa interface cho Donation
+const TEST_RESULT_VI: Record<string, string> = {
+  positive: "(+)",
+  negative: "(-)",
+};
 
-// Màu sắc cho các trạng thái
-const getStatusColor = (status: string) => {
+const getDonationStatusColor = (status: string) => {
   switch (status) {
     case BLOOD_DONATION_STATUS.CANCELLED:
       return "bg-red-100 text-red-800";
     case BLOOD_DONATION_STATUS.COMPLETED:
       return "bg-green-100 text-green-800";
+    default:
+      return "bg-gray-100 text-blue-800";
+  }
+};
+
+const getBloodUnitStatusColor = (status: string) => {
+  switch (status) {
+    case BLOOD_UNIT_STATUS.AVAILABLE:
+      return "bg-green-100 text-green-800";
+    case BLOOD_UNIT_STATUS.RESERVED:
+      return "bg-yellow-100 text-yellow-800";
+    case BLOOD_UNIT_STATUS.USED:
+      return "bg-blue-100 text-blue-800";
+    case BLOOD_UNIT_STATUS.EXPIRED:
+      return "bg-red-100 text-red-800";
+    case BLOOD_UNIT_STATUS.TESTING:
+      return "bg-purple-100 text-purple-800";
+    case BLOOD_UNIT_STATUS.REJECTED:
+      return "bg-gray-100 text-gray-800";
     default:
       return "bg-gray-100 text-gray-800";
   }
@@ -95,17 +139,20 @@ const getStatusColor = (status: string) => {
 function DonationManagement() {
   const { facilityId } = useManagerContext();
   const navigate = useNavigate();
-  const [donations, setDonations] = useState<any[]>([]);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [donations, setDonations ] = useState<any[]>([]);
+  const [statusFilter, setStatusFilter ] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedDonation, setSelectedDonation] = useState<any | null>(null);
-  const [activeTab, setActiveTab] = useState("all");
-  const [totalDonations, setTotalDonations] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [healthCheckData, setHealthCheckData] = useState<any>(null);
-  const [loadingHealthCheck, setLoadingHealthCheck] = useState(false);
+  const [isDetailOpen, setIsDetailOpen ] = useState(false);
+  const [selectedDonation, setSelectedDonation ] = useState(null);
+  const [activeTab, setActiveTab ] = useState("all");
+  const [totalDonations, setTotalDonations ] = useState(0);
+  const [currentPage, setCurrentPage ] = useState(1);
+  const [totalPages, setTotalPages ] = useState(1);
+  const [healthCheckData, setHealthCheckData ] = useState(null);
+  const [loadingHealthCheck, setLoadingHealthCheck ] = useState(false);
+  const [bloodUnits, setBloodUnits ] = useState([]);
+  const [loadingBloodUnits, setLoadingBloodUnits ] = useState(false);
+  const [showBloodUnits, setShowBloodUnits ] = useState(false); // State để bật/tắt danh sách blood units
   const limit = 10;
 
   useEffect(() => {
@@ -155,12 +202,20 @@ function DonationManagement() {
   const handleViewDetail = (donation: any) => {
     setSelectedDonation(donation);
     setIsDetailOpen(true);
+    setShowBloodUnits(false); // Ẩn danh sách blood units khi mở dialog
 
-    // Call getHealthCheck if bloodDonationRegistrationId exists
+    // Gọi getHealthCheck nếu bloodDonationRegistrationId tồn tại
     if (donation.bloodDonationRegistrationId) {
       fetchHealthCheck(donation.bloodDonationRegistrationId._id);
     } else {
       setHealthCheckData(null);
+    }
+
+    // Chỉ gọi getBloodUnit nếu trạng thái là COMPLETED
+    if (donation._id && donation.status === BLOOD_DONATION_STATUS.COMPLETED) {
+      fetchBloodUnits(donation._id);
+    } else {
+      setBloodUnits([]);
     }
   };
 
@@ -168,13 +223,25 @@ function DonationManagement() {
     try {
       setLoadingHealthCheck(true);
       const response = await getHealthCheck(registrationId);
-      // Extract the healthCheck data from the response
       setHealthCheckData(response.data?.healthCheck || null);
     } catch (error) {
       console.error("Lỗi khi tải dữ liệu khám sức khỏe:", error);
       setHealthCheckData(null);
     } finally {
       setLoadingHealthCheck(false);
+    }
+  };
+
+  const fetchBloodUnits = async (donationId: string) => {
+    try {
+      setLoadingBloodUnits(true);
+      const response = await getBloodUnit(donationId);
+      setBloodUnits(response.data?.data || []);
+    } catch (error) {
+      console.error("Lỗi khi tải dữ liệu đơn vị máu:", error);
+      setBloodUnits([]);
+    } finally {
+      setLoadingBloodUnits(false);
     }
   };
 
@@ -200,14 +267,6 @@ function DonationManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalDonations}</div>
-            {/* <p className="text-xs text-muted-foreground">
-              {
-                donations?.filter(
-                  (d) => d.status === BLOOD_DONATION_STATUS.COMPLETED
-                ).length
-              }{" "}
-              đã hoàn thành
-            </p> */}
           </CardContent>
         </Card>
         <Card>
@@ -294,7 +353,7 @@ function DonationManagement() {
                   <h3 className="mt-2 text-lg font-medium">
                     Không tìm thấy cuộc hẹn
                   </h3>
-                  <p className="mt-1 text-gray-500">
+                  <p className="text-gray-500">
                     Không có cuộc hẹn hiến máu nào phù hợp với tìm kiếm của bạn.
                   </p>
                 </div>
@@ -354,9 +413,8 @@ function DonationManagement() {
                             <span>{formatDate(donation.donationDate)}</span>
                           </div>
                         </TableCell>
-
                         <TableCell>
-                          <Badge className={getStatusColor(donation.status)}>
+                          <Badge className={getDonationStatusColor(donation.status)}>
                             {BLOOD_DONATION_STATUS_VI[donation.status]}
                           </Badge>
                         </TableCell>
@@ -400,20 +458,6 @@ function DonationManagement() {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Các tab khác cũng sử dụng nội dung tương tự */}
-        <TabsContent value="today" className="mt-4">
-          {/* Nội dung tương tự tab all */}
-        </TabsContent>
-        <TabsContent value="pending" className="mt-4">
-          {/* Nội dung tương tự tab all */}
-        </TabsContent>
-        <TabsContent value="ongoing" className="mt-4">
-          {/* Nội dung tương tự tab all */}
-        </TabsContent>
-        <TabsContent value="completed" className="mt-4">
-          {/* Nội dung tương tự tab all */}
-        </TabsContent>
       </Tabs>
 
       {/* Dialog chi tiết hiến máu */}
@@ -430,10 +474,10 @@ function DonationManagement() {
 
           {selectedDonation && (
             <div className="space-y-8">
-              {/* Donor Profile Section */}
+              {/* Hồ sơ người hiến */}
               <div className="flex flex-col items-center space-y-4 bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6">
                 <Avatar className="h-24 w-24 ring-4 ring-white shadow-lg">
-                  <AvatarImage
+                  <AvatarImage 
                     src={selectedDonation.userId.avatar}
                     alt={selectedDonation.userId.fullName}
                   />
@@ -441,19 +485,17 @@ function DonationManagement() {
                     {getInitials(selectedDonation.userId.fullName)}
                   </AvatarFallback>
                 </Avatar>
-
                 <div className="text-center">
                   <h2 className="text-2xl font-bold text-gray-900">
                     {selectedDonation.userId.fullName}
                   </h2>
                   <Badge className="mt-2 bg-red-100 text-red-800 px-3 py-1 text-sm font-medium">
-                    Nhóm máu{" "}
-                    {selectedDonation.bloodGroupId.name || "Chưa xác định"}
+                    Nhóm máu {selectedDonation.bloodGroupId.name || "Chưa xác định"}
                   </Badge>
                 </div>
               </div>
 
-              {/* Contact Information */}
+              {/* Thông tin liên hệ */}
               <div className="bg-gray-50 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <Phone className="w-5 h-5 text-gray-600 mr-2" />
@@ -461,23 +503,17 @@ function DonationManagement() {
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
                   <div className="flex items-center justify-between py-2 border-b border-gray-200">
-                    <span className="text-gray-600 font-medium">
-                      Số điện thoại:
-                    </span>
-                    <span className="text-gray-900">
-                      {selectedDonation.userId.phone}
-                    </span>
+                    <span className="text-gray-600 font-medium">Số điện thoại:</span>
+                    <span className="text-gray-900">{selectedDonation.userId.phone}</span>
                   </div>
                   <div className="flex items-center justify-between py-2">
                     <span className="text-gray-600 font-medium">Email:</span>
-                    <span className="text-gray-900">
-                      {selectedDonation.userId.email}
-                    </span>
+                    <span className="text-gray-900">{selectedDonation.userId.email}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Donation Information */}
+              {/* Thông tin hiến máu */}
               <div className="bg-blue-50 rounded-xl p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                   <Droplets className="w-5 h-5 text-blue-600 mr-2" />
@@ -486,83 +522,53 @@ function DonationManagement() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600 font-medium">
-                        Ngày hẹn:
-                      </span>
-                      <span className="text-gray-900">
-                        {formatDate(selectedDonation.donationDate)}
-                      </span>
+                      <span className="text-gray-600 font-medium">Ngày hẹn:</span>
+                      <span className="text-gray-900">{formatDate(selectedDonation.donationDate)}</span>
                     </div>
                   </div>
-
                   <div className="bg-white rounded-lg p-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600 font-medium">
-                        Trạng thái:
-                      </span>
-                      <Badge
-                        className={getStatusColor(selectedDonation.status)}
-                      >
+                      <span className="text-gray-600 font-medium">Trạng thái:</span>
+                      <Badge className={getDonationStatusColor(selectedDonation.status)}>
                         {BLOOD_DONATION_STATUS_VI[selectedDonation.status]}
                       </Badge>
                     </div>
                   </div>
-
-                  {selectedDonation.status ===
-                    BLOOD_DONATION_STATUS.COMPLETED && (
+                  {selectedDonation.status === BLOOD_DONATION_STATUS.COMPLETED && (
                     <div className="bg-white rounded-lg p-4 shadow-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-600 font-medium">
-                          Lượng máu hiến:
-                        </span>
-                        <span className="text-red-600 font-semibold">
-                          {selectedDonation.quantity} ml
-                        </span>
+                        <span className="text-gray-600 font-medium">Lượng máu hiến:</span>
+                        <span className="text-red-600 font-semibold">{selectedDonation.quantity} ml</span>
                       </div>
                     </div>
                   )}
-
                   {selectedDonation.giftPackageId && (
                     <div className="bg-white rounded-lg p-4 shadow-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-600 font-medium">
-                          Gói quà:
-                        </span>
-                        <span className="text-gray-900">
-                          {selectedDonation.giftPackageId.name}
-                        </span>
+                        <span className="text-gray-600 font-medium">Gói quà:</span>
+                        <span className="text-gray-900">{selectedDonation.giftPackageId.name}</span>
                       </div>
                     </div>
                   )}
                 </div>
-
                 {selectedDonation.notes && (
                   <div className="mt-4 bg-white rounded-lg p-4 shadow-sm">
                     <div className="flex items-start">
-                      <span className="text-gray-600 font-medium mr-3 mt-1">
-                        Ghi chú:
-                      </span>
-                      <span className="text-gray-900 flex-1">
-                        {selectedDonation.notes}
-                      </span>
+                      <span className="text-gray-600 font-medium mr-3 mt-1">Ghi chú:</span>
+                      <span className="text-gray-900 flex-1">{selectedDonation.notes}</span>
                     </div>
                   </div>
                 )}
-
                 {selectedDonation.bloodDonationRegistrationId && (
                   <div className="mt-4 bg-white rounded-lg p-4 shadow-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600 font-medium">
-                        Đơn đăng ký hiến máu:
-                      </span>
+                      <span className="text-gray-600 font-medium">Đơn đăng ký hiến máu:</span>
                       <Button
                         variant="outline"
                         size="sm"
                         className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 font-mono text-sm px-3 py-1 font-sans"
                         onClick={() =>
-                          navigate(
-                            `/manager/requests/${selectedDonation.bloodDonationRegistrationId._id}`
-                          )
+                          navigate(`/manager/requests/${selectedDonation.bloodDonationRegistrationId._id}`)
                         }
                       >
                         <Eye className="mr-2 h-3 w-3" />
@@ -573,7 +579,7 @@ function DonationManagement() {
                 )}
               </div>
 
-              {/* Health Check Data */}
+              {/* Thông tin khám sức khỏe */}
               {selectedDonation.bloodDonationRegistrationId && (
                 <div className="bg-green-50 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -583,96 +589,62 @@ function DonationManagement() {
                   {loadingHealthCheck ? (
                     <div className="flex justify-center items-center py-8 bg-white rounded-lg">
                       <Loader2 className="h-8 w-8 animate-spin text-green-500" />
-                      <span className="ml-3 text-gray-600 font-medium">
-                        Đang tải dữ liệu...
-                      </span>
+                      <span className="ml-3 text-gray-600 font-medium">Đang tải dữ liệu...</span>
                     </div>
                   ) : healthCheckData ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {healthCheckData.bloodPressure && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Huyết áp:
-                            </span>
-                            <span className="text-gray-900 font-semibold">
-                              {healthCheckData.bloodPressure}
-                            </span>
+                            <span className="text-gray-600 font-medium">Huyết áp:</span>
+                            <span className="text-gray-900 font-semibold">{healthCheckData.bloodPressure}</span>
                           </div>
                         </div>
                       )}
-
                       {healthCheckData.pulse && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Nhịp tim:
-                            </span>
-                            <span className="text-gray-900 font-semibold">
-                              {healthCheckData.pulse} bpm
-                            </span>
+                            <span className="text-gray-600 font-medium">Nhịp tim:</span>
+                            <span className="text-gray-900 font-semibold">{healthCheckData.pulse} bpm</span>
                           </div>
                         </div>
                       )}
-
                       {healthCheckData.temperature && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Nhiệt độ:
-                            </span>
-                            <span className="text-gray-900 font-semibold">
-                              {healthCheckData.temperature}°C
-                            </span>
+                            <span className="text-gray-600 font-medium">Nhiệt độ:</span>
+                            <span className="text-gray-900 font-semibold">{healthCheckData.temperature}°C</span>
                           </div>
                         </div>
                       )}
-
                       {healthCheckData.weight && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Cân nặng:
-                            </span>
-                            <span className="text-gray-900 font-semibold">
-                              {healthCheckData.weight} kg
-                            </span>
+                            <span className="text-gray-600 font-medium">Cân nặng:</span>
+                            <span className="text-gray-900 font-semibold">{healthCheckData.weight} kg</span>
                           </div>
                         </div>
                       )}
-
                       {healthCheckData.hemoglobin && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Hemoglobin:
-                            </span>
-                            <span className="text-gray-900 font-semibold">
-                              {healthCheckData.hemoglobin} g/dL
-                            </span>
+                            <span className="text-gray-600 font-medium">Hemoglobin:</span>
+                            <span className="text-gray-900 font-semibold">{healthCheckData.hemoglobin} g/dL</span>
                           </div>
                         </div>
                       )}
-
                       {healthCheckData.generalCondition && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Tình trạng:
-                            </span>
-                            <span className="text-gray-900 font-semibold">
-                              {healthCheckData.generalCondition}
-                            </span>
+                            <span className="text-gray-600 font-medium">Tình trạng:</span>
+                            <span className="text-gray-900 font-semibold">{healthCheckData.generalCondition}</span>
                           </div>
                         </div>
                       )}
-
                       {healthCheckData.isEligible !== undefined && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Đủ điều kiện:
-                            </span>
+                            <span className="text-gray-600 font-medium">Đủ điều kiện:</span>
                             <Badge
                               className={
                                 healthCheckData.isEligible
@@ -685,16 +657,11 @@ function DonationManagement() {
                           </div>
                         </div>
                       )}
-
                       {healthCheckData.doctorId && (
                         <div className="bg-white rounded-lg p-4 shadow-sm">
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600 font-medium">
-                              Bác sĩ:
-                            </span>
-                            <span className="text-gray-900 font-semibold">
-                              {healthCheckData.doctorId.userId?.fullName}
-                            </span>
+                            <span className="text-gray-600 font-medium">Bác sĩ:</span>
+                            <span className="text-gray-900 font-semibold">{healthCheckData.doctorId.userId?.fullName}</span>
                           </div>
                         </div>
                       )}
@@ -704,26 +671,178 @@ function DonationManagement() {
                       <div className="text-gray-400 mb-2">
                         <UserCheck className="h-8 w-8 mx-auto" />
                       </div>
-                      <p className="text-gray-500 font-medium">
-                        Không có dữ liệu khám sức khỏe
-                      </p>
+                      <p className="text-gray-500 font-medium">Không có dữ liệu khám sức khỏe</p>
                     </div>
                   )}
-
                   {healthCheckData?.notes && (
                     <div className="mt-4 bg-white rounded-lg p-4 shadow-sm">
                       <div className="flex items-start">
-                        <span className="text-gray-600 font-medium mr-3 mt-1">
-                          Ghi chú khám:
-                        </span>
-                        <span className="text-gray-900 flex-1">
-                          {healthCheckData.notes}
-                        </span>
+                        <span className="text-gray-600 font-medium mr-3 mt-1">Ghi chú khám:</span>
+                        <span className="text-gray-900 flex-1">{healthCheckData.notes}</span>
                       </div>
                     </div>
                   )}
                 </div>
               )}
+
+             {selectedDonation.status === BLOOD_DONATION_STATUS.COMPLETED && (
+  <div className="bg-purple-50 rounded-xl p-6">
+    <div className="flex items-center justify-between mb-4">
+      <h3 className="text-lg font-semibold text-gray-900 flex items-center">
+        <Droplets className="w-5 h-5 text-purple-600 mr-2" />
+        Thông tin đơn vị máu
+      </h3>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowBloodUnits(!showBloodUnits)}
+        className="flex items-center text-purple-600 border-purple-200 hover:bg-purple-50 hover:border-purple-300"
+      >
+        {showBloodUnits ? (
+          <ChevronUp className="w-4 h-4 mr-2" />
+        ) : (
+          <ChevronDown className="w-4 h-4 mr-2" />
+        )}
+        {showBloodUnits ? "Ẩn" : "Hiển thị"} ({bloodUnits.length})
+      </Button>
+    </div>
+    {showBloodUnits && (
+      <>
+        {loadingBloodUnits ? (
+          <div className="flex justify-center items-center py-8 bg-white rounded-lg shadow-md">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+            <span className="ml-3 text-gray-600 font-medium">
+              Đang tải dữ liệu đơn vị máu...
+            </span>
+          </div>
+        ) : bloodUnits.length === 0 ? (
+          <div className="bg-white rounded-lg p-6 text-center shadow-md">
+            <div className="text-gray-400 mb-2">
+              <Droplets className="h-8 w-8 mx-auto" />
+            </div>
+            <p className="text-gray-500 font-medium">
+              Không có dữ liệu đơn vị máu
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {bloodUnits.map((unit) => (
+              <div
+                key={unit._id}
+                className="bg-white rounded-lg p-6 shadow-md border border-purple-100"
+              >
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Nhóm máu:</label>
+                    <p className="text-gray-900 font-medium mt-1">{unit.bloodGroupId.name}</p>
+                  </div>
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Số lượng:</label>
+                    <p className="text-gray-900 font-medium mt-1">{unit.quantity} ml</p>
+                  </div>
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Ngày thu thập:</label>
+                    <p className="text-gray-900 font-medium mt-1">{formatDate(unit.collectedAt)}</p>
+                  </div>
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Ngày hết hạn:</label>
+                    <p className="text-gray-900 font-medium mt-1">{formatDate(unit.expiresAt)}</p>
+                  </div>
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Xử lý bởi:</label>
+                    <p className="text-gray-900 font-medium mt-1">{unit.processedBy?.userId?.fullName}</p>
+                  </div>
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Ngày xử lý:</label>
+                    <p className="text-gray-900 font-medium mt-1">{formatDate(unit.processedAt)}</p>
+                  </div>
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Duyệt bởi:</label>
+                    <p className="text-gray-900 font-medium mt-1">{unit.approvedBy?.userId?.fullName}</p>
+                  </div>
+                  <div className="rounded-lg p-3 bg-purple-50 shadow-sm">
+                    <label className="text-purple-700 text-sm font-semibold">Ngày duyệt:</label>
+                    <p className="text-gray-900 font-medium mt-1">{formatDate(unit.approvedAt)}</p>
+                  </div>
+                  <div className="col-span-2 rounded-lg p-3 bg-purple-50 shadow-sm flex justify-between items-center">
+  <span className="text-purple-700 text-sm font-semibold">
+    Trạng thái:
+  </span>
+  <Badge className={getBloodUnitStatusColor(unit.status)}>
+    {BLOOD_UNIT_VI[unit.status]}
+  </Badge>
+</div>
+
+                  {unit.testResults && (
+                    <div className="col-span-2 rounded-lg p-3 bg-purple-50 shadow-sm">
+                      <label className="text-purple-700 text-sm font-semibold">Kết quả xét nghiệm:</label>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">HIV:</span>
+                          <Badge
+                            className={
+                              unit.testResults.hiv === "positive"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-green-100 text-green-800"
+                            }
+                          >
+                            {unit.testResults.hiv === "positive" ? "Dương tính" : "Âm tính"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Viêm gan B:</span>
+                          <Badge
+                            className={
+                              unit.testResults.hepatitisB === "positive"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-green-100 text-green-800"
+                            }
+                          >
+                            {unit.testResults.hepatitisB === "positive" ? "Dương tính" : "Âm tính"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Viêm gan C:</span>
+                          <Badge
+                            className={
+                              unit.testResults.hepatitisC === "positive"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-green-100 text-green-800"
+                            }
+                          >
+                            {unit.testResults.hepatitisC === "positive" ? "Dương tính" : "Âm tính"}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Giang mai:</span>
+                          <Badge
+                            className={
+                              unit.testResults.syphilis === "positive"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-green-100 text-green-800"
+                            }
+                          >
+                            {unit.testResults.syphilis === "positive" ? "Dương tính" : "Âm tính"}
+                          </Badge>
+                        </div>
+                        {unit.testResults.notes && (
+                          <div>
+                            <label className="text-purple-700 text-sm font-semibold">Ghi chú xét nghiệm:</label>
+                            <p className="text-gray-900 font-medium mt-1">{unit.testResults.notes}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </>
+    )}
+  </div>
+)}
             </div>
           )}
         </DialogContent>
