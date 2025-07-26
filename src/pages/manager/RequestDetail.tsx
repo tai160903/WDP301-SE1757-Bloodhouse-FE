@@ -46,7 +46,10 @@ const BLOOD_DONATION_REGISTRATION_STATUS_VI: Record<string, string> = {
 
 // Hàm dịch trạng thái sang tiếng Việt
 const translateStatus = (status: string): string => {
-  return BLOOD_DONATION_REGISTRATION_STATUS_VI[status?.toLowerCase()] || "Không xác định";
+  return (
+    BLOOD_DONATION_REGISTRATION_STATUS_VI[status?.toLowerCase()] ||
+    "Không xác định"
+  );
 };
 
 // Màu sắc cho trạng thái (bạn có thể chỉnh lại nếu muốn)
@@ -95,26 +98,48 @@ export default function RequestDetail() {
   };
 
   if (loading)
-    return <div className="p-6 text-center text-muted-foreground">Đang tải dữ liệu...</div>;
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        Đang tải dữ liệu...
+      </div>
+    );
   if (!request)
-    return <div className="p-6 text-center text-red-600">Không tìm thấy yêu cầu</div>;
+    return (
+      <div className="p-6 text-center text-red-600">Không tìm thấy yêu cầu</div>
+    );
 
   const infoList = [
     { label: "Mã yêu cầu", value: request.code },
     {
       label: "Người yêu cầu",
-      value: `${request.userId?.fullName || "N/A"} (${request.userId?.email || "N/A"})`,
+      value: `${request.userId?.fullName || "N/A"} (${
+        request.userId?.email || "N/A"
+      })`,
     },
     { label: "Số điện thoại", value: request.userId?.phone || "N/A" },
     { label: "Nhóm máu", value: request.bloodGroupId?.name || "N/A" },
     { label: "Số lượng yêu cầu", value: `${request.expectedQuantity} ml` },
-    { label: "Ngày yêu cầu", value: format(new Date(request.createdAt), "dd/MM/yyyy HH:mm") },
-    { label: "Ngày mong muốn", value: format(new Date(request.preferredDate), "dd/MM/yyyy HH:mm") },
+    {
+      label: "Ngày yêu cầu",
+      value: format(new Date(request.createdAt), "dd/MM/yyyy HH:mm"),
+    },
+    {
+      label: "Ngày mong muốn",
+      value: format(new Date(request.preferredDate), "dd/MM/yyyy HH:mm"),
+    },
     ...(request.completedAt
-      ? [{ label: "Ngày hoàn thành", value: format(new Date(request.completedAt), "dd/MM/yyyy HH:mm") }]
+      ? [
+          {
+            label: "Ngày hoàn thành",
+            value: format(new Date(request.completedAt), "dd/MM/yyyy HH:mm"),
+          },
+        ]
       : []),
     { label: "Bệnh viện", value: request.facilityId?.name || "N/A" },
-    { label: "Nhân viên xử lý", value: request.staffId?.userId?.fullName || "Chưa phân công" },
+    {
+      label: "Nhân viên xử lý",
+      value: request.staffId?.userId?.fullName || "Chưa phân công",
+    },
     { label: "Ghi chú", value: request.notes || "Không có" },
     {
       label: "Trạng thái",
@@ -129,7 +154,11 @@ export default function RequestDetail() {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={handleGoBack} className="flex items-center gap-2 hover:bg-gray-50">
+        <Button
+          variant="outline"
+          onClick={handleGoBack}
+          className="flex items-center gap-2 hover:bg-gray-50"
+        >
           <ArrowLeft className="w-4 h-4" />
           Quay lại
         </Button>
@@ -151,6 +180,16 @@ export default function RequestDetail() {
               isLast={index === infoList.length - 1}
             />
           ))}
+
+          {request.status ===
+            BLOOD_DONATION_REGISTRATION_STATUS.REJECTED_REGISTRATION && (
+            <div className="mt-4">
+              <strong className="block mb-2">Lý do từ chối:</strong>
+              <p className="text-muted-foreground">
+                {request.reasonRejected || "Không có"}
+              </p>
+            </div>
+          )}
 
           {request.qrCodeUrl && (
             <div>
@@ -177,7 +216,9 @@ const InfoRow = ({
   value: string | React.ReactNode;
   isLast?: boolean;
 }) => (
-  <div className={clsx("flex items-start gap-2", !isLast && "border-b pb-3 mb-3")}>
+  <div
+    className={clsx("flex items-start gap-2", !isLast && "border-b pb-3 mb-3")}
+  >
     <strong className="min-w-[150px]">{label}:</strong>
     <span className="text-muted-foreground">{value}</span>
   </div>

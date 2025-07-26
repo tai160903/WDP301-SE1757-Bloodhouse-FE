@@ -96,9 +96,7 @@ function DonationManagement() {
   const { facilityId } = useManagerContext();
   const navigate = useNavigate();
   const [donations, setDonations] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState<any | null>(null);
@@ -110,7 +108,6 @@ function DonationManagement() {
   const [loadingHealthCheck, setLoadingHealthCheck] = useState(false);
   const limit = 10;
 
-  console.log(statusFilter);
   useEffect(() => {
     const fetchDonations = async () => {
       try {
@@ -171,7 +168,6 @@ function DonationManagement() {
     try {
       setLoadingHealthCheck(true);
       const response = await getHealthCheck(registrationId);
-      console.log("Health Check Data:", response.data);
       // Extract the healthCheck data from the response
       setHealthCheckData(response.data?.healthCheck || null);
     } catch (error) {
@@ -265,16 +261,6 @@ function DonationManagement() {
                 Quản lý tất cả các cuộc hẹn hiến máu tại cơ sở của bạn
               </CardDescription>
               <div className="flex flex-col sm:flex-row gap-4 mt-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                  <Input
-                    type="search"
-                    placeholder="Tìm kiếm theo tên, email, số điện thoại..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
                 <div className="flex gap-2">
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[180px]">
@@ -294,12 +280,6 @@ function DonationManagement() {
                       )}
                     </SelectContent>
                   </Select>
-                  <Input
-                    type="date"
-                    className="w-[160px]"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                  />
                 </div>
               </div>
             </CardHeader>
