@@ -32,9 +32,9 @@ import {
   getFacilityById,
 } from "@/services/location/facility";
 import { getBloodInventory } from "@/services/bloodinventory";
-import { getTotalStaff } from "@/services/facilityStaff";
 import CreateFacilityModal from "@/components/facilities/CreateFacilityModal";
 import { toast } from "sonner";
+import { getTotalStaff } from "@/services/facilityStaff";
 
 interface Facility {
   _id: string;
@@ -46,7 +46,7 @@ interface Facility {
   isActive: boolean;
   location: {
     type: "Point";
-    coordinates: [number, number]; // [longitude, latitude]
+    coordinates: [number, number];
   };
   managerId?: string;
   doctorIds?: string[];
@@ -85,7 +85,6 @@ function FacilityManagement() {
   const [bloodInventory, setBloodInventory] = useState<BloodInventory[]>([]);
   const [totalStaff, setTotalStaff] = useState<number>(0);
   const [staffCounts, setStaffCounts] = useState<Record<string, number>>({});
-
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(
@@ -157,42 +156,102 @@ function FacilityManagement() {
 
   const handleEditFacility = async (facilityId: string) => {
     try {
-      const response = await getFacilityById(facilityId);
-      if (response?.data) {
+      const [facilityResponse, staffResponse] = await Promise.all([
+        getFacilityById(facilityId),
+        getTotalStaff(facilityId),
+      ]);
+
+      if (facilityResponse?.data) {
+        const staffData = staffResponse?.data || {};
+        const staffList = Array.isArray(staffData?.result)
+          ? staffData.result
+          : [];
+
+        const doctors = staffList
+          .filter((staff: any) => staff?.position === "DOCTOR" && staff?._id)
+          .map((staff: any) => ({
+            _id: staff._id,
+            fullName:
+              staff.userId?.fullName || staff.fullName || "Unknown Doctor",
+            position: staff.position,
+          }));
+
+        const nurses = staffList
+          .filter((staff: any) => staff?.position === "NURSE" && staff?._id)
+          .map((staff: any) => ({
+            _id: staff._id,
+            fullName:
+              staff.userId?.fullName || staff.fullName || "Unknown Nurse",
+            position: staff.position,
+          }));
+
+        const managerStaff = staffList.find(
+          (staff: any) => staff?.position === "MANAGER" && staff?._id
+        );
+
+        const manager = managerStaff
+          ? {
+              _id: managerStaff._id,
+              fullName: managerStaff.userId?.fullName,
+              position: managerStaff.position,
+            }
+          : null;
+
         const facilityData = {
-          ...response.data,
-          location: response.data.location ?? {
-            type: "Point",
-            coordinates: [0, 0],
+          ...facilityResponse.data,
+          location: facilityResponse.data.location ?? {
+            type: "Point" as const,
+            coordinates: [0, 0] as [number, number],
           },
+          doctorIds: doctors.map((d) => d._id),
+          nurseIds: nurses.map((n) => n._id),
+          managerId: manager?._id || null,
+          doctors,
+          nurses,
+          manager,
+          schedules: facilityResponse.data.schedules || [],
+          contactEmail: facilityResponse.data.contactEmail || "",
+          contactPhone: facilityResponse.data.contactPhone || "",
+          address: facilityResponse.data.address || "",
+          code: facilityResponse.data.code || "",
+          imageUrl: facilityResponse.data.mainImage.url || "",
         };
+
         setSelectedFacility(facilityData);
         setIsCreateModalOpen(true);
       } else {
-        console.error("Facility not found");
+        toast.error("Facility not found");
       }
     } catch (error) {
       console.error("Error fetching facility details:", error);
+      toast.error("Failed to load facility details. Please try again.");
     }
   };
 
-  // Fix the delete functionality and other issues
   const handleDeleteFacility = async (facilityId: string) => {
     try {
-      // Get confirmation from user
       const confirmDelete = window.confirm(
         "Are you sure you want to delete this facility? This action cannot be undone."
       );
       if (!confirmDelete) return;
 
-      // Delete the facility
       await deleteFacility(facilityId);
       toast.success("Facility deleted successfully");
-      fetchFacilities(); // Refresh the list
+      fetchFacilities();
     } catch (error) {
       console.error("Error deleting facility:", error);
       toast.error("Failed to delete facility. Please try again.");
     }
+  };
+
+  const handleCreateNew = () => {
+    setSelectedFacility(null);
+    setIsCreateModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsCreateModalOpen(false);
+    setSelectedFacility(null);
   };
 
   const filteredFacilities = facilities.filter(
@@ -223,7 +282,7 @@ function FacilityManagement() {
           </div>
           <Button
             className="bg-slate-600 hover:bg-slate-700 text-white shadow-lg"
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={handleCreateNew}
           >
             <Plus className="mr-2 h-4 w-4" />
             Thêm cơ sở mới
@@ -442,11 +501,11 @@ function FacilityManagement() {
 
         <CreateFacilityModal
           isOpen={isCreateModalOpen}
-          onClose={() => {
-            setIsCreateModalOpen(false);
-            setSelectedFacility(null);
+          onClose={handleModalClose}
+          onSuccess={() => {
+            fetchFacilities();
+            handleModalClose();
           }}
-          onSuccess={fetchFacilities}
           initialData={selectedFacility}
         />
       </div>
