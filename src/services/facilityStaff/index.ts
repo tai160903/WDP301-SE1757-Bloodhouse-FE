@@ -24,6 +24,18 @@ interface TotalStaffResponse {
   };
 }
 
+interface FacilityListResponse {
+  data: FacilityData[];
+}
+
+interface FacilityData {
+  _id: string;
+  name: string;
+  address: string;
+  contactEmail: string;
+  contactPhone: string;
+  isActive: boolean;
+}
 interface StaffListResponse {
   data: StaffData[];
 }
@@ -77,6 +89,35 @@ export const getStaffById = async (id: string): Promise<any> => {
   } catch (error: any) {
     throw new Error(
       error?.response?.data?.message || "Error when calling API."
+    );
+  }
+};
+
+export const createStaff = async (staffData: Partial<StaffData>): Promise<StaffData> => {
+  try {
+    const { data } = await instance.post<StaffData>("/facility-staff", staffData);
+    return data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Error when calling API.");
+  }
+};
+
+export const updateStaff = async (staffData: Partial<StaffData>): Promise<StaffData> => {
+  try {
+    const { data } = await instance.put<StaffData>(`/facility-staff/${staffData._id}`, staffData);
+    return data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Error when calling API.");
+  }
+};
+
+export const getFacilities = async (): Promise<any> => {
+  try {
+    const { data } = await instance.get<any>("/facility");
+    return data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message || "Error fetching facilities"
     );
   }
 };
