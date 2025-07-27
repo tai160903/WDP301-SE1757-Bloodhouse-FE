@@ -56,4 +56,13 @@ const resetPassword = async (token: any, newPassword : any): Promise<any> => {
   }
 };
 
-export { getUserProfile, getUsers, resetPassword };
+const adminCreateUser = async (data: any): Promise<any> => {
+  try {
+    const response = await instance.post<any>("/user/admin/create",data);
+    return response;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+};
+
+export { getUserProfile, getUsers, resetPassword, adminCreateUser };
