@@ -40,12 +40,15 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import {
   getBloodInventory,
   createBloodInventory,
+  getBloodInventoryByFacilityId,
   // getBloodInventoryDetail,
 } from "@/services/bloodinventory";
 import { getFacilities } from "@/services/location/facility";
 import { getBloodComponents } from "@/services/bloodComponent/blood-component";
 import { getBloodGroups } from "@/services/bloodGroup/blood-group";
 import { useNavigate } from "react-router-dom";
+import useAuth from "@/hooks/useAuth";
+import { set } from "date-fns";
 
 export default function BloodInventory() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -54,6 +57,11 @@ export default function BloodInventory() {
   const [facility, setFacility] = useState<any[]>([]);
   const [components, setComponents] = useState<any[]>([]);
   const [bloodGroups, setBloodGroups] = useState<any[]>([]);
+  const { userFacilityId } = useAuth();
+  const [page, setPage] = useState<number>(1);
+  const [limit] = useState<number>(10);
+  const [total, setTotal] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const navigate = useNavigate();
 
@@ -79,21 +87,21 @@ export default function BloodInventory() {
     }
   };
 
-  const fetchInventory = async () => {
-    setLoading(true);
-    try {
-      const data = await getBloodInventory();
-      setBloodInventory(data);
-    } catch (error) {
-      console.error("Error fetching blood inventory:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchInventory = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const data = await getBloodInventory();
+  //     setBloodInventory(data);
+  //   } catch (error) {
+  //     console.error("Error fetching blood inventory:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchInventory();
-  }, []);
+  // useEffect(() => {
+  //   fetchInventory();
+  // }, []);
 
   useEffect(() => {
     const fetchFacility = async () => {
@@ -110,6 +118,27 @@ export default function BloodInventory() {
 
     fetchFacility();
   }, []);
+
+  const fetchInventoryByFacility = async () => {
+    setLoading(true);
+    try {
+      const data = await getBloodInventoryByFacilityId(userFacilityId, {
+        page,
+        limit,
+      });
+      console.log(data);
+      setBloodInventory(data.data);
+      setTotal(data.metadata.totalPages);
+    } catch (error) {
+      console.error("Error fetching blood inventory:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInventoryByFacility();
+  }, [page]);
 
   useEffect(() => {
     const fetchComponents = async () => {
@@ -149,7 +178,7 @@ export default function BloodInventory() {
       };
       await createBloodInventory(payload);
       setIsAddDialogOpen(false);
-      fetchInventory();
+      fetchInventoryByFacility();
     } catch (error) {
       console.error("Failed to create blood inventory", error);
     }
@@ -353,15 +382,34 @@ export default function BloodInventory() {
                         <Button variant="outline" size="sm">
                           <Edit className="w-4 h-4" />
                         </Button>
-                        <Button variant="outline" size="sm">
+                        {/* <Button variant="outline" size="sm">
                           <Trash2 className="w-4 h-4" />
-                        </Button>
+                        </Button> */}
                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            <div className="flex justify-between items-center mt-6">
+              <Button
+                variant="outline"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              >
+                Trang trước
+              </Button>
+              <span className="text-gray-600">
+                Trang {currentPage} / {total}
+              </span>
+              <Button
+                variant="outline"
+                disabled={currentPage === total}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+              >
+                Trang sau
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

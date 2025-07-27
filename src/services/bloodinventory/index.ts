@@ -37,6 +37,13 @@ interface BloodInventoryDetail extends BloodInventory {
   ]
 }
 
+interface BloodInventoryQuery {
+  componentId?: string;
+  groupId?: string;
+  page?: number;
+  limit?: number;
+}
+
 export interface BloodInventoryResponse extends IResponse.Response {
   data: BloodInventory[];
 }
@@ -70,6 +77,20 @@ export const getBloodInventoryDetail = async (id : string): Promise<any> => {
   try{
     const {data} = await instance.get<any>(`/blood-inventory/detail/${id}`);
     return data.data;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+}
+
+export const getBloodInventoryByFacilityId = async (
+  id: any,
+  queryParams?: BloodInventoryQuery
+): Promise<any> => {
+  try{
+    const {data} = await instance.get<any>(`/blood-inventory/facility/${id}`,{
+      params: queryParams
+    });
+    if(data.status === 200) return data.data
   } catch (error: any) {
     throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
   }
