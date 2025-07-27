@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,12 +21,67 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, Plus, Heart, Droplets, Edit, Trash2 } from "lucide-react";
-import { getUsers } from "@/services/users";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Search,
+  Plus,
+  Heart,
+  Droplets,
+  Edit,
+  Trash2,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  CreditCard,
+  Calendar,
+} from "lucide-react";
+import { adminCreateUser, getUsers } from "@/services/users";
 import { Badge } from "@/components/ui/badge";
 
+// Mock blood types data - replace with actual API call
+const bloodTypes = [
+  { id: "60f1a5b3e5c7d2a1b3c4d5e1", name: "A+" },
+  { id: "60f1a5b3e5c7d2a1b3c4d5e2", name: "A-" },
+  { id: "60f1a5b3e5c7d2a1b3c4d5e3", name: "B+" },
+  { id: "60f1a5b3e5c7d2a1b3c4d5e4", name: "B-" },
+  { id: "60f1a5b3e5c7d2a1b3c4d5e5", name: "AB+" },
+  { id: "60f1a5b3e5c7d2a1b3c4d5e6", name: "AB-" },
+  { id: "60f1a5b3e5c7d2a1b3c4d5e7", name: "O+" },
+  { id: "60f1a5b3e5c7d2a1b3c4d5e8", name: "O-" },
+];
+
+interface CreateUserForm {
+  fullName: string;
+  email: string;
+  password: string;
+  role: string;
+  sex: string;
+  yob: string;
+  phone: string;
+  address: string;
+  idCard: string;
+  bloodId: string;
+  isAvailable: boolean;
+}
+
 function BloodDonorManagement() {
-  // Mock data for blood donors
   const [users, setUsers] = useState<any>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,21 +89,41 @@ function BloodDonorManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [limit] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Form state
+  const [formData, setFormData] = useState<CreateUserForm>({
+    fullName: "",
+    email: "",
+    password: "",
+    role: "",
+    sex: "",
+    yob: "",
+    phone: "",
+    address: "",
+    idCard: "",
+    bloodId: "",
+    isAvailable: true,
+  });
+
+  const [formErrors, setFormErrors] = useState<Partial<CreateUserForm>>({});
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await getUsers({ page: currentPage, limit });
+      setUsers(res.data.data);
+      setTotalPages(res.data.metadata.totalPages);
+      setTotalItems(res.data.metadata.total);
+    } catch (err: any) {
+      setError(err.message || "Không thể tải danh sách người dùng.");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      try {
-        const res = await getUsers({ page: currentPage, limit });
-        setUsers(res.data.data);
-        setTotalPages(res.data.metadata.totalPages);
-        setTotalItems(res.data.metadata.total);
-      } catch (err: any) {
-        setError(err.message || "Không thể tải danh sách người dùng.");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchUsers();
   }, [currentPage, limit]);
 
@@ -54,14 +131,83 @@ function BloodDonorManagement() {
     setCurrentPage(newPage);
   };
 
-  const [searchTerm, setSearchTerm] = useState("");
+  const handleInputChange = (
+    field: keyof CreateUserForm,
+    value: string | boolean
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
 
-  // const filteredDonors = donors.filter(
-  //   (donor) =>
-  //     donor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     donor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     donor.bloodType.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
+    // Clear error when user starts typing
+    if (formErrors[field]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: Partial<CreateUserForm> = {};
+
+    if (!formData.fullName.trim()) errors.fullName = "Họ tên là bắt buộc";
+    if (!formData.email.trim()) errors.email = "Email là bắt buộc";
+    else if (!/\S+@\S+\.\S+/.test(formData.email))
+      errors.email = "Email không hợp lệ";
+    if (!formData.password.trim()) errors.password = "Mật khẩu là bắt buộc";
+    else if (formData.password.length < 6)
+      errors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+    if (!formData.role) errors.role = "Vai trò là bắt buộc";
+    if (!formData.sex) errors.sex = "Giới tính là bắt buộc";
+    if (!formData.yob) errors.yob = "Năm sinh là bắt buộc";
+    if (!formData.phone.trim()) errors.phone = "Số điện thoại là bắt buộc";
+    if (!formData.address.trim()) errors.address = "Địa chỉ là bắt buộc";
+    if (!formData.idCard.trim()) errors.idCard = "CMND/CCCD là bắt buộc";
+    if (!formData.bloodId) errors.bloodId = "Nhóm máu là bắt buộc";
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    try {
+      // Replace with actual API call
+      console.log("Creating user:", formData);
+
+      const res = await adminCreateUser(formData);
+      console.log(res);
+
+      // Reset form and close modal
+      setFormData({
+        fullName: "",
+        email: "",
+        password: "",
+        role: "DONOR",
+        sex: "",
+        yob: "",
+        phone: "",
+        address: "",
+        idCard: "",
+        bloodId: "",
+        isAvailable: true,
+      });
+      setIsCreateModalOpen(false);
+
+      // Refresh users list
+      fetchUsers();
+    } catch (error) {
+      console.error("Error creating user:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const getBloodTypeColor = (bloodType: string) => {
     const colors = {
@@ -104,10 +250,317 @@ function BloodDonorManagement() {
               </p>
             </div>
           </div>
-          <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg">
-            <Plus className="mr-2 h-4 w-4" />
-            Add New Donor
-          </Button>
+
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-red-600 hover:bg-red-700 text-white shadow-lg">
+                <Plus className="mr-2 h-4 w-4" />
+                Thêm thành viên mới
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <User className="h-5 w-5 text-red-600" />
+                  Tạo thành viên mới
+                </DialogTitle>
+                <DialogDescription>
+                  Điền thông tin để tạo tài khoản thành viên mới trong hệ thống
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Full Name */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="fullName"
+                      className="text-sm font-medium flex items-center gap-2"
+                    >
+                      <User className="h-4 w-4" />
+                      Họ và tên *
+                    </Label>
+                    <Input
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) =>
+                        handleInputChange("fullName", e.target.value)
+                      }
+                      placeholder="Nhập họ và tên"
+                      className={formErrors.fullName ? "border-red-500" : ""}
+                    />
+                    {formErrors.fullName && (
+                      <p className="text-sm text-red-500">
+                        {formErrors.fullName}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="email"
+                      className="text-sm font-medium flex items-center gap-2"
+                    >
+                      <Mail className="h-4 w-4" />
+                      Email *
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) =>
+                        handleInputChange("email", e.target.value)
+                      }
+                      placeholder="Nhập địa chỉ email"
+                      className={formErrors.email ? "border-red-500" : ""}
+                    />
+                    {formErrors.email && (
+                      <p className="text-sm text-red-500">{formErrors.email}</p>
+                    )}
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-sm font-medium">
+                      Mật khẩu *
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      placeholder="Nhập mật khẩu"
+                      className={formErrors.password ? "border-red-500" : ""}
+                    />
+                    {formErrors.password && (
+                      <p className="text-sm text-red-500">
+                        {formErrors.password}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Role */}
+                  <div className="space-y-2">
+                    <Label htmlFor="role" className="text-sm font-medium">
+                      Vai trò *
+                    </Label>
+                    <Select
+                      value={formData.role}
+                      onValueChange={(value) =>
+                        handleInputChange("role", value)
+                      }
+                    >
+                      <SelectTrigger
+                        className={formErrors.role ? "border-red-500" : ""}
+                      >
+                        <SelectValue placeholder="Chọn vai trò" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MEMBER">Người dùng</SelectItem>
+                        <SelectItem value="MANAGER">Quản lý</SelectItem>
+                        <SelectItem value="DOCTOR">Bác sĩ</SelectItem>
+                        <SelectItem value="NURSE">Y tá</SelectItem>
+                        <SelectItem value="TRANSPORTER">
+                          Nhân viên giao máu
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formErrors.role && (
+                      <p className="text-sm text-red-500">{formErrors.role}</p>
+                    )}
+                  </div>
+
+                  {/* Sex */}
+                  <div className="space-y-2">
+                    <Label htmlFor="sex" className="text-sm font-medium">
+                      Giới tính *
+                    </Label>
+                    <Select
+                      value={formData.sex}
+                      onValueChange={(value) => handleInputChange("sex", value)}
+                    >
+                      <SelectTrigger
+                        className={formErrors.sex ? "border-red-500" : ""}
+                      >
+                        <SelectValue placeholder="Chọn giới tính" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Nam</SelectItem>
+                        <SelectItem value="female">Nữ</SelectItem>
+                        <SelectItem value="other">Khác</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formErrors.sex && (
+                      <p className="text-sm text-red-500">{formErrors.sex}</p>
+                    )}
+                  </div>
+
+                  {/* Year of Birth */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="yob"
+                      className="text-sm font-medium flex items-center gap-2"
+                    >
+                      <Calendar className="h-4 w-4" />
+                      Năm sinh *
+                    </Label>
+                    <Input
+                      id="yob"
+                      type="date"
+                      value={formData.yob}
+                      onChange={(e) => handleInputChange("yob", e.target.value)}
+                      className={formErrors.yob ? "border-red-500" : ""}
+                    />
+                    {formErrors.yob && (
+                      <p className="text-sm text-red-500">{formErrors.yob}</p>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="phone"
+                      className="text-sm font-medium flex items-center gap-2"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Số điện thoại *
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        handleInputChange("phone", e.target.value)
+                      }
+                      placeholder="Nhập số điện thoại"
+                      className={formErrors.phone ? "border-red-500" : ""}
+                    />
+                    {formErrors.phone && (
+                      <p className="text-sm text-red-500">{formErrors.phone}</p>
+                    )}
+                  </div>
+
+                  {/* ID Card */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="idCard"
+                      className="text-sm font-medium flex items-center gap-2"
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      CMND/CCCD *
+                    </Label>
+                    <Input
+                      id="idCard"
+                      value={formData.idCard}
+                      onChange={(e) =>
+                        handleInputChange("idCard", e.target.value)
+                      }
+                      placeholder="Nhập số CMND/CCCD"
+                      className={formErrors.idCard ? "border-red-500" : ""}
+                    />
+                    {formErrors.idCard && (
+                      <p className="text-sm text-red-500">
+                        {formErrors.idCard}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Blood Type */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="bloodId"
+                      className="text-sm font-medium flex items-center gap-2"
+                    >
+                      <Droplets className="h-4 w-4" />
+                      Nhóm máu *
+                    </Label>
+                    <Select
+                      value={formData.bloodId}
+                      onValueChange={(value) =>
+                        handleInputChange("bloodId", value)
+                      }
+                    >
+                      <SelectTrigger
+                        className={formErrors.bloodId ? "border-red-500" : ""}
+                      >
+                        <SelectValue placeholder="Chọn nhóm máu" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {bloodTypes.map((bloodType) => (
+                          <SelectItem key={bloodType.id} value={bloodType.id}>
+                            {bloodType.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {formErrors.bloodId && (
+                      <p className="text-sm text-red-500">
+                        {formErrors.bloodId}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="address"
+                    className="text-sm font-medium flex items-center gap-2"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Địa chỉ *
+                  </Label>
+                  <Input
+                    id="address"
+                    value={formData.address}
+                    onChange={(e) =>
+                      handleInputChange("address", e.target.value)
+                    }
+                    placeholder="Nhập địa chỉ đầy đủ"
+                    className={formErrors.address ? "border-red-500" : ""}
+                  />
+                  {formErrors.address && (
+                    <p className="text-sm text-red-500">{formErrors.address}</p>
+                  )}
+                </div>
+
+                {/* Is Available */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isAvailable"
+                    checked={formData.isAvailable}
+                    onCheckedChange={(checked) =>
+                      handleInputChange("isAvailable", checked as boolean)
+                    }
+                  />
+                  <Label htmlFor="isAvailable" className="text-sm font-medium">
+                    Sẵn sàng hiến máu
+                  </Label>
+                </div>
+
+                {/* Submit Buttons */}
+                <div className="flex justify-end gap-3 pt-4 border-t">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsCreateModalOpen(false)}
+                    disabled={isSubmitting}
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Đang tạo..." : "Tạo thành viên"}
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
         {/* Stats Cards */}
@@ -127,7 +580,6 @@ function BloodDonorManagement() {
               </div>
             </CardContent>
           </Card>
-
           <Card className="border-l-4 border-l-green-500">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -143,7 +595,6 @@ function BloodDonorManagement() {
               </div>
             </CardContent>
           </Card>
-
           <Card className="border-l-4 border-l-blue-500">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -162,7 +613,6 @@ function BloodDonorManagement() {
               </div>
             </CardContent>
           </Card>
-
           <Card className="border-l-4 border-l-purple-500">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -238,7 +688,7 @@ function BloodDonorManagement() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <img
-                            src={user.avatar}
+                            src={user.avatar || "/placeholder.svg"}
                             alt={user.fullName || user.email}
                             className="h-10 w-10 rounded-full object-cover"
                           />
@@ -299,14 +749,14 @@ function BloodDonorManagement() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="hover:bg-blue-50 hover:border-blue-300"
+                            className="hover:bg-blue-50 hover:border-blue-300 bg-transparent"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="hover:bg-red-50 hover:border-red-300 text-red-600"
+                            className="hover:bg-red-50 hover:border-red-300 text-red-600 bg-transparent"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -318,7 +768,7 @@ function BloodDonorManagement() {
               </Table>
             </div>
 
-            {/* Add pagination controls after the table */}
+            {/* Pagination */}
             <div className="flex items-center justify-between px-6 py-4 border-t">
               <div className="text-sm text-gray-600">
                 Showing {(currentPage - 1) * limit + 1} to{" "}
@@ -337,7 +787,6 @@ function BloodDonorManagement() {
                       }`}
                     />
                   </PaginationItem>
-
                   {Array.from({ length: totalPages }, (_, i) => i + 1)
                     .filter(
                       (page) =>
@@ -367,7 +816,6 @@ function BloodDonorManagement() {
                         </PaginationItem>
                       </React.Fragment>
                     ))}
-
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => handlePageChange(currentPage + 1)}
