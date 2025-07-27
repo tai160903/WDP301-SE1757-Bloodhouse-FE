@@ -74,9 +74,7 @@ export function ManagerSidebar() {
       <div className="flex flex-col w-64 bg-white shadow-lg h-full">
         <div className="flex items-center justify-center h-16 px-4 bg-red-600">
           <Heart className="w-8 h-8 text-white mr-2" />
-          <h1 className="text-xl font-bold text-white">
-            Bloodhouse
-          </h1>
+          <h1 className="text-xl font-bold text-white">Bloodhouse</h1>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navigation.map((item) => {
