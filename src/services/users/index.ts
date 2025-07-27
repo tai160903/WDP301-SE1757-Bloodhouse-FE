@@ -65,4 +65,14 @@ const adminCreateUser = async (data: any): Promise<any> => {
   }
 };
 
-export { getUserProfile, getUsers, resetPassword, adminCreateUser };
+//admin
+const detailUser = async (id: any): Promise<any> => {
+  try{
+    const response = await instance.get<any>(`/user/admin/detail/${id}`);
+    return response;
+  } catch (error: any) {
+    throw new Error(error?.response?.data?.message || "Lỗi khi gọi API.");
+  }
+}
+
+export { getUserProfile, getUsers, resetPassword, adminCreateUser, detailUser };

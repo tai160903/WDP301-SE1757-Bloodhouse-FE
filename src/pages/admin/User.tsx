@@ -51,8 +51,13 @@ import {
   MapPin,
   CreditCard,
   Calendar,
+  Eye,
+  Award,
+  Building,
+  Activity,
+  Clock,
 } from "lucide-react";
-import { adminCreateUser, getUsers } from "@/services/users";
+import { adminCreateUser, detailUser, getUsers } from "@/services/users";
 import { Badge } from "@/components/ui/badge";
 
 // Mock blood types data - replace with actual API call
@@ -92,6 +97,9 @@ function BloodDonorManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>([]);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<CreateUserForm>({
@@ -146,6 +154,23 @@ function BloodDonorManagement() {
         ...prev,
         [field]: undefined,
       }));
+    }
+  };
+
+  const handleViewDetail = async (userId: string) => {
+    setLoadingDetail(true);
+    try {
+      const response = await detailUser(userId);
+      console.log(response.data.data);
+      if (response.data.status === 200) {
+        setSelectedUser(response.data.data);
+      }
+      setIsDetailModalOpen(true);
+    } catch (error: any) {
+      console.error("Error fetching user detail:", error);
+      setError(error.message || "Không thể tải thông tin chi tiết người dùng");
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -563,72 +588,300 @@ function BloodDonorManagement() {
           </Dialog>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="border-l-4 border-l-red-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Total Users
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {users.length}
-                  </p>
+        <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+          <DialogContent className="w-7xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                <Eye className="h-5 w-5 text-red-600" />
+                Chi tiết thành viên
+              </DialogTitle>
+              <DialogDescription>
+                Thông tin chi tiết của thành viên trong hệ thống
+              </DialogDescription>
+            </DialogHeader>
+
+            {loadingDetail ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-2"></div>
+                  <p className="text-gray-600">Đang tải thông tin...</p>
                 </div>
-                <Droplets className="h-8 w-8 text-red-500" />
               </div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-green-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Eligible Donors
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {users.filter((d: any) => d.isAvailable).length}
-                  </p>
+            ) : selectedUser ? (
+              <div className="space-y-6">
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <User className="h-5 w-5 text-blue-600" />
+                      Thông tin cá nhân
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-start gap-6">
+                      <img
+                        src={
+                          selectedUser.avatar ||
+                          "/placeholder.svg?height=100&width=100"
+                        }
+                        alt={selectedUser.fullName}
+                        className="h-24 w-24 rounded-full object-cover border-4 border-gray-200"
+                      />
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Họ và tên
+                          </Label>
+                          <p className="text-base font-semibold text-gray-900">
+                            {selectedUser.fullName || "N/a"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Email
+                          </Label>
+                          <p className="text-base text-gray-900">
+                            {selectedUser.email || "N/a"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Vai trò
+                          </Label>
+                          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+                            {selectedUser.role || "N/a"}
+                          </Badge>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Trạng thái
+                          </Label>
+                          <Badge>{selectedUser.status || "N/a"}</Badge>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Giới tính
+                          </Label>
+                          <p className="text-base text-gray-900">
+                            {selectedUser.sex === "male"
+                              ? "Nam"
+                              : selectedUser.sex === "female"
+                              ? "Nữ"
+                              : "Khác"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Ngày sinh
+                          </Label>
+                          <p className="text-base text-gray-900">
+                            {new Date(selectedUser.yob).toLocaleDateString(
+                              "vi-VN"
+                            ) || "N/a"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Phone className="h-5 w-5 text-green-600" />
+                        Thông tin liên hệ
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <Phone className="h-4 w-4" />
+                          Số điện thoại
+                        </Label>
+                        <p className="text-base text-gray-900">
+                          {selectedUser.phone || "N/a"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Địa chỉ
+                        </Label>
+                        <p className="text-base text-gray-900">
+                          {selectedUser.address || "N/a"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          CMND/CCCD
+                        </Label>
+                        <p className="text-base text-gray-900">
+                          {selectedUser.idCard || "N/a"}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Droplets className="h-5 w-5 text-red-600" />
+                        Thông tin máu
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Nhóm máu
+                        </Label>
+                        <Badge>{selectedUser?.bloodId?.name || "N/a"}</Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600">
+                          Sẵn sàng hiến máu
+                        </Label>
+                        <Badge
+                          className={
+                            selectedUser.isAvailable
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
+                          }
+                        >
+                          {selectedUser?.isAvailable ? "Có" : "Không"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                          <Award className="h-4 w-4" />
+                          Cấp độ hồ sơ
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">
+                            {selectedUser.profileLevel || "N/a"}
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                <Heart className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Total Donations
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {/* {donors.reduce(
-                      (sum, donor) => sum + donor.totalDonations,
-                      0
-                    )} */}
-                  </p>
+
+                {selectedUser?.facilityStaffInfo ? (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Building className="h-5 w-5 text-purple-600" />
+                        Thông tin nhân viên cơ sở
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Chức vụ
+                          </Label>
+                          <p className="text-base font-semibold text-gray-900">
+                            {selectedUser.facilityStaffInfo.position || "N/a"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">
+                            Ngày bổ nhiệm
+                          </Label>
+                          <p className="text-base text-gray-900">
+                            {new Date(
+                              selectedUser.facilityStaffInfo.assignedAt
+                            ).toLocaleDateString("vi-VN") || "N/a"}
+                          </p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <Label className="text-sm font-medium text-gray-600">
+                            Cơ sở làm việc
+                          </Label>
+                          <div className="mt-2 p-4 bg-gray-50 rounded-lg">
+                            <h4 className="font-semibold text-gray-900">
+                              {selectedUser.facilityStaffInfo.facility.name ||
+                                "N/a"}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {selectedUser.facilityStaffInfo.facility
+                                .address || "N/a"}
+                            </p>
+                            <div className="flex gap-4 mt-2">
+                              <span className="text-sm text-gray-600">
+                                📞{" "}
+                                {selectedUser.facilityStaffInfo.facility
+                                  .contactPhone || "N/a"}
+                              </span>
+                              <span className="text-sm text-gray-600">
+                                ✉️{" "}
+                                {selectedUser.facilityStaffInfo.facility
+                                  .contactEmail || "N/a"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null}
+
+                {selectedUser?.donationStats ? (
+                  <Card>
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-red-600" />
+                        Thống kê hiến máu
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="text-center p-4 bg-red-50 rounded-lg">
+                          <p className="text-sm font-medium text-gray-600">
+                            Lần hiến máu hoàn thành
+                          </p>
+                          <div className="text-3xl font-bold text-red-600 mb-2">
+                            {selectedUser.donationStats.completedDonations ||
+                              "N/a"}
+                          </div>
+                        </div>
+                        <div className="text-center p-4 bg-blue-50 rounded-lg">
+                          <div className="text-lg font-semibold text-blue-600 mb-2 gap-2">
+                            <p className="text-sm font-medium text-gray-600">
+                              Lần hiến máu gần nhất
+                            </p>
+                            <div className="text-3xl font-bold text-blue-600 mb-2">
+                              {selectedUser.donationStats.latestDonationDate
+                                ? new Date(
+                                    selectedUser.donationStats.latestDonationDate
+                                  ).toLocaleDateString("vi-VN")
+                                : "N/a"}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : null}
+
+                <div className="flex justify-end pt-4 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDetailModalOpen(false)}
+                  >
+                    Đóng
+                  </Button>
                 </div>
-                <Droplets className="h-8 w-8 text-blue-500" />
               </div>
-            </CardContent>
-          </Card>
-          <Card className="border-l-4 border-l-purple-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Universal Donors (O-)
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {users.filter((d: any) => d?.bloodId?.name === "O-").length}
-                  </p>
-                </div>
-                <Heart className="h-8 w-8 text-purple-500" />
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600">
+                  Không thể tải thông tin người dùng
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
         {/* Main Content */}
         <Card className="shadow-xl border-0 py-0">
@@ -641,14 +894,14 @@ function BloodDonorManagement() {
           <CardContent className="p-6">
             {/* Search */}
             <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              {/* <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
                 type="text"
                 placeholder="Search donors by name, email, or blood type..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 h-12 text-base border-2 focus:border-red-300"
-              />
+              /> */}
             </div>
 
             {/* Table */}
@@ -750,16 +1003,17 @@ function BloodDonorManagement() {
                             variant="outline"
                             size="sm"
                             className="hover:bg-blue-50 hover:border-blue-300 bg-transparent"
+                            onClick={() => handleViewDetail(user._id)}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Eye className="h-4 w-4" />
                           </Button>
-                          <Button
+                          {/* <Button
                             variant="outline"
                             size="sm"
                             className="hover:bg-red-50 hover:border-red-300 text-red-600 bg-transparent"
                           >
                             <Trash2 className="h-4 w-4" />
-                          </Button>
+                          </Button> */}
                         </div>
                       </TableCell>
                     </TableRow>
