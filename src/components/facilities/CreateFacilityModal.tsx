@@ -7,7 +7,7 @@ import { X, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Select from "react-select";
 import { getAllStaffsNotAssignedToFacility } from "@/services/facilityStaff";
-import axios from "axios";
+import { createFacility, updateFacility } from "@/services/facility";
 
 interface StaffOption {
   value: string;
@@ -50,8 +50,6 @@ const CreateFacilityModal = ({
   const [managerOptions, setManagerOptions] = useState<StaffOption[]>([]);
   const [doctorOptions, setDoctorOptions] = useState<StaffOption[]>([]);
   const [nurseOptions, setNurseOptions] = useState<StaffOption[]>([]);
-
-  console.log("Initial Data:", initialData);
 
   interface FacilityFormValues {
     name: string;
@@ -121,19 +119,20 @@ const CreateFacilityModal = ({
       setValue("contactPhone", initialData.contactPhone || "");
       setValue("contactEmail", initialData.contactEmail || "");
 
+      // Manager
       if (managerOptions.length > 0 && initialData.managerId) {
         const managerOption = managerOptions.find(
           (opt) => opt.value === initialData.managerId
         );
-
-        if (managerOption) {
-          setValue("managerId", managerOption);
-        } else {
-          setValue("managerId", {
-            value: initialData.managerId,
-            label: "Current Manager",
-          });
-        }
+        setValue(
+          "managerId",
+          managerOption ||
+            (initialData.manager && {
+              value: initialData.manager._id,
+              label: initialData.manager.fullName,
+            }) ||
+            null
+        );
       }
 
       if (
@@ -141,26 +140,39 @@ const CreateFacilityModal = ({
         initialData?.doctorIds?.length > 0
       ) {
         if (doctorOptions.length > 0) {
-          const doctorValues = initialData?.doctorIds.map((id) => ({
-            value: id,
-            label:
-              doctorOptions.find((opt) => opt.value === id)?.label || "Doctor",
-          }));
-          setValue("doctorIds", doctorValues);
+          const doctorValues = initialData.doctorIds
+            .map((id) => {
+              const found = doctorOptions.find((opt) => opt.value === id);
+              if (found) return found;
+              if (initialData.doctors) {
+                const doc = initialData.doctors.find((d: any) => d._id === id);
+                if (doc) return { value: doc._id, label: doc.fullName };
+              }
+              return null;
+            })
+            .filter(Boolean);
+          setValue("doctorIds", doctorValues as StaffOption[]);
         }
       }
 
+      // Nurses
       if (
         Array.isArray(initialData?.nurseIds) &&
         initialData.nurseIds?.length > 0
       ) {
         if (nurseOptions.length > 0) {
-          const nurseValues = initialData.nurseIds.map((id) => ({
-            value: id,
-            label:
-              nurseOptions.find((opt) => opt.value === id)?.label || "Nurse",
-          }));
-          setValue("nurseIds", nurseValues);
+          const nurseValues = initialData.nurseIds
+            .map((id) => {
+              const found = nurseOptions.find((opt) => opt.value === id);
+              if (found) return found;
+              if (initialData.nurses) {
+                const nurse = initialData.nurses.find((n: any) => n._id === id);
+                if (nurse) return { value: nurse._id, label: nurse.fullName };
+              }
+              return null;
+            })
+            .filter(Boolean);
+          setValue("nurseIds", nurseValues as StaffOption[]);
         }
       }
 
@@ -168,6 +180,84 @@ const CreateFacilityModal = ({
       if (initialData.imageUrl) {
         setImagePreview(initialData.imageUrl);
       }
+    }
+  }, [
+    initialData,
+    isOpen,
+    setValue,
+    managerOptions,
+    doctorOptions,
+    nurseOptions,
+  ]);
+
+  // Always sync select values when options or initialData change
+  useEffect(() => {
+    if (!initialData || !isOpen) return;
+
+    setValue("name", initialData.name || "");
+    setValue("address", initialData.address || "");
+    if (initialData.location && initialData.location.coordinates) {
+      setValue(
+        "latitude",
+        initialData.location.coordinates[1]?.toString() || ""
+      );
+      setValue(
+        "longitude",
+        initialData.location.coordinates[0]?.toString() || ""
+      );
+    }
+    setValue("contactPhone", initialData.contactPhone || "");
+    setValue("contactEmail", initialData.contactEmail || "");
+
+    // Manager
+    if (initialData.managerId) {
+      let managerOption =
+        managerOptions.find((opt) => opt.value === initialData.managerId) ||
+        (initialData.manager && {
+          value: initialData.manager._id,
+          label: initialData.manager.fullName,
+        });
+      if (!managerOption && typeof initialData.managerId === "string") {
+        managerOption = { value: initialData.managerId, label: "Manager" };
+      }
+      setValue("managerId", managerOption || null);
+    }
+
+    if (
+      Array.isArray(initialData.doctorIds) &&
+      initialData.doctorIds.length > 0
+    ) {
+      const doctorValues = initialData.doctorIds.map((id) => {
+        const found = doctorOptions.find((opt) => opt.value === id);
+        if (found) return found;
+        if (initialData.doctors) {
+          const doc = initialData.doctors.find((d: any) => d._id === id);
+          if (doc) return { value: doc._id, label: doc.fullName };
+        }
+        return { value: id, label: "Doctor" };
+      });
+      setValue("doctorIds", doctorValues as StaffOption[]);
+    }
+
+    if (
+      Array.isArray(initialData.nurseIds) &&
+      initialData.nurseIds.length > 0
+    ) {
+      const nurseValues = initialData.nurseIds.map((id) => {
+        const found = nurseOptions.find((opt) => opt.value === id);
+        if (found) return found;
+        if (initialData.nurses) {
+          const nurse = initialData.nurses.find((n: any) => n._id === id);
+          if (nurse) return { value: nurse._id, label: nurse.fullName };
+        }
+        return { value: id, label: "Nurse" };
+      });
+      setValue("nurseIds", nurseValues as StaffOption[]);
+    }
+
+    // Image preview
+    if (initialData.imageUrl) {
+      setImagePreview(initialData.imageUrl);
     }
   }, [
     initialData,
@@ -236,21 +326,15 @@ const CreateFacilityModal = ({
 
     try {
       const formData = new FormData();
-
-      // Add basic form fields
       formData.append("name", data.name);
       formData.append("address", data.address);
       formData.append("latitude", data.latitude);
       formData.append("longitude", data.longitude);
       formData.append("contactPhone", data.contactPhone);
       formData.append("contactEmail", data.contactEmail);
-
-      // Add manager ID
       if (data.managerId?.value) {
         formData.append("managerId", data.managerId.value);
       }
-
-      // Handle doctor IDs with proper JSON stringification
       if (data.doctorIds?.length > 0) {
         const doctorIdArray = data.doctorIds.map(
           (doctor: StaffOption) => doctor.value
@@ -259,8 +343,6 @@ const CreateFacilityModal = ({
       } else {
         formData.append("doctorIds", JSON.stringify([]));
       }
-
-      // Handle nurse IDs with proper JSON stringification
       if (data.nurseIds?.length > 0) {
         const nurseIdArray = data.nurseIds.map(
           (nurse: StaffOption) => nurse.value
@@ -269,26 +351,18 @@ const CreateFacilityModal = ({
       } else {
         formData.append("nurseIds", JSON.stringify([]));
       }
-
-      // Add image if available
       if (data.image && data.image[0]) {
         formData.append("image", data.image[0]);
       }
 
-      // Submit - different endpoints for create vs update
       if (initialData?._id) {
-        await axios.put(`/api/facilities/${initialData._id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await updateFacility(initialData._id, formData);
         toast.success("Facility updated successfully!");
       } else {
-        await axios.post("/api/facilities", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await createFacility(formData);
         toast.success("Facility created successfully!");
       }
 
-      // Success handling
       onSuccess();
       handleCloseModal();
     } catch (error) {
