@@ -123,6 +123,7 @@ export default function Requests() {
     message: string;
   } | null>(null);
   const [donationRequests, setDonationRequests] = useState<any[]>([]);
+  const [meta, setMeta] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updatingIds, setUpdatingIds] = useState<string[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -148,6 +149,7 @@ export default function Requests() {
       });
 
       const { data: items, metadata } = data;
+      setMeta(data.metadata);
 
       const urgencyPriority: Record<string, number> = {
         Emergency: 1,
@@ -325,10 +327,10 @@ export default function Requests() {
             <CardTitle className="text-sm">Tổng yêu cầu</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{donationRequests.length}</div>
+            <div className="text-2xl font-bold">{meta.total}</div>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="text-sm">Chờ xem xét</CardTitle>
           </CardHeader>
@@ -368,7 +370,7 @@ export default function Requests() {
               }
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Rejection Modal */}
