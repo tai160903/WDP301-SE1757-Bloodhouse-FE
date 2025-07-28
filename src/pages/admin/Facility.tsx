@@ -36,29 +36,6 @@ import CreateFacilityModal from "@/components/facilities/CreateFacilityModal";
 import { toast } from "sonner";
 import { getTotalStaff } from "@/services/facilityStaff";
 
-interface Facility {
-  _id: string;
-  name: string;
-  code?: string;
-  address?: string;
-  contactPhone: string;
-  contactEmail?: string;
-  isActive: boolean;
-  location: {
-    type: "Point";
-    coordinates: [number, number];
-  };
-  managerId?: string;
-  doctorIds?: string[];
-  nurseIds?: string[];
-  imageUrl?: string;
-  schedules: {
-    day: string;
-    openTime: string;
-    closeTime: string;
-  }[];
-}
-
 interface BloodInventory {
   _id: string;
   facilityId: {
@@ -81,15 +58,13 @@ interface BloodInventory {
 }
 
 function FacilityManagement() {
-  const [facilities, setFacilities] = useState<Facility[]>([]);
+  const [facilities, setFacilities] = useState<any[]>([]);
   const [bloodInventory, setBloodInventory] = useState<BloodInventory[]>([]);
   const [totalStaff, setTotalStaff] = useState<number>(0);
   const [staffCounts, setStaffCounts] = useState<Record<string, number>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(
-    null
-  );
+  const [selectedFacility, setSelectedFacility] = useState<any | null>(null);
 
   useEffect(() => {
     fetchFacilities();
@@ -162,7 +137,7 @@ function FacilityManagement() {
       ]);
 
       if (facilityResponse?.data) {
-        const staffData = staffResponse?.data || {};
+        const staffData: any = staffResponse?.data || {};
         const staffList = Array.isArray(staffData?.result)
           ? staffData.result
           : [];
@@ -170,7 +145,7 @@ function FacilityManagement() {
         const doctors = staffList
           .filter((staff: any) => staff?.position === "DOCTOR" && staff?._id)
           .map((staff: any) => ({
-            _id: staff._id,
+            _id: staff.userId._id,
             fullName:
               staff.userId?.fullName || staff.fullName || "Unknown Doctor",
             position: staff.position,
@@ -179,7 +154,7 @@ function FacilityManagement() {
         const nurses = staffList
           .filter((staff: any) => staff?.position === "NURSE" && staff?._id)
           .map((staff: any) => ({
-            _id: staff._id,
+            _id: staff.userId._id,
             fullName:
               staff.userId?.fullName || staff.fullName || "Unknown Nurse",
             position: staff.position,
@@ -191,20 +166,20 @@ function FacilityManagement() {
 
         const manager = managerStaff
           ? {
-              _id: managerStaff._id,
+              _id: managerStaff.userId._id,
               fullName: managerStaff.userId?.fullName,
               position: managerStaff.position,
             }
           : null;
 
-        const facilityData = {
+        const facilityData: any = {
           ...facilityResponse.data,
           location: facilityResponse.data.location ?? {
             type: "Point" as const,
             coordinates: [0, 0] as [number, number],
           },
-          doctorIds: doctors.map((d) => d._id),
-          nurseIds: nurses.map((n) => n._id),
+          doctorIds: doctors.map((d: any) => d._id),
+          nurseIds: nurses.map((n: any) => n._id),
           managerId: manager?._id || null,
           doctors,
           nurses,
@@ -214,7 +189,10 @@ function FacilityManagement() {
           contactPhone: facilityResponse.data.contactPhone || "",
           address: facilityResponse.data.address || "",
           code: facilityResponse.data.code || "",
-          imageUrl: facilityResponse.data.mainImage.url || "",
+          imageUrl:
+            (facilityResponse.data.mainImage &&
+              facilityResponse.data.mainImage.url) ||
+            "",
         };
 
         setSelectedFacility(facilityData);
@@ -231,16 +209,16 @@ function FacilityManagement() {
   const handleDeleteFacility = async (facilityId: string) => {
     try {
       const confirmDelete = window.confirm(
-        "Are you sure you want to delete this facility? This action cannot be undone."
+        "Bạn có chắc chắn muốn xóa cơ sở này? Hành động này không thể hoàn tác."
       );
       if (!confirmDelete) return;
 
       await deleteFacility(facilityId);
-      toast.success("Facility deleted successfully");
+      toast.success("Xóa cơ sở thành công");
       fetchFacilities();
     } catch (error) {
       console.error("Error deleting facility:", error);
-      toast.error("Failed to delete facility. Please try again.");
+      toast.error("Xóa cơ sở thất bại. Vui lòng thử lại.");
     }
   };
 

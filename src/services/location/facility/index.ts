@@ -105,6 +105,7 @@ export const updateFacility = async (
 
 export const deleteFacility = async (id: string): Promise<void> => {
   try {
+    console.log(`Deleting facility with ID: ${id}`);
     await instance.put(`/facility/delete/${id}`);
   } catch (error: any) {
     throw new Error(
