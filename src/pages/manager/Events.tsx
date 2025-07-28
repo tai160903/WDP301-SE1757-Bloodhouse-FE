@@ -296,9 +296,7 @@ export default function Events() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Quản Lý Sự Kiện
-          </h1>
+          <h1 className="text-3xl font-bold tracking-tight">Quản Lý Sự Kiện</h1>
           <p className="text-muted-foreground">
             Tạo và quản lý các sự kiện hiến máu
           </p>
@@ -369,8 +367,11 @@ export default function Events() {
                         validate: (value) => {
                           const now = new Date();
                           const selectedDate = new Date(value);
-                          return selectedDate > now || "Thời gian bắt đầu phải ở tương lai";
-                        }
+                          return (
+                            selectedDate > now ||
+                            "Thời gian bắt đầu phải ở tương lai"
+                          );
+                        },
                       })}
                     />
                     {errors.startTime && (
@@ -391,8 +392,11 @@ export default function Events() {
                           if (!startTime) return true;
                           const endDate = new Date(value);
                           const startDate = new Date(startTime);
-                          return endDate > startDate || "Thời gian kết thúc phải sau thời gian bắt đầu";
-                        }
+                          return (
+                            endDate > startDate ||
+                            "Thời gian kết thúc phải sau thời gian bắt đầu"
+                          );
+                        },
                       })}
                     />
                     {errors.endTime && (
@@ -561,45 +565,6 @@ export default function Events() {
         </Dialog>
       </div>
 
-      {/* Phần còn lại của thành phần giữ nguyên */}
-      {/* Thẻ Tóm tắt */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Tổng Số Sự Kiện</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">12</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Sự Kiện Đang Hoạt Động</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">5</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Tổng Số Người Tham Gia
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Tỷ Lệ Thành Công</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">92%</div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Bảng Sự Kiện */}
       <Card>
         <CardHeader>
@@ -621,61 +586,77 @@ export default function Events() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {events.map((event) => (
-                <TableRow key={event.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{event.title}</div>
-                      <div className="text-sm text-muted-foreground line-clamp-2">
-                        {event.description}
+              {events.length > 0 ? (
+                events.map((event) => (
+                  <TableRow key={event.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{event.title}</div>
+                        <div className="text-sm text-muted-foreground line-clamp-2">
+                          {event.description}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Liên hệ: {event.contactPhone}
+                        </div>
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Liên hệ: {event.contactPhone}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 mr-1" />
+                        {format(new Date(event.startTime), "dd/MM/yyyy")}
+                        <br />
+                        {format(new Date(event.startTime), "HH:mm")} -
+                        {format(new Date(event.endTime), "HH:mm")}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      {format(new Date(event.startTime), "dd/MM/yyyy")}
-                      <br />
-                      {format(new Date(event.startTime), "HH:mm")} -
-                      {format(new Date(event.endTime), "HH:mm")}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {event.address}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(event.status)}>
-                      {event.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Users className="w-4 h-4 mr-1" />
-                      {event.registeredParticipants || 0}/
-                      {event.expectedParticipants}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {event.address}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(event.status)}>
+                        {event.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Users className="w-4 h-4 mr-1" />
+                        {event.registeredParticipants || 0}/
+                        {event.expectedParticipants}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <div className="flex flex-col items-center space-y-2">
+                      <Calendar className="w-12 h-12 text-gray-400" />
+                      <p className="text-lg font-medium text-gray-500">
+                        Không có sự kiện
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        Chưa có sự kiện nào được tạo. Hãy tạo sự kiện đầu tiên!
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </CardContent>

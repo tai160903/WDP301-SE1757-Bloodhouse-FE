@@ -485,105 +485,139 @@ export default function Requests() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Người yêu cầu</TableHead>
-                <TableHead>Nhóm máu</TableHead>
-                <TableHead>Đơn vị</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead className="text-right">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {donationRequests.map((request) => (
-                <TableRow
-                  key={request._id}
-                  onClick={() => handleDetailRequest(request)}
-                  className="cursor-pointer"
+          {donationRequests.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Người yêu cầu</TableHead>
+                    <TableHead>Nhóm máu</TableHead>
+                    <TableHead>Đơn vị</TableHead>
+                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {donationRequests.map((request) => (
+                    <TableRow
+                      key={request._id}
+                      onClick={() => handleDetailRequest(request)}
+                      className="cursor-pointer"
+                    >
+                      <TableCell>{request.userId?.fullName || "N/A"}</TableCell>
+                      <TableCell>
+                        {request.bloodGroupId?.name || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        {`${
+                          request.expectedQuantity?.toLocaleString() || 0
+                        } ml`}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(request.status)}>
+                          {getStatusLabel(request.status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDetailRequest(request);
+                            }}
+                            title="Chi tiết"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </Button>
+                          {request.status ===
+                            BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-green-600"
+                                disabled={updatingIds.includes(request._id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleUpdateStatus(
+                                    request._id,
+                                    BLOOD_DONATION_REGISTRATION_STATUS.REGISTERED
+                                  );
+                                }}
+                                title="Duyệt"
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-red-600"
+                                disabled={updatingIds.includes(request._id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenRejectModal(request._id);
+                                }}
+                                title="Từ chối"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+
+              <div className="flex justify-between items-center mt-6">
+                <Button
+                  variant="outline"
+                  disabled={currentPage === 1}
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
                 >
-                  <TableCell>{request.userId?.fullName || "N/A"}</TableCell>
-                  <TableCell>{request.bloodGroupId?.name || "N/A"}</TableCell>
-                  <TableCell>
-                    {`${request.expectedQuantity?.toLocaleString() || 0} ml`}
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(request.status)}>
-                      {getStatusLabel(request.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDetailRequest(request);
-                        }}
-                        title="Chi tiết"
-                      >
-                        <FileText className="w-4 h-4" />
-                      </Button>
-                      {request.status ===
-                        BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-green-600"
-                            disabled={updatingIds.includes(request._id)}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleUpdateStatus(
-                                request._id,
-                                BLOOD_DONATION_REGISTRATION_STATUS.REGISTERED
-                              );
-                            }}
-                            title="Duyệt"
-                          >
-                            <CheckCircle className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-red-600"
-                            disabled={updatingIds.includes(request._id)}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleOpenRejectModal(request._id);
-                            }}
-                            title="Từ chối"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <div className="flex justify-between items-center mt-6">
-            <Button
-              variant="outline"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            >
-              Trang trước
-            </Button>
-            <span className="text-gray-600">
-              Trang {currentPage} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
-              Trang sau
-            </Button>
-          </div>
+                  Trang trước
+                </Button>
+                <span className="text-gray-600">
+                  Trang {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                >
+                  Trang sau
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 space-y-4">
+              <div className="w-24 h-24 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center">
+                <FileText className="w-12 h-12 text-red-500" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Không có yêu cầu hiến máu
+                </h3>
+                <p className="text-gray-500 mb-4 max-w-md">
+                  {selectedStatus ===
+                  BLOOD_DONATION_REGISTRATION_STATUS.PENDING_APPROVAL
+                    ? "Hiện tại không có yêu cầu nào đang chờ duyệt."
+                    : selectedStatus ===
+                      BLOOD_DONATION_REGISTRATION_STATUS.COMPLETED
+                    ? "Chưa có yêu cầu nào được hoàn thành."
+                    : selectedStatus ===
+                      BLOOD_DONATION_REGISTRATION_STATUS.REJECTED_REGISTRATION
+                    ? "Chưa có yêu cầu nào bị từ chối."
+                    : "Không có yêu cầu hiến máu nào trong danh sách."}
+                </p>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
