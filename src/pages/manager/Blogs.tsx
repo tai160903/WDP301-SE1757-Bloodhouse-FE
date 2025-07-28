@@ -98,7 +98,9 @@ export default function Blogs() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý bài viết</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Quản lý bài viết
+          </h1>
           <p className="text-muted-foreground">
             Quản lý bài viết cho trang web của cơ sở y tế
           </p>
@@ -214,7 +216,9 @@ export default function Blogs() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Tổng số bài viết</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Tổng số bài viết
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{blogs.length || 0}</div>
@@ -255,86 +259,110 @@ export default function Blogs() {
           <CardDescription>Manage blog posts and articles</CardDescription>
         </CardHeader> */}
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tiêu đề</TableHead>
-                <TableHead>Tác giả</TableHead>
-                <TableHead>Danh mục</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Ngày đăng</TableHead>
-                {/* <TableHead>Views</TableHead> */}
-                <TableHead className="text-right">Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {blogs?.map((post) => (
-                <TableRow key={post._id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{post.title}</div>
-                      <div className="text-sm text-muted-foreground line-clamp-2 max-w-md truncate">
-                        {post.summary}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{post.authorId.fullName || "Unknown"}</TableCell>
-                  <TableCell>
-                    {post.type.charAt(0).toUpperCase() + post.type.slice(1)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      className={getStatusColor(
-                        post.status.charAt(0).toUpperCase() +
-                          post.status.slice(1)
-                      )}
-                    >
-                      {post.status.charAt(0).toUpperCase() +
-                        post.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {post.createdAt ? (
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(post.createdAt, "dd/MM/yyyy")}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">
-                        Not scheduled
-                      </span>
-                    )}
-                  </TableCell>
-                  {/* <TableCell>{post.views.toLocaleString()}</TableCell> */}
-                  <TableCell className="text-right">
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          navigate(
-                            `/manager/blogs/edit/${post._id}?role=${auth?.user?.role}`
-                          )
-                        }
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDeletePost(post._id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          {blogs.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tiêu đề</TableHead>
+                  <TableHead>Tác giả</TableHead>
+                  <TableHead>Danh mục</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Ngày đăng</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {blogs.map((post) => (
+                  <TableRow key={post._id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">{post.title}</div>
+                        <div className="text-sm text-muted-foreground line-clamp-2 max-w-md truncate">
+                          {post.summary}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{post.authorId.fullName || "Unknown"}</TableCell>
+                    <TableCell>
+                      {post.type.charAt(0).toUpperCase() + post.type.slice(1)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        className={getStatusColor(
+                          post.status.charAt(0).toUpperCase() +
+                            post.status.slice(1)
+                        )}
+                      >
+                        {post.status.charAt(0).toUpperCase() +
+                          post.status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {post.createdAt ? (
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          {formatDate(post.createdAt, "dd/MM/yyyy")}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          Not scheduled
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            navigate(
+                              `/manager/blogs/edit/${post._id}?role=${auth?.user?.role}`
+                            )
+                          }
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDeletePost(post._id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 space-y-4">
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                <Edit className="w-12 h-12 text-blue-500" />
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Chưa có bài viết nào
+                </h3>
+                <p className="text-gray-500 mb-6 max-w-md">
+                  Bạn chưa tạo bài viết nào cho cơ sở y tế. Hãy bắt đầu chia sẻ
+                  kiến thức và thông tin hữu ích!
+                </p>
+                <Button
+                  onClick={() =>
+                    navigate(`/manager/blogs/create?role=${auth?.user?.role}`)
+                  }
+                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Tạo Bài Viết Đầu Tiên
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
