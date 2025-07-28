@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import Select from "react-select";
 import { getAllStaffsNotAssignedToFacility } from "@/services/facilityStaff";
 import { createFacility, updateFacility } from "@/services/facility";
+import { data } from "react-router-dom";
 
 interface StaffOption {
   value: string;
@@ -92,111 +93,17 @@ const CreateFacilityModal = ({
     if (!isOpen) {
       reset(defaultValues);
       setImagePreview(null);
+      return;
     }
+    fetchStaffOptions();
   }, [isOpen, reset]);
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchStaffOptions();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (initialData && isOpen) {
-      setValue("name", initialData.name || "");
-      setValue("address", initialData.address || "");
-      if (initialData.location && initialData.location.coordinates) {
-        setValue(
-          "latitude",
-          initialData.location.coordinates[1]?.toString() || ""
-        );
-        setValue(
-          "longitude",
-          initialData.location.coordinates[0]?.toString() || ""
-        );
-      }
-
-      setValue("contactPhone", initialData.contactPhone || "");
-      setValue("contactEmail", initialData.contactEmail || "");
-
-      // Manager
-      if (managerOptions.length > 0 && initialData.managerId) {
-        const managerOption = managerOptions.find(
-          (opt) => opt.value === initialData.managerId
-        );
-        setValue(
-          "managerId",
-          managerOption ||
-            (initialData.manager && {
-              value: initialData.manager._id,
-              label: initialData.manager.fullName,
-            }) ||
-            null
-        );
-      }
-
-      if (
-        Array.isArray(initialData?.doctorIds) &&
-        initialData?.doctorIds?.length > 0
-      ) {
-        if (doctorOptions.length > 0) {
-          const doctorValues = initialData.doctorIds
-            .map((id) => {
-              const found = doctorOptions.find((opt) => opt.value === id);
-              if (found) return found;
-              if (initialData.doctors) {
-                const doc = initialData.doctors.find((d: any) => d._id === id);
-                if (doc) return { value: doc._id, label: doc.fullName };
-              }
-              return null;
-            })
-            .filter(Boolean);
-          setValue("doctorIds", doctorValues as StaffOption[]);
-        }
-      }
-
-      // Nurses
-      if (
-        Array.isArray(initialData?.nurseIds) &&
-        initialData.nurseIds?.length > 0
-      ) {
-        if (nurseOptions.length > 0) {
-          const nurseValues = initialData.nurseIds
-            .map((id) => {
-              const found = nurseOptions.find((opt) => opt.value === id);
-              if (found) return found;
-              if (initialData.nurses) {
-                const nurse = initialData.nurses.find((n: any) => n._id === id);
-                if (nurse) return { value: nurse._id, label: nurse.fullName };
-              }
-              return null;
-            })
-            .filter(Boolean);
-          setValue("nurseIds", nurseValues as StaffOption[]);
-        }
-      }
-
-      // Image preview
-      if (initialData.imageUrl) {
-        setImagePreview(initialData.imageUrl);
-      }
-    }
-  }, [
-    initialData,
-    isOpen,
-    setValue,
-    managerOptions,
-    doctorOptions,
-    nurseOptions,
-  ]);
-
-  // Always sync select values when options or initialData change
   useEffect(() => {
     if (!initialData || !isOpen) return;
 
     setValue("name", initialData.name || "");
     setValue("address", initialData.address || "");
-    if (initialData.location && initialData.location.coordinates) {
+    if (initialData.location?.coordinates) {
       setValue(
         "latitude",
         initialData.location.coordinates[1]?.toString() || ""
@@ -210,55 +117,49 @@ const CreateFacilityModal = ({
     setValue("contactEmail", initialData.contactEmail || "");
 
     // Manager
+    let managerOption = null;
     if (initialData.managerId) {
-      let managerOption =
-        managerOptions.find((opt) => opt.value === initialData.managerId) ||
+      managerOption = managerOptions.find(
+        (opt) => opt.value === initialData.managerId
+      ) ||
         (initialData.manager && {
-          value: initialData.manager._id,
+          value: initialData.manager.userId?._id || initialData.manager._id,
           label: initialData.manager.fullName,
-        });
-      if (!managerOption && typeof initialData.managerId === "string") {
-        managerOption = { value: initialData.managerId, label: "Manager" };
-      }
-      setValue("managerId", managerOption || null);
+        }) || { value: initialData.managerId, label: "Manager" };
     }
+    setValue("managerId", managerOption);
 
-    if (
-      Array.isArray(initialData.doctorIds) &&
-      initialData.doctorIds.length > 0
-    ) {
-      const doctorValues = initialData.doctorIds.map((id) => {
-        const found = doctorOptions.find((opt) => opt.value === id);
-        if (found) return found;
-        if (initialData.doctors) {
-          const doc = initialData.doctors.find((d: any) => d._id === id);
-          if (doc) return { value: doc._id, label: doc.fullName };
-        }
-        return { value: id, label: "Doctor" };
-      });
-      setValue("doctorIds", doctorValues as StaffOption[]);
-    }
+    // Doctors
+    const doctorValues =
+      Array.isArray(initialData.doctorIds) && initialData.doctorIds.length > 0
+        ? initialData.doctorIds.map((id) => {
+            const found = doctorOptions.find((opt) => opt.value === id);
+            if (found) return found;
+            if (initialData.doctors) {
+              const doc = initialData.doctors.find((d: any) => d._id === id);
+              if (doc) return { value: doc._id, label: doc.fullName };
+            }
+            return { value: id, label: "Doctor" };
+          })
+        : [];
+    setValue("doctorIds", doctorValues);
 
-    if (
-      Array.isArray(initialData.nurseIds) &&
-      initialData.nurseIds.length > 0
-    ) {
-      const nurseValues = initialData.nurseIds.map((id) => {
-        const found = nurseOptions.find((opt) => opt.value === id);
-        if (found) return found;
-        if (initialData.nurses) {
-          const nurse = initialData.nurses.find((n: any) => n._id === id);
-          if (nurse) return { value: nurse._id, label: nurse.fullName };
-        }
-        return { value: id, label: "Nurse" };
-      });
-      setValue("nurseIds", nurseValues as StaffOption[]);
-    }
+    // Nurses
+    const nurseValues =
+      Array.isArray(initialData.nurseIds) && initialData.nurseIds.length > 0
+        ? initialData.nurseIds.map((id) => {
+            const found = nurseOptions.find((opt) => opt.value === id);
+            if (found) return found;
+            if (initialData.nurses) {
+              const nurse = initialData.nurses.find((n: any) => n._id === id);
+              if (nurse) return { value: nurse._id, label: nurse.fullName };
+            }
+            return { value: id, label: "Nurse" };
+          })
+        : [];
+    setValue("nurseIds", nurseValues);
 
-    // Image preview
-    if (initialData.imageUrl) {
-      setImagePreview(initialData.imageUrl);
-    }
+    if (initialData.imageUrl) setImagePreview(initialData.imageUrl);
   }, [
     initialData,
     isOpen,
@@ -276,30 +177,26 @@ const CreateFacilityModal = ({
           getAllStaffsNotAssignedToFacility("DOCTOR"),
           getAllStaffsNotAssignedToFacility("NURSE"),
         ]);
-
       setManagerOptions(
         managerResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
-          label: `${staff?.userId?.fullName}`,
+          label: staff.userId?.fullName,
         })) || []
       );
-
       setDoctorOptions(
         doctorResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
-          label: `${staff?.userId?.fullName}`,
+          label: staff.userId?.fullName,
         })) || []
       );
-
       setNurseOptions(
         nurseResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
-          label: `${staff?.userId?.fullName}`,
+          label: staff.userId?.fullName,
         })) || []
       );
     } catch (error) {
-      console.error("Error fetching staff options:", error);
-      toast.error("Failed to load staff data");
+      toast.error("Không thể tải dữ liệu nhân viên");
     }
   };
 
@@ -307,14 +204,11 @@ const CreateFacilityModal = ({
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
+      reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
-  // Custom reset function to handle modal close
   const handleCloseModal = () => {
     reset(defaultValues);
     setImagePreview(null);
@@ -323,7 +217,6 @@ const CreateFacilityModal = ({
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
-
     try {
       const formData = new FormData();
       formData.append("name", data.name);
@@ -332,46 +225,36 @@ const CreateFacilityModal = ({
       formData.append("longitude", data.longitude);
       formData.append("contactPhone", data.contactPhone);
       formData.append("contactEmail", data.contactEmail);
-      if (data.managerId?.value) {
-        formData.append("managerId", data.managerId.value);
-      }
-      if (data.doctorIds?.length > 0) {
-        const doctorIdArray = data.doctorIds.map(
-          (doctor: StaffOption) => doctor.value
-        );
-        formData.append("doctorIds", JSON.stringify(doctorIdArray));
-      } else {
-        formData.append("doctorIds", JSON.stringify([]));
-      }
-      if (data.nurseIds?.length > 0) {
-        const nurseIdArray = data.nurseIds.map(
-          (nurse: StaffOption) => nurse.value
-        );
-        formData.append("nurseIds", JSON.stringify(nurseIdArray));
-      } else {
-        formData.append("nurseIds", JSON.stringify([]));
-      }
+      formData.append("managerId", data.managerId?.value || "");
+      formData.append(
+        "doctorIds",
+        JSON.stringify(
+          data.doctorIds?.map((doctor: StaffOption) => doctor.value) || []
+        )
+      );
+      formData.append(
+        "nurseIds",
+        JSON.stringify(
+          data.nurseIds?.map((nurse: StaffOption) => nurse.value) || []
+        )
+      );
       if (data.image && data.image[0]) {
         formData.append("image", data.image[0]);
       }
 
       if (initialData?._id) {
         await updateFacility(initialData._id, formData);
-        toast.success("Facility updated successfully!");
+        toast.success("Cập nhật cơ sở thành công!");
       } else {
         await createFacility(formData);
-        toast.success("Facility created successfully!");
+        toast.success("Tạo cơ sở thành công!");
       }
 
       onSuccess();
       handleCloseModal();
     } catch (error) {
-      console.error(
-        initialData ? "Error updating facility:" : "Error creating facility:",
-        error
-      );
       toast.error(
-        initialData ? "Failed to update facility" : "Failed to create facility"
+        initialData ? "Cập nhật cơ sở thất bại" : "Tạo cơ sở thất bại"
       );
     } finally {
       setIsSubmitting(false);
@@ -380,9 +263,9 @@ const CreateFacilityModal = ({
 
   if (!isOpen) return null;
 
-  const modalTitle = initialData ? "Edit Facility" : "Create New Facility";
-  const submitButtonText = initialData ? "Update Facility" : "Create Facility";
-  const loadingText = initialData ? "Updating..." : "Creating...";
+  const modalTitle = initialData ? "Chỉnh sửa cơ sở" : "Tạo mới cơ sở";
+  const submitButtonText = initialData ? "Cập nhật cơ sở" : "Tạo cơ sở";
+  const loadingText = initialData ? "Đang cập nhật..." : "Đang tạo...";
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -406,7 +289,7 @@ const CreateFacilityModal = ({
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="name" className="block mb-1">
-                    Facility Name <span className="text-red-500">*</span>
+                    Tên cơ sở <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="name"
@@ -424,7 +307,7 @@ const CreateFacilityModal = ({
 
                 <div>
                   <Label htmlFor="address" className="block mb-1">
-                    Address <span className="text-red-500">*</span>
+                    Địa chỉ <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="address"
@@ -443,7 +326,7 @@ const CreateFacilityModal = ({
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="latitude" className="block mb-1">
-                      Latitude <span className="text-red-500">*</span>
+                      Vĩ độ <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="latitude"
@@ -463,7 +346,7 @@ const CreateFacilityModal = ({
                   </div>
                   <div>
                     <Label htmlFor="longitude" className="block mb-1">
-                      Longitude <span className="text-red-500">*</span>
+                      Kinh độ <span className="text-red-500">*</span>
                     </Label>
                     <Input
                       id="longitude"
@@ -488,7 +371,8 @@ const CreateFacilityModal = ({
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="contactPhone" className="block mb-1">
-                    Contact Phone <span className="text-red-500">*</span>
+                    Số điện thoại liên hệ{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="contactPhone"
@@ -506,7 +390,7 @@ const CreateFacilityModal = ({
 
                 <div>
                   <Label htmlFor="contactEmail" className="block mb-1">
-                    Contact Email <span className="text-red-500">*</span>
+                    Email liên hệ <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="contactEmail"
@@ -529,7 +413,7 @@ const CreateFacilityModal = ({
 
                 <div>
                   <Label htmlFor="image" className="block mb-1">
-                    Facility Image
+                    Ảnh cơ sở
                   </Label>
                   <div className="mt-1 flex items-center">
                     <label
@@ -538,7 +422,7 @@ const CreateFacilityModal = ({
                     >
                       <Upload className="mr-2 h-5 w-5 text-gray-400" />
                       <span className="text-sm text-gray-600">
-                        {imagePreview ? "Change image" : "Upload image"}
+                        {imagePreview ? "Đổi ảnh" : "Tải ảnh lên"}
                       </span>
                       <input
                         id="image-upload"
@@ -574,7 +458,7 @@ const CreateFacilityModal = ({
             <div className="space-y-4 pt-2 border-t border-gray-200">
               <div>
                 <Label htmlFor="managerId" className="block mb-1">
-                  Facility Manager <span className="text-red-500">*</span>
+                  Quản lý cơ sở <span className="text-red-500">*</span>
                 </Label>
                 <Controller
                   name="managerId"
@@ -601,7 +485,7 @@ const CreateFacilityModal = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="doctorIds" className="block mb-1">
-                    Doctors
+                    Bác sĩ
                   </Label>
                   <Controller
                     name="doctorIds"
@@ -621,7 +505,7 @@ const CreateFacilityModal = ({
 
                 <div>
                   <Label htmlFor="nurseIds" className="block mb-1">
-                    Nurses
+                    Điều dưỡng
                   </Label>
                   <Controller
                     name="nurseIds"
@@ -648,7 +532,7 @@ const CreateFacilityModal = ({
                 onClick={handleCloseModal}
                 disabled={isSubmitting}
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 type="submit"
