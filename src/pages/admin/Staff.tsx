@@ -177,7 +177,6 @@ function StaffManagement() {
         userId: newStaff.userId!._id,
         facilityId: newStaff.facilityId!._id,
         position: newStaff.position as "DOCTOR" | "NURSE" | "MANAGER",
-        status: "active",
         assignedAt: new Date().toISOString(),
       };
       console.log("Add staff payload:", payload);
