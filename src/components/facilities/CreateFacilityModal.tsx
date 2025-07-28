@@ -29,6 +29,7 @@ interface Facility {
   managerId?: string;
   doctorIds?: string[] | null;
   nurseIds?: string[] | null;
+  transporterIds?: string[] | null; // Thêm field này
   imageUrl?: string;
   _id?: string;
 }
@@ -51,6 +52,11 @@ const CreateFacilityModal = ({
   const [managerOptions, setManagerOptions] = useState<StaffOption[]>([]);
   const [doctorOptions, setDoctorOptions] = useState<StaffOption[]>([]);
   const [nurseOptions, setNurseOptions] = useState<StaffOption[]>([]);
+  const [transporterOptions, setTransporterOptions] = useState<StaffOption[]>(
+    []
+  ); // Thêm state cho transporter options
+
+  console.log("Initial Data:", initialData);
 
   interface FacilityFormValues {
     name: string;
@@ -62,6 +68,7 @@ const CreateFacilityModal = ({
     managerId: StaffOption | null;
     doctorIds: StaffOption[];
     nurseIds: StaffOption[];
+    transporterIds: StaffOption[]; // Thêm field này
     image: FileList | null;
   }
 
@@ -75,6 +82,7 @@ const CreateFacilityModal = ({
     managerId: null,
     doctorIds: [],
     nurseIds: [],
+    transporterIds: [], // Thêm field này
     image: null,
   };
 
@@ -159,6 +167,25 @@ const CreateFacilityModal = ({
         : [];
     setValue("nurseIds", nurseValues);
 
+    // Transporters
+    const transporterValues =
+      Array.isArray(initialData.transporterIds) &&
+      initialData.transporterIds.length > 0
+        ? initialData.transporterIds.map((id) => {
+            const found = transporterOptions.find((opt) => opt.value === id);
+            if (found) return found;
+            if (initialData.transporters) {
+              const transporter = initialData.transporters.find(
+                (t: any) => t._id === id
+              );
+              if (transporter)
+                return { value: transporter._id, label: transporter.fullName };
+            }
+            return { value: id, label: "Transporter" };
+          })
+        : [];
+    setValue("transporterIds", transporterValues);
+
     if (initialData.imageUrl) setImagePreview(initialData.imageUrl);
   }, [
     initialData,
@@ -167,16 +194,22 @@ const CreateFacilityModal = ({
     managerOptions,
     doctorOptions,
     nurseOptions,
+    transporterOptions,
   ]);
 
   const fetchStaffOptions = async () => {
     try {
-      const [managerResponse, doctorResponse, nurseResponse] =
-        await Promise.all([
-          getAllStaffsNotAssignedToFacility("MANAGER"),
-          getAllStaffsNotAssignedToFacility("DOCTOR"),
-          getAllStaffsNotAssignedToFacility("NURSE"),
-        ]);
+      const [
+        managerResponse,
+        doctorResponse,
+        nurseResponse,
+        transporterResponse,
+      ] = await Promise.all([
+        getAllStaffsNotAssignedToFacility("MANAGER"),
+        getAllStaffsNotAssignedToFacility("DOCTOR"),
+        getAllStaffsNotAssignedToFacility("NURSE"),
+        getAllStaffsNotAssignedToFacility("TRANSPORTER"),
+      ]);
       setManagerOptions(
         managerResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
@@ -191,6 +224,12 @@ const CreateFacilityModal = ({
       );
       setNurseOptions(
         nurseResponse?.data?.map((staff: any) => ({
+          value: staff.userId._id,
+          label: staff.userId?.fullName,
+        })) || []
+      );
+      setTransporterOptions(
+        transporterResponse?.data?.map((staff: any) => ({
           value: staff.userId._id,
           label: staff.userId?.fullName,
         })) || []
@@ -236,6 +275,14 @@ const CreateFacilityModal = ({
         "nurseIds",
         JSON.stringify(
           data.nurseIds?.map((nurse: StaffOption) => nurse.value) || []
+        )
+      );
+      formData.append(
+        "transporterIds",
+        JSON.stringify(
+          data.transporterIds?.map(
+            (transporter: StaffOption) => transporter.value
+          ) || []
         )
       );
       if (data.image && data.image[0]) {
@@ -482,7 +529,7 @@ const CreateFacilityModal = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <Label htmlFor="doctorIds" className="block mb-1">
                     Bác sĩ
@@ -516,6 +563,26 @@ const CreateFacilityModal = ({
                         options={nurseOptions}
                         isMulti
                         placeholder="Select nurses"
+                        isSearchable
+                        classNamePrefix="react-select"
+                      />
+                    )}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="transporterIds" className="block mb-1">
+                    Vận chuyển
+                  </Label>
+                  <Controller
+                    name="transporterIds"
+                    control={control}
+                    render={({ field }) => (
+                      <Select<StaffOption, true>
+                        {...field}
+                        options={transporterOptions}
+                        isMulti
+                        placeholder="Select transporters"
                         isSearchable
                         classNamePrefix="react-select"
                       />

@@ -160,6 +160,17 @@ function FacilityManagement() {
             position: staff.position,
           }));
 
+        const transporters = staffList
+          .filter(
+            (staff: any) => staff?.position === "TRANSPORTER" && staff?._id
+          )
+          .map((staff: any) => ({
+            _id: staff.userId._id,
+            fullName:
+              staff.userId?.fullName || staff.fullName || "Unknown Transporter",
+            position: staff.position,
+          }));
+
         const managerStaff = staffList.find(
           (staff: any) => staff?.position === "MANAGER" && staff?._id
         );
@@ -180,9 +191,11 @@ function FacilityManagement() {
           },
           doctorIds: doctors.map((d: any) => d._id),
           nurseIds: nurses.map((n: any) => n._id),
+          transporterIds: transporters.map((t: any) => t._id),
           managerId: manager?._id || null,
           doctors,
           nurses,
+          transporters,
           manager,
           schedules: facilityResponse.data.schedules || [],
           contactEmail: facilityResponse.data.contactEmail || "",
