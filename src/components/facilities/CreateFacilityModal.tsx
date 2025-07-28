@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import Select from "react-select";
 import { getAllStaffsNotAssignedToFacility } from "@/services/facilityStaff";
 import { createFacility, updateFacility } from "@/services/facility";
-import { data } from "react-router-dom";
 
 interface StaffOption {
   value: string;
