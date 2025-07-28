@@ -314,25 +314,6 @@ function FacilityManagement() {
             </CardContent>
           </Card>
 
-          <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Tổng số lượng máu
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {bloodInventory
-                      .reduce((total, item) => total + item.totalQuantity, 0)
-                      .toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-500">đơn vị</p>
-                </div>
-                <Warehouse className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="border-l-4 border-l-purple-500">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
